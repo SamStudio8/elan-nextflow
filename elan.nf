@@ -56,9 +56,31 @@ process samtools_depth {
 
     output:
     publishDir path : "${params.publish}/depth", pattern: "${coguk_id}.climb.bam.depth"
-    file "${coguk_id}.climb.bam.depth"
+    tuple dir, site, coguk_id, file(fasta), file(bam), file("${coguk_id}.climb.bam.depth") into swell_manifest_ch
 
     """
     samtools depth -d0 -a ${bam} > ${bam}.depth
     """
 }
+
+process swell {
+    tag { bam }
+    conda "environments/swell.yaml"
+    label 'bear'
+
+    input:
+    tuple dir, site, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
+
+    output:
+    publishDir path : "${params.publish}/swell", pattern: "${coguk_id}.climb.bam.depth.swell"
+    file "${coguk_id}.climb.bam.depth.swell" into report_ch
+
+    """
+    swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V2/nCoV-2019.scheme.bed" > ${coguk_id}.climb.bam.depth.swell
+    """
+
+}
+
+report_ch
+    .collectFile()
+    .println{ it.text }

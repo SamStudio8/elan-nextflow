@@ -6,5 +6,12 @@ This pipeline was designed to handle uploaded data for the COG-UK consortium.
 ## Execute
 
 ```
-nextflow run elan.nf -c elan.config -resume --manifest <path> --publish <path>
+nextflow run elan.nf -c elan.config -resume --manifest <path> --publish <path> --schemegit <path>
 ```
+
+### Params
+
+* `manifest` location of TSV manifest
+* `publish` location to publish artifacts
+* `schemegit` location of artic-ncov scheme repository
+

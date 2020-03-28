@@ -1,0 +1,8 @@
+name: swell
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - pip:
+    - git+https://github.com/samstudio8/swell.git
