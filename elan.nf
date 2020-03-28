@@ -40,7 +40,6 @@ process samtools_filter_and_sort {
 
     cpus 4
     memory '5 GB'
-    time '25m'
 
     """
     samtools view -h -F4 ${bam} | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.climb.bam

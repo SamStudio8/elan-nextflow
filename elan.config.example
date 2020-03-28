@@ -2,6 +2,7 @@ process {
   withLabel: bear {
   	executor='slurm'
   	clusterOptions=''
+        time='25m'
   }
 }
 
