@@ -1,0 +1,15 @@
+process {
+  withLabel: bear {
+  	executor='slurm'
+  	clusterOptions=''
+  }
+}
+
+aws {
+  accessKey = ""
+  secretKey = ""
+  client {
+	  endpoint = ""
+	  protocol = 'HTTPS'
+  }
+}
