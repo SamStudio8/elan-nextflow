@@ -1,4 +1,4 @@
-name: nanostat2
+name: samtools
 channels:
   - conda-forge
   - bioconda
