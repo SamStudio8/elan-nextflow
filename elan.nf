@@ -35,7 +35,7 @@ process samtools_filter_and_sort {
     tuple dir, site, coguk_id, file(fasta), file(bam) from valid_manifest_ch
 
     output:
-    publishDir path: params.publish
+    publishDir path: [params.publish, 'alignment'].join('/')
     file "${coguk_id}.climb.bam"
 
     cpus 4
