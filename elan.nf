@@ -27,7 +27,7 @@ process samtools_quickcheck {
 }
 
 process samtools_filter_and_sort {
-    tag { bam_name }
+    tag { bam }
     conda "environments/samtools.yaml"
     label 'bear'
 
