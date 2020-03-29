@@ -36,13 +36,26 @@ process samtools_filter_and_sort {
 
     output:
     publishDir path : "${params.publish}/alignment", pattern: "${coguk_id}.climb.bam"
-    tuple dir, site, coguk_id, file(fasta), file("${coguk_id}.climb.bam") into sorted_manifest_ch
+    tuple dir, site, coguk_id, file(fasta), file("${coguk_id}.climb.bam") into publish_fasta_ch
 
     cpus 4
     memory '5 GB'
 
     """
     samtools view -h -F4 ${bam} | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.climb.bam
+    """
+}
+
+process publish_fasta {
+    input:
+    tuple dir, site, coguk_id, file(fasta), file(bam) from publish_fasta_ch
+
+    output:
+    publishDir path : "${params.publish}/fasta", pattern: "${coguk_id}.fasta"
+    tuple dir, site, coguk_id, file("${coguk_id}.fasta"), file(bam) into sorted_manifest_ch
+
+    """
+    cp ${fasta} ${coguk_id}.fasta
     """
 }
 
