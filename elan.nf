@@ -55,7 +55,7 @@ process samtools_depth {
     tuple dir, site, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
 
     output:
-    publishDir path : "${params.publish}/depth", pattern: "${coguk_id}.climb.bam.depth"
+    publishDir path: "${params.publish}/depth", pattern: "${coguk_id}.climb.bam.depth"
     tuple dir, site, coguk_id, file(fasta), file(bam), file("${coguk_id}.climb.bam.depth") into swell_manifest_ch
 
     """
@@ -72,7 +72,7 @@ process swell {
     tuple dir, site, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
     output:
-    publishDir path : "${params.publish}/qc", pattern: "${coguk_id}.qc"
+    publishDir path: "${params.publish}/qc", pattern: "${coguk_id}.qc"
     file "${coguk_id}.qc" into report_ch
 
     """
@@ -82,5 +82,4 @@ process swell {
 }
 
 report_ch
-    .collectFile()
-    .println{ it.text }
+    .collectFile(name: "test.qc", storeDir: "${params.publish}/qc", keepHeader: true)
