@@ -72,11 +72,11 @@ process swell {
     tuple dir, site, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
     output:
-    publishDir path : "${params.publish}/swell", pattern: "${coguk_id}.climb.bam.depth.swell"
-    file "${coguk_id}.climb.bam.depth.swell" into report_ch
+    publishDir path : "${params.publish}/qc", pattern: "${coguk_id}.qc"
+    file "${coguk_id}.qc" into report_ch
 
     """
-    swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V2/nCoV-2019.scheme.bed" > ${coguk_id}.climb.bam.depth.swell
+    swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V2/nCoV-2019.scheme.bed" --fasta "${fasta}" > ${coguk_id}.qc
     """
 
 }
