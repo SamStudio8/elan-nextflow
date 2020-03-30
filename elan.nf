@@ -35,7 +35,7 @@ process samtools_filter_and_sort {
     tuple dir, site, coguk_id, file(fasta), file(bam) from valid_manifest_ch
 
     output:
-    publishDir path : "${params.publish}/alignment", pattern: "${coguk_id}.climb.bam", mode: "copy"
+    publishDir path : "${params.publish}/alignment", pattern: "${coguk_id}.climb.bam", mode: "copy", overwrite: true
     tuple dir, site, coguk_id, file(fasta), file("${coguk_id}.climb.bam") into publish_fasta_ch
 
     cpus 4
@@ -51,7 +51,7 @@ process publish_fasta {
     tuple dir, site, coguk_id, file(fasta), file(bam) from publish_fasta_ch
 
     output:
-    publishDir path : "${params.publish}/fasta", pattern: "${coguk_id}.climb.fasta", mode: "copy"
+    publishDir path : "${params.publish}/fasta", pattern: "${coguk_id}.climb.fasta", mode: "copy", overwrite: true
     tuple dir, site, coguk_id, file("${coguk_id}.climb.fasta"), file(bam) into sorted_manifest_ch
 
     """
@@ -68,7 +68,7 @@ process samtools_depth {
     tuple dir, site, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/depth", pattern: "${coguk_id}.climb.bam.depth", mode: "copy"
+    publishDir path: "${params.publish}/depth", pattern: "${coguk_id}.climb.bam.depth", mode: "copy", overwrite: true
     tuple dir, site, coguk_id, file(fasta), file(bam), file("${coguk_id}.climb.bam.depth") into swell_manifest_ch
 
     """
@@ -85,7 +85,7 @@ process swell {
     tuple dir, site, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/qc", pattern: "${coguk_id}.qc", mode: "copy"
+    publishDir path: "${params.publish}/qc", pattern: "${coguk_id}.qc", mode: "copy", overwrite: true
     file "${coguk_id}.qc" into report_ch
 
     """
