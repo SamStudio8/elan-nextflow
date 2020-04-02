@@ -1,7 +1,18 @@
 #!/usr/bin/env nextflow
 
-Channel
-    .fromPath(params.manifest)
+params.uploads = "/cephfs/covid/bham/*/upload"
+params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
+
+process resolve_uploads {
+
+    output:
+    file 'files.ls' into start_ch
+    """
+    find ${params.uploads} -type f -name "*fa*" | grep -v 'fai' | ocarina_resolve.py ${params.dump} > files.ls
+    """
+}
+
+start_ch
     .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'dir', 'clabel', 'cuuid', 'fasta', 'alabel', 'auuid', 'bam'], sep:'\t')
     .filter { row -> row.fasta.size() > 0 }
     .filter { row -> row.bam.size() > 0 }
