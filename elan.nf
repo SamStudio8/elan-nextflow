@@ -2,6 +2,8 @@
 
 params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
+params.depth = 10.0
+params.breadth = 98.0
 
 process resolve_uploads {
 
@@ -46,27 +48,14 @@ process samtools_filter_and_sort {
     tuple username, dir, run_name, coguk_id, file(fasta), file(bam) from valid_manifest_ch
 
     output:
-    publishDir path : "${params.publish}/alignment", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
-    tuple username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.climb.bam") into publish_fasta_ch
+    //publishDir path : "${params.publish}/alignment", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
+    tuple username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.climb.bam") into sorted_manifest_ch
 
     cpus 4
     memory '5 GB'
 
     """
     samtools view -h -F4 ${bam} | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.${run_name}.climb.bam
-    """
-}
-
-process publish_fasta {
-    input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam) from publish_fasta_ch
-
-    output:
-    publishDir path : "${params.publish}/fasta", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
-    tuple username, dir, run_name, coguk_id, file("${coguk_id}.${run_name}.climb.fasta"), file(bam) into sorted_manifest_ch
-
-    """
-    cp ${fasta} ${coguk_id}.${run_name}.climb.fasta
     """
 }
 
@@ -87,13 +76,25 @@ process samtools_depth {
     """
 }
 
+process rename_fasta {
+    input:
+    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.climb.bam.depth") from swell_manifest_ch
+
+    output:
+    tuple username, dir, run_name, coguk_id, file("${coguk_id}.${run_name}.climb.fasta"), file(bam) into swell_ready_manifest_ch
+
+    """
+    cp ${fasta} ${coguk_id}.${run_name}.climb.fasta
+    """
+}
+
 process swell {
     tag { bam }
     conda "environments/swell.yaml"
     label 'bear'
 
     input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
+    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_ready_manifest_ch
 
     output:
     publishDir path: "${params.publish}/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true
@@ -123,3 +124,27 @@ ocarina_report_ch
 
 report_ch
     .collectFile(name: "test.qc", storeDir: "${params.publish}/qc", keepHeader: true)
+    .splitCsv(sep:'\t', header:true)
+    .branch{
+        pass: {row -> Float.parseFloat(row.pc_acgt) >= params.breadth && Float.parseFloat(row["pc_pos_cov_gte${params.depth}"]) >= params.breadth}
+        fail: {row -> Float.parseFloat(row.pc_acgt) < params.breadth || Float.parseFloat(row["pc_pos_cov_gte${params.depth}"]) < params.breadth}
+    }
+    .set{ postswell_ch }
+
+postswell_ch.pass
+    .map { row-> tuple(file(row.fasta_path), file(row.bam_path)) }
+    .set { publish_pass }
+
+process publish_fasta_pass {
+    input:
+    tuple file(fasta), file(bam) from publish_pass
+
+    output:
+    publishDir path : "${params.publish}/fasta/pass", pattern: "${fasta}", mode: "copy", overwrite: true
+    file "${fasta}"
+
+    """
+    touch ${fasta}
+    """
+}
+
