@@ -2,6 +2,7 @@
 
 params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
+params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan"
 
 process resolve_uploads {
 
@@ -16,7 +17,7 @@ start_ch
     .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'dir', 'clabel', 'cuuid', 'fasta', 'alabel', 'auuid', 'bam'], sep:'\t')
     .filter { row -> row.fasta.size() > 0 }
     .filter { row -> row.bam.size() > 0 }
-    .map { row-> tuple(row.username, row.dir, row.run_name, row.coguk_id, file([row.dir, row.fasta].join('/')), file([row.dir, row.bam].join('/'))) }
+    .map { row-> tuple(row.pipeuuid, row.username, row.dir, row.run_name, row.coguk_id, file([row.dir, row.fasta].join('/')), file([row.dir, row.bam].join('/'))) }
     .set { manifest_ch }
 
 process samtools_quickcheck {
@@ -27,10 +28,10 @@ process samtools_quickcheck {
     errorStrategy 'ignore'
 
     input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam) from manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from manifest_ch
 
     output:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam) into valid_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into valid_manifest_ch
 
     """
     samtools quickcheck $bam
@@ -43,11 +44,11 @@ process samtools_filter_and_sort {
     label 'bear'
 
     input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam) from valid_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from valid_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/alignment", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
-    tuple username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.climb.bam") into sorted_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.climb.bam") into sorted_manifest_ch
 
     cpus 4
     memory '5 GB'
@@ -63,11 +64,11 @@ process samtools_depth {
     label 'bear'
 
     input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/depth", pattern: "${coguk_id}.${run_name}.climb.bam.depth", mode: "copy", overwrite: true
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.climb.bam.depth") into swell_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.climb.bam.depth") into swell_manifest_ch
 
     """
     samtools depth -d0 -a ${bam} > ${bam}.depth
@@ -76,11 +77,11 @@ process samtools_depth {
 
 process rename_fasta {
     input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
     output:
     publishDir path : "${params.publish}/staging/fasta/", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
-    tuple username, dir, run_name, coguk_id, file("${coguk_id}.${run_name}.climb.fasta"), file(bam), file(depth) into swell_ready_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file("${coguk_id}.${run_name}.climb.fasta"), file(bam), file(depth) into swell_ready_manifest_ch
 
     """
     cp ${fasta} ${coguk_id}.${run_name}.climb.fasta
@@ -93,11 +94,11 @@ process swell {
     label 'bear'
 
     input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_ready_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_ready_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc") into ocarina_file_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc") into ocarina_file_manifest_ch
     file "${coguk_id}.${run_name}.qc" into report_ch
 
     """
@@ -108,13 +109,13 @@ process swell {
 
 process ocarina_ls {
     input:
-    tuple username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) from ocarina_file_manifest_ch
+    tuple pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) from ocarina_file_manifest_ch
 
     output:
     file "${coguk_id}.${run_name}.ocarina" into ocarina_report_ch
     
     """
-    echo "${coguk_id}\t${run_name}\t${username}\t${params.publish}\tfasta/${fasta}\talignment/${bam}\tqc/${qc}" > ${coguk_id}.${run_name}.ocarina
+    echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\tfasta/${fasta}\talignment/${bam}\tqc/${qc}" > ${coguk_id}.${run_name}.ocarina
     """
 }
 

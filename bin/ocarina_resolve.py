@@ -88,10 +88,6 @@ for sample_name in runs_by_sample:
             continue
 
         username = runs_by_sample[sample_name][run_name]["user"]
-        if username == "nicholsz":
-            username = "test-s.nicholls"
-        else:
-            username = "test-climb-covid19-nichollsn"
 
         print("\t".join([
             sample_name,
