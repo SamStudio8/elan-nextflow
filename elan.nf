@@ -50,8 +50,9 @@ process dehumanise_bam {
     output:
     publishDir path: "${params.publish}/staging/dh", pattern: "${coguk_id}.${run_name}.dh", mode: "copy", overwrite: true
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.dh.bam") into dh_manifest_ch
+    file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
-    memory '15 GB' # need to hold juicy mappy mmi
+    memory '15 GB' // need to hold juicy mappy mmi
 
     script:
     if ( platform == "ILL" )
@@ -152,3 +153,6 @@ ocarina_report_ch
 
 report_ch
     .collectFile(name: "swell.qc", storeDir: "${params.publish}/staging/swell", keepHeader: true)
+
+dh_report_ch
+    .collectFile(name: "dehumanised.qc", storeDir: "${params.publish}/staging/dh", keepHeader: true)
