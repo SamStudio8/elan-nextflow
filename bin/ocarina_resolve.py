@@ -132,6 +132,7 @@ for sample_name in runs_by_sample:
             username,
             pipeuuid,
             "%s-%s-%s-%s" % (runs_by_sample[sample_name][run_name]["site"], runs_by_sample[sample_name][run_name]["tech"], runs_by_sample[sample_name][run_name]["date"].replace('-', ''), pipeuuid[:5]),
+            runs_by_sample[sample_name][run_name]["tech"],
             d or '-',
             'consensus',
             best_fa,
