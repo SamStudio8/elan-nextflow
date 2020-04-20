@@ -9,12 +9,12 @@ process resolve_uploads {
     output:
     file 'files.ls' into start_ch
     """
-    find ${params.uploads} -type f -name "*fa*" | grep -v 'fai' | ocarina_resolve.py ${params.dump} > files.ls
+    find ${params.uploads} -type f -name "*fa*" | grep -v 'fai' | ocarina_resolve.py ${params.dump} > files.ls 2> err
     """
 }
 
 start_ch
-    .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'dir', 'clabel', 'cuuid', 'fasta', 'alabel', 'auuid', 'bam'], sep:'\t')
+    .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'autorunname', 'dir', 'clabel', 'fasta', 'alabel', 'bam'], sep:'\t')
     .filter { row -> row.fasta.size() > 0 }
     .filter { row -> row.bam.size() > 0 }
     .map { row-> tuple(row.pipeuuid, row.username, row.dir, row.run_name, row.coguk_id, file([row.dir, row.fasta].join('/')), file([row.dir, row.bam].join('/'))) }
