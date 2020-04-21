@@ -52,7 +52,7 @@ process dehumanise_bam {
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.dh.bam") into dh_manifest_ch
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
-    memory '15 GB' // need to hold juicy mappy mmi
+    memory '20 GB' // need to hold juicy mappy mmi
 
     script:
     if ( platform == "ILL" )
