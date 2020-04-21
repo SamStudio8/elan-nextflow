@@ -105,6 +105,7 @@ process samtools_depth {
 }
 
 process rename_fasta {
+    label 'bear'
     input:
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
