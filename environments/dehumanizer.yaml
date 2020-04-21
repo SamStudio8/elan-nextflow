@@ -1,8 +1,8 @@
-name: swell
+name: dehuman
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
   - pip:
-    - git+https://github.com/samstudio8/dehumanizer.git@4409de0cbf158e13529d130d57a7c43a8dbda2a2
+    - git+https://github.com/samstudio8/dehumanizer.git@d2f5cb393f37ca6071c29a68a4c6eba161faaccd
