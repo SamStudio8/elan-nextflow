@@ -3,7 +3,7 @@
 params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
 params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan"
-params.dhmanifest = "/cephfs/covid/software/sam/dh/manifest.txt"
+params.dhmanifest = "/cephfs/covid/software/sam/dh/20200421/manifest.txt"
 
 process resolve_uploads {
 
@@ -24,7 +24,7 @@ start_ch
 process samtools_quickcheck {
     tag { bam }
     conda "environments/samtools.yaml"
-    label 'bear'
+    //#label 'bear'
 
     errorStrategy 'ignore'
 
@@ -52,7 +52,9 @@ process dehumanise_bam {
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.dh.bam") into dh_manifest_ch
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
-    memory '20 GB' // need to hold juicy mappy mmi
+    errorStrategy 'retry' 
+    maxRetries 3
+    memory { (13 + (2 * task.attempt))+"GB" }
 
     script:
     if ( platform == "ILL" )
@@ -105,7 +107,7 @@ process samtools_depth {
 }
 
 process rename_fasta {
-    label 'bear'
+    //#label 'bear'
     input:
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
