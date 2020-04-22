@@ -109,7 +109,7 @@ process dehumanise_bam {
 
     errorStrategy 'retry' 
     maxRetries 3
-    memory { (13 + (2 * task.attempt))+"GB" }
+    memory { (12 + (2 * task.attempt))+"GB" }
 
     script:
     if ( platform == "ILL" )
