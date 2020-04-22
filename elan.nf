@@ -68,10 +68,10 @@ process extract_bam_reads {
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
 
     output:
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${bam}.fasta") into bamfa_manifest_ch
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.bam.fasta") into bamfa_manifest_ch
 
     """
-    samtools view ${bam} | awk '{print ">"\$1"\\n"\$10}' > ${bam}.fasta
+    samtools view ${bam} | awk '{print ">"\$1"\\n"\$10}' > ${coguk_id}.${run_name}.bam.fasta
     """
 }
 
@@ -84,13 +84,13 @@ process kraken_bam_reads {
 
     output:
     publishDir path: "${params.publish}/staging/k2", pattern: "*k2*", mode: "copy", overwrite: true
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${bam}.fasta.k2o.9606.ls") into k2_manifest_ch
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${bam_fasta}.k2o.9606.ls") into k2_manifest_ch
     file "${bam_fasta}.k2o"
     file "${bam_fasta}.k2r"
 
     cpus 4
     """
-    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam}.fasta.k2o > ${bam}.fasta.k2o.9606.ls
+    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam}.fasta.k2o > ${bam_fasta}.k2o.9606.ls
     """
 }
 
