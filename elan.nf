@@ -78,7 +78,6 @@ process extract_bam_reads {
 process kraken_bam_reads {
     tag { bam }
     conda "environments/kraken2.yaml"
-    label 'bear'
 
     input:
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(bam_fasta) from bamfa_manifest_ch
@@ -86,6 +85,8 @@ process kraken_bam_reads {
     output:
     publishDir path: "${params.publish}/staging/k2", pattern: "*k2*", mode: "copy", overwrite: true
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${bam}.fasta.k2o.9606.ls") into k2_manifest_ch
+    file "${bam_fasta}.k2o"
+    file "${bam_fasta}.k2r"
 
     cpus 4
     """
