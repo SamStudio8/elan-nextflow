@@ -90,7 +90,7 @@ process kraken_bam_reads {
 
     cpus 4
     """
-    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam}.fasta.k2o > ${bam_fasta}.k2o.9606.ls
+    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam_fasta}.k2o > ${bam_fasta}.k2o.9606.ls
     """
 }
 
