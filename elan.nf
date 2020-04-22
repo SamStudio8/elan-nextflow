@@ -4,6 +4,7 @@ params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
 params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan"
 params.dhmanifest = "/cephfs/covid/software/sam/dh/20200421/manifest.txt"
+params.k2db = "/ramdisk/kraken2db"
 
 process resolve_uploads {
 
@@ -39,13 +40,66 @@ process samtools_quickcheck {
     """
 }
 
+process save_uploads {
+    input:
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from valid_manifest_ch
+
+    output:
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into validbak_manifest_ch
+
+    publishDir path: "${params.publish}/uploaded/alignment", pattern: "${coguk_id}.${run_name}.uploaded.bam", mode: "copy", overwrite: true
+    publishDir path: "${params.publish}/uploaded/fasta", pattern: "${coguk_id}.${run_name}.uploaded.fasta", mode: "copy", overwrite: true
+    file "${coguk_id}.${run_name}.uploaded.bam"
+    file "${coguk_id}.${run_name}.uploaded.fasta"
+
+    """
+    cp ${bam} ${coguk_id}.${run_name}.uploaded.bam
+    cp ${fasta} ${coguk_id}.${run_name}.uploaded.fasta
+    """
+
+}
+
+process extract_bam_reads {
+    tag { bam }
+    conda "environments/samtools.yaml"
+    label 'bear'
+
+    input:
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
+
+    output:
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${bam}.fasta") into bamfa_manifest_ch
+
+    """
+    samtools view ${bam} | awk '{print ">"\$1"\\n"\$10}' > ${bam}.fasta
+    """
+}
+
+process kraken_bam_reads {
+    tag { bam }
+    conda "environments/kraken2.yaml"
+    label 'bear'
+
+    input:
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(bam_fasta) from bamfa_manifest_ch
+
+    output:
+    publishDir path: "${params.publish}/staging/k2", pattern: "*k2*", mode: "copy", overwrite: true
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${bam}.fasta.k2o.9606.ls") into k2_manifest_ch
+
+    cpus 4
+    """
+    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam}.fasta.k2o > ${bam}.fasta.k2o.9606.ls
+    """
+}
+
 process dehumanise_bam {
     tag { bam }
     conda "environments/dehumanizer.yaml"
     label 'bear'
 
     input:
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from valid_manifest_ch
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(bam_hum_ls) from k2_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/dh", pattern: "${coguk_id}.${run_name}.dh", mode: "copy", overwrite: true
@@ -59,11 +113,11 @@ process dehumanise_bam {
     script:
     if ( platform == "ILL" )
         """
-        dehumanise ${params.dhmanifest} ${bam} --preset sr --bam -o ${coguk_id}.${run_name}.dh.bam --trash-minalen 25 --log ${coguk_id}.${run_name}.dh
+        dehumanise ${params.dhmanifest} ${bam} --preset sr --bam -o ${coguk_id}.${run_name}.dh.bam --trash-minalen 25 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls}
         """
     else if( platform == 'ONT' )
         """
-        dehumanise ${params.dhmanifest} ${bam} --preset map-ont --bam -o ${coguk_id}.${run_name}.dh.bam --trash-minalen 10 --log ${coguk_id}.${run_name}.dh
+        dehumanise ${params.dhmanifest} ${bam} --preset map-ont --bam -o ${coguk_id}.${run_name}.dh.bam --trash-minalen 10 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls}
         """
     else
         error "Invalid alignment mode for technology ${platform}"
