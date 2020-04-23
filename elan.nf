@@ -41,6 +41,8 @@ process samtools_quickcheck {
 }
 
 process save_uploads {
+    label 'bear'
+
     input:
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from valid_manifest_ch
 
