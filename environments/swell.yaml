@@ -5,4 +5,4 @@ channels:
   - defaults
 dependencies:
   - pip:
-    - git+https://github.com/samstudio8/swell.git@59cade9d7c39df4e854753dd4fbefc5ed7a9e4dd
+    - git+https://github.com/samstudio8/swell.git@3338e63c0a8ca0c919115c321ac8ae2645f1cb29
