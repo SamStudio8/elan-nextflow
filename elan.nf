@@ -2,7 +2,7 @@
 
 params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
-params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan"
+params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
 params.dhmanifest = "/cephfs/covid/software/sam/dh/20200421/manifest.txt"
 params.k2db = "/ramdisk/kraken2db"
 
@@ -25,7 +25,7 @@ start_ch
 process samtools_quickcheck {
     tag { bam }
     conda "environments/samtools.yaml"
-    //#label 'bear'
+    label 'bear'
 
     errorStrategy 'ignore'
 
@@ -90,9 +90,11 @@ process kraken_bam_reads {
     file "${bam_fasta}.k2o"
     file "${bam_fasta}.k2r"
 
-    cpus 4
+    cpus 3
     """
-    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam_fasta}.k2o > ${bam_fasta}.k2o.9606.ls
+    cp ${bam_fasta} /ramdisk/temp/${bam_fasta}
+    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r /ramdisk/temp/${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam_fasta}.k2o > ${bam_fasta}.k2o.9606.ls
+    rm /ramdisk/temp/${bam_fasta}
     """
 }
 
@@ -164,7 +166,7 @@ process samtools_depth {
 }
 
 process rename_fasta {
-    //#label 'bear'
+    label 'bear'
     input:
     tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
