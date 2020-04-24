@@ -16,7 +16,7 @@ process resolve_uploads {
 }
 
 start_ch
-    .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'autorunname', 'platform', 'dir', 'clabel', 'fasta', 'alabel', 'bam'], sep:'\t')
+    .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'autorunname', 'platform', 'dir', 'clabel', 'fasta', 'alabel', 'bam', 'sitecode'], sep:'\t')
     .filter { row -> row.fasta.size() > 0 }
     .filter { row -> row.bam.size() > 0 }
     .map { row-> tuple(row.platform, row.pipeuuid, row.username, row.dir, row.run_name, row.coguk_id, file([row.dir, row.fasta].join('/')), file([row.dir, row.bam].join('/'))) }

@@ -60,7 +60,7 @@ for row in manifest:
         runs_by_sample[central_sample_id][run_name] = {
             "path": None,
             "user": None,
-            "site": row.get("sequencing_site_code"),
+            "site": row.get("sequencing_org_code"),
             "date": row.get("sequencing_submission_date"),
             "pipe": row.get("sequencing_uuid", ""),
             "tech": lookup_instrument(row.get("instrument_make")),
@@ -138,6 +138,7 @@ for sample_name in runs_by_sample:
             best_fa,
             'alignment',
             best_bam,
+            runs_by_sample[sample_name][run_name]["site"],
         ]))
 
 for sample_name in matched_samples:
