@@ -4,7 +4,8 @@ params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
 params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
 params.dhmanifest = "/cephfs/covid/software/sam/dh/20200421/manifest.txt"
-params.k2db = "/ramdisk/kraken2db"
+//params.k2db = "/ramdisk/kraken2db"
+params.k2db = "/data/kraken2db"
 
 process resolve_uploads {
 
@@ -61,80 +62,13 @@ process save_uploads {
 
 }
 
-process extract_bam_reads {
-    tag { bam }
-    conda "environments/samtools.yaml"
-    label 'bear'
-
-    input:
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
-
-    output:
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.bam.fasta") into bamfa_manifest_ch
-
-    """
-    samtools view ${bam} | awk '{print ">"\$1"\\n"\$10}' > ${coguk_id}.${run_name}.bam.fasta
-    """
-}
-
-process kraken_bam_reads {
-    tag { bam }
-    conda "environments/kraken2.yaml"
-
-    input:
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(bam_fasta) from bamfa_manifest_ch
-
-    output:
-    publishDir path: "${params.publish}/staging/k2", pattern: "*k2*", mode: "copy", overwrite: true
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${bam_fasta}.k2o.9606.ls") into k2_manifest_ch
-    file "${bam_fasta}.k2o"
-    file "${bam_fasta}.k2r"
-
-    cpus 3
-    """
-    cp ${bam_fasta} /ramdisk/temp/${bam_fasta}
-    kraken2 --memory-mapping --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r /ramdisk/temp/${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam_fasta}.k2o > ${bam_fasta}.k2o.9606.ls
-    rm /ramdisk/temp/${bam_fasta}
-    """
-}
-
-process dehumanise_bam {
-    tag { bam }
-    conda "environments/dehumanizer.yaml"
-    label 'bear'
-
-    input:
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(bam_hum_ls) from k2_manifest_ch
-
-    output:
-    publishDir path: "${params.publish}/staging/dh", pattern: "${coguk_id}.${run_name}.dh", mode: "copy", overwrite: true
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.dh.bam") into dh_manifest_ch
-    file "${coguk_id}.${run_name}.dh" into dh_report_ch
-
-    errorStrategy 'retry' 
-    maxRetries 3
-    memory { (12 + (2 * task.attempt))+"GB" }
-
-    script:
-    if ( platform == "ILL" )
-        """
-        dehumanise ${params.dhmanifest} ${bam} --preset sr --bam -o ${coguk_id}.${run_name}.dh.bam --trash-minalen 25 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls}
-        """
-    else if( platform == 'ONT' )
-        """
-        dehumanise ${params.dhmanifest} ${bam} --preset map-ont --bam -o ${coguk_id}.${run_name}.dh.bam --trash-minalen 10 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls}
-        """
-    else
-        error "Invalid alignment mode for technology ${platform}"
-}
-
 process samtools_filter_and_sort {
     tag { bam }
     conda "environments/samtools.yaml"
     label 'bear'
 
     input:
-    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from dh_manifest_ch
+    tuple platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/alignment", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
@@ -211,10 +145,8 @@ process ocarina_ls {
 }
 
 ocarina_report_ch
-    .collectFile(name: "ocarina.ls", storeDir: "${params.publish}/staging/ocarina")
+    .collectFile(name: "ocarina.files.ls", storeDir: "${params.publish}/staging/summary")
 
 report_ch
-    .collectFile(name: "swell.qc", storeDir: "${params.publish}/staging/swell", keepHeader: true)
+    .collectFile(name: "swell.qc.tsv", storeDir: "${params.publish}/staging/summary", keepHeader: true)
 
-dh_report_ch
-    .collectFile(name: "dehumanised.qc", storeDir: "${params.publish}/staging/dh", keepHeader: true)
