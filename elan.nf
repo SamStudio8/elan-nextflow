@@ -3,9 +3,6 @@
 params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
 params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
-params.dhmanifest = "/cephfs/covid/software/sam/dh/20200421/manifest.txt"
-//params.k2db = "/ramdisk/kraken2db"
-params.k2db = "/data/kraken2db"
 
 process resolve_uploads {
 
