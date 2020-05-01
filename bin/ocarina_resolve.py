@@ -43,6 +43,9 @@ manifest = csv.DictReader(open(sys.argv[1]), delimiter='\t')
 runs_by_sample = {}
 new_count = 0
 tot_count = 0
+
+
+countries = {"UK-ENG": "England", "UK-WLS": "Wales", "UK-NIR": "Northern_Ireland", "UK-SCT": "Scotland", "": "UNKNOWN"}
 for row in manifest:
     run_name = row.get("run_name")
     central_sample_id = row.get("central_sample_id")
@@ -75,6 +78,11 @@ for row in manifest:
         tot_count += 1
         if is_new:
             new_count += 1 # run must be new
+        
+        cor_date = row.get('collection_date')
+        if not cor_date or cor_date == "None":
+            cor_date = "R%s" % row.get('received_date')
+
         runs_by_sample[central_sample_id][run_name] = {
             "path": None,
             "user": None,
@@ -88,6 +96,10 @@ for row in manifest:
             "is_new": is_new,
             "run_name": run_name,
             "tiles": tiles,
+            "adm0": row.get("adm0", "UNKNOWN"),
+            "adm1_mapped": countries[row.get("adm1", "")],
+            "cor_date": cor_date,
+            "seq_date": row.get("sequencing_submission_date", ""),
         }
         #print(runs_by_sample[central_sample_id][run_name])
 
@@ -183,6 +195,10 @@ for sample_name in runs_by_sample:
             runs_by_sample[sample_name][run_name]["site"],
             runs_by_sample[sample_name][run_name]["pag"],
             str(runs_by_sample[sample_name][run_name]["tiles"]),
+            runs_by_sample[sample_name][run_name]["adm0"],
+            runs_by_sample[sample_name][run_name]["adm1_mapped"],
+            runs_by_sample[sample_name][run_name]["cor_date"],
+            runs_by_sample[sample_name][run_name]["seq_date"],
         ]))
 
 missing_samples_by_site = {}
