@@ -5,7 +5,7 @@
 Channel
     .fromPath(params.manifest)
     .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'dir', 'fasta', 'bam', 'qc', 'sourcesite', 'seqsite', 'platform'], sep:'\t')
-    .map { row-> tuple(row.coguk_id, row.run_name, row.username, row.pipeuuid, file([row.dir, row.fasta].join('/')), file([row.dir, row.bam].join('/')), file([row.dir, row.qc].join('/')), row.sourcesite, row.seqsite, row.platform) }
+    .map { row-> tuple(row.coguk_id, row.run_name, row.username, row.pipeuuid, [row.dir, row.fasta].join('/'), [row.dir, row.bam].join('/'), [row.dir, row.qc].join('/'), row.sourcesite, row.seqsite, row.platform) }
     .set { manifest_ch }
 
 process play_ocarina {
@@ -14,7 +14,7 @@ process play_ocarina {
     conda "environments/ocarina.yaml"
 
     input:
-    tuple coguk_id, run_name, username, pipeuuid, file(fasta), file(bam), file(qc), sourcesite, seqsite, platform from manifest_ch
+    tuple coguk_id, run_name, username, pipeuuid, fasta, bam, qc, sourcesite, seqsite, platform from manifest_ch
 
     cpus 10 //# massively over-request local cores to prevent sending too much to API at once
 
