@@ -1,0 +1,9 @@
+name: ocarina
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - samtools
+  - pip:
+    - git+https://github.com/samstudio8/ocarina.git@1b4cc0cdd5637b70206caa641b84097a113c3853
