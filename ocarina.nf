@@ -53,7 +53,7 @@ process play_ocarina {
                                                      #-m tile-mapping pc_tiles_medcov_gte100 \$pc_tiles_gte100 \
                                                      #-m tile-mapping pc_tiles_medcov_gte200 \$pc_tiles_gte200;
         done
-        ocarina --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-elan-minimal-qc' --test-version 1;
-        ocarina --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-high-quality-public' --test-version 1;
+        ocarina --angry --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-elan-minimal-qc' --test-version 1;
+        ocarina --angry --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-high-quality-public' --test-version 1;
     """
 }

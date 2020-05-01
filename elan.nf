@@ -21,7 +21,7 @@ process resolve_uploads {
     file 'files.ls' into start_ch
     file 'files.err'
     """
-    find ${params.uploads} -type f -name "*fa*" | grep -v '\.fai$' | ocarina_resolve.py ${params.dump} > files.ls 2> files.err
+    find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py ${params.dump} > files.ls 2> files.err
     """
 }
 
