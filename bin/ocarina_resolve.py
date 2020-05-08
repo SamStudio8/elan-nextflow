@@ -68,8 +68,14 @@ for row in manifest:
         if seq_site == "SANG":
             source_site = central_sample_id[:4] # SANG submits on behalf of some sites
 
-        tile_str = row.get("meta.artic.primers", "0")
-        tiles_t = re.findall(r'\d+', tile_str)
+
+        lp = row.get("library_primers")
+        if lp and len(lp) > 0 and lp != "None":
+            tile_str = lp
+            tiles_t = re.findall(r'\d+', tile_str)
+        else:
+            tile_str = row.get("meta.artic.primers", "0")
+            tiles_t = re.findall(r'\d+', tile_str)
 
         tiles = 0
         if len(tiles_t) > 0:
@@ -212,10 +218,16 @@ for sample_name in matched_samples:
                 missing_samples_by_site[site] = {
                     "count": 0,
                     "sample_count": 0,
-                    "missing": {}
+                    "missing": {},
+                    "deleted": {},
+                    "deleted_count": 0,
                 }
             missing_samples_by_site[site]["count"] += 1
-            missing_samples_by_site[site]["missing"][sample_name] = matched_samples[sample_name].keys()
+            if runs_by_sample[sample_name][run_name]["pag"]:
+                missing_samples_by_site[site]["deleted_count"] += 1
+                missing_samples_by_site[site]["deleted"][sample_name] = matched_samples[sample_name].keys()
+            else:
+                missing_samples_by_site[site]["missing"][sample_name] = matched_samples[sample_name].keys()
             if site not in sites_seen:
                 missing_samples_by_site[site]["sample_count"] += 1
             sites_seen.add(site)
@@ -225,6 +237,9 @@ for site in missing_samples_by_site:
     for cogid in sorted(missing_samples_by_site[site]["missing"]):
         locations = missing_samples_by_site[site]["missing"][cogid]
         sys.stderr.write("[MAJORA][ORPHAN-COGX][%s] %s in Majora but not CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
+    for cogid in sorted(missing_samples_by_site[site]["deleted"]):
+        locations = missing_samples_by_site[site]["deleted"][cogid]
+        sys.stderr.write("[MAJORA][DELETE-COGX][%s] %s in Majora, and released. but no longer on CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
 
 d_i = 0
 for d_key, d in orphaned_dirs.items():
