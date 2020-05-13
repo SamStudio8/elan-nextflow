@@ -3,6 +3,7 @@
 params.uploads = "/cephfs/covid/bham/*/upload"
 params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
 params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
+params.minlen = 10000
 
 process save_manifest {
     output:
@@ -44,10 +45,30 @@ process samtools_quickcheck {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from manifest_ch
 
     output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into valid_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into validbam_manifest_ch
+    file "${coguk_id}.${run_name}.bam.quickcheck" into quickcheck_bam_ch
 
     """
-    samtools quickcheck $bam
+    samtools quickcheck $bam;
+    echo '\$? bam ${coguk_id} ${run_name}' > ${coguk_id}.${run_name}.bam.quickcheck
+    """
+}
+process fasta_quickcheck {
+    tag { fasta }
+    label 'bear'
+
+    errorStrategy 'ignore'
+
+    input:
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbam_manifest_ch
+
+    output:
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into valid_manifest_ch
+    file "${coguk_id}.${run_name}.fasta.quickcheck" into quickcheck_fasta_ch
+
+    """
+    elan_fastacheck.py ${fasta} ${params.minlen};
+    echo '\$? fasta ${coguk_id} ${run_name}' > ${coguk_id}.${run_name}.fasta.quickcheck
     """
 }
 
@@ -176,4 +197,9 @@ ocarina_report_ch
 
 report_ch
     .collectFile(name: "swell.qc.tsv", storeDir: "${params.publish}/staging/summary/${params.datestamp}", keepHeader: true)
+
+quickcheck_ch = Channel.create()
+quickcheck_ch
+    .mix( quickcheck_fasta_ch, quickcheck_bam_ch )
+    .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.publish}/staging/summary/${params.datestamp}")
 
