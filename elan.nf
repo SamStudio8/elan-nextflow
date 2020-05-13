@@ -97,6 +97,10 @@ process samtools_depth {
     conda "environments/samtools.yaml"
     label 'bear'
 
+    errorStrategy 'retry' 
+    maxRetries 3
+    memory { (3 + (2 * task.attempt))+"GB" }
+
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
 
