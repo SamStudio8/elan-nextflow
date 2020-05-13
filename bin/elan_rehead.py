@@ -42,6 +42,7 @@ heng_iter = readfq(fasta_fh)
 for name, seq, qual in heng_iter:
     break # first record only?
 if not name:
+    sys.stderr.write("[FAIL] %s has no sequence?" % sys.argv[1])
     sys.exit(1)
 fasta_fh.close()
 sys.stdout.write(">%s\n%s\n" % (sys.argv[2], seq))
