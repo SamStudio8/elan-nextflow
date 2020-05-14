@@ -45,34 +45,14 @@ process samtools_quickcheck {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from manifest_ch
 
     output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into validbam_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into validbam_manifest_ch
     file "${coguk_id}.${run_name}.bam.quickcheck" into quickcheck_bam_ch
 
+    shell:
     """
-    function status(){
-        rv=\$?
-        echo "\$rv bam ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.bam.quickcheck
-        exit \$rv
-    }
-    trap status EXIT
-    samtools quickcheck $bam
-    """
-}
-process samtools_quickcheck_halt {
-    tag { bam }
-    conda "environments/samtools.yaml"
-    label 'bear'
-
-    errorStrategy 'ignore'
-
-    input:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbam_manifest_ch
-
-    output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into veryvalidbam_manifest_ch
-
-    """
-    samtools quickcheck $bam
+    rv=0
+    samtools quickcheck $bam || rv=\$?
+    echo "\$rv bam ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.bam.quickcheck
     """
 }
 process fasta_quickcheck {
@@ -82,47 +62,32 @@ process fasta_quickcheck {
     validExitStatus 0,1,2,3,4,5,6,7,8
 
     input:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from veryvalidbam_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus from validbam_manifest_ch
 
     output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into valid_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, env(rv) into valid_manifest_ch
     file "${coguk_id}.${run_name}.fasta.quickcheck" into quickcheck_fasta_ch
 
+    shell:
     """
-    function status(){
-        rv=\$?
-        echo "\$rv fasta ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.fasta.quickcheck
-        exit \$rv
-    }
-    trap status EXIT
-    elan_fastacheck.py ${fasta} ${params.minlen}
-    """
-}
-process fasta_quickcheck_halt {
-    tag { fasta }
-    label 'bear'
-
-    errorStrategy 'ignore'
-
-    input:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from valid_manifest_ch
-
-    output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into veryvalid_manifest_ch
-
-    """
-    elan_fastacheck.py ${fasta} ${params.minlen}
+    rv=0
+    elan_fastacheck.py ${fasta} ${params.minlen} || rv=\$?
+    echo "\$rv fasta ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.fasta.quickcheck
     """
 }
 
 process save_uploads {
+    tag { fasta }
     label 'bear'
 
     input:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from veryvalid_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, fstatus from valid_manifest_ch
 
     output:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into validbak_manifest_ch
+
+    when:
+    (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
 
     publishDir path: "${params.publish}/uploaded/alignment", pattern: "${coguk_id}.${run_name}.uploaded.bam", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/uploaded/fasta", pattern: "${coguk_id}.${run_name}.uploaded.fasta", mode: "copy", overwrite: true
