@@ -86,18 +86,24 @@ process save_uploads {
     output:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into validbak_manifest_ch
 
-    when:
-    (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
+    errorStrategy 'ignore'
 
     publishDir path: "${params.publish}/uploaded/alignment", pattern: "${coguk_id}.${run_name}.uploaded.bam", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/uploaded/fasta", pattern: "${coguk_id}.${run_name}.uploaded.fasta", mode: "copy", overwrite: true
     file "${coguk_id}.${run_name}.uploaded.bam"
     file "${coguk_id}.${run_name}.uploaded.fasta"
 
-    """
-    cp ${bam} ${coguk_id}.${run_name}.uploaded.bam
-    cp ${fasta} ${coguk_id}.${run_name}.uploaded.fasta
-    """
+    script:
+    if (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
+        """
+        cp ${bam} ${coguk_id}.${run_name}.uploaded.bam
+        cp ${fasta} ${coguk_id}.${run_name}.uploaded.fasta
+        """
+    else
+        """
+        echo "Cowardly refusing to process ${coguk_id} ${run_name} any further as it has a bad-looking FASTA and/or BAM"
+        exit 1
+        """
 
 }
 
