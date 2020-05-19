@@ -52,7 +52,7 @@ process samtools_quickcheck {
     """
     rv=0
     samtools quickcheck $bam || rv=\$?
-    echo "\$rv bam ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.bam.quickcheck
+    echo "\$rv bam ${seqsite} ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.bam.quickcheck
     """
 }
 process fasta_quickcheck {
@@ -72,7 +72,7 @@ process fasta_quickcheck {
     """
     rv=0
     elan_fastacheck.py ${fasta} ${params.minlen} || rv=\$?
-    echo "\$rv fasta ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.fasta.quickcheck
+    echo "\$rv fasta ${seqsite} ${coguk_id} ${run_name}" > ${coguk_id}.${run_name}.fasta.quickcheck
     """
 }
 
