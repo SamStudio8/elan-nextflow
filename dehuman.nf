@@ -81,7 +81,8 @@ process dehumanise_bam {
 process publish_bam {
     tag { bam }
     conda "environments/pyena.yaml"
-    label 'bear'
+
+    cpus 6 //# massively over-request local cores to prevent sending too much to API at once
 
     errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
     maxRetries 5
