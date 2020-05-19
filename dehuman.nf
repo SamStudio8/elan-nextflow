@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
 
+params.ascpbin = "/rds/homes/n/nicholsz/.aspera/cli/bin/ascp"
 params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
 params.dhmanifest = "/cephfs/covid/software/sam/dh/20200421/manifest.txt"
 //params.k2db = "/ramdisk/kraken2db"
@@ -57,7 +58,7 @@ process dehumanise_bam {
     output:
     publishDir path: "${params.publish}/staging/dh", pattern: "${coguk_id}.${run_name}.dh", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/alignment-clean/", pattern: "${coguk_id}.${run_name}.climb.public.bam", mode: "copy", overwrite: true
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file("${coguk_id}.${run_name}.climb.public.bam") into ocarina_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file("${coguk_id}.${run_name}.climb.public.bam") into ascp_manifest_ch
     file "${coguk_id}.${run_name}.climb.public.bam"
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
@@ -78,6 +79,23 @@ process dehumanise_bam {
         error "Invalid alignment mode for technology ${run_platform}"
 }
 
+process ascp_bam {
+    tag { bam }
+    cpus 6 //# massively over-request local cores to prevent sending too much to API at once
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
+    maxRetries 5
+
+    input:
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam) from ascp_manifest_ch
+    output:
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam) into publish_manifest_ch
+
+    """
+    export ASPERA_SCP_PASS=\$WEBIN_PASS
+    ${params.ascpbin} -T --policy high -L- ${public_bam} \$WEBIN_USER@webin.ebi.ac.uk:.
+    """
+}
+
 process publish_bam {
     tag { bam }
     conda "environments/pyena.yaml"
@@ -88,7 +106,7 @@ process publish_bam {
     maxRetries 5
 
     input:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam) from ocarina_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam) from publish_manifest_ch
 
     output:
     file "${public_bam}.txt" into dh_accession_report_ch
@@ -96,7 +114,7 @@ process publish_bam {
 
     script:
     """
-    pyena --study-accession ${params.study} --my-data-is-ready \
+    pyena --study-accession ${params.study} --my-data-is-ready --no-ftp \
           --sample-name ${ena_sample_name} \
           --sample-center-name '${sample_center}' \
           --sample-attr 'collection date' ${collection_date} \
