@@ -2,11 +2,6 @@
 
 echo "[ELAN]" `date` " - LETS ROLL"
 
-# https://github.com/conda/conda/issues/7980
-eval "$(/cephfs/covid/software/miniconda3/bin/conda shell.bash hook)"
-/cephfs/covid/software/miniconda3/bin/conda activate samstudio8
-
-# https://github.com/conda/conda/issues/8186
 set -euo pipefail
 
 # Load the environment and credentials
@@ -16,7 +11,7 @@ source ~/.ocarina
 cd /cephfs/covid/software/sam/pre-elan
 
 # Pull down the entire sequencing run manifest
-ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait > latest.tsv
+/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait > latest.tsv
 # and link it to the file system
 find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python ../elan/bin/ocarina_resolve.py latest.tsv > q 2> t
 
