@@ -127,25 +127,25 @@ for line in sys.stdin.readlines():
     current_sample = None
     if fields[-1].upper() in runs_by_sample:
         current_sample = fields[-1].upper()
-    if fields[-2].upper() in runs_by_sample:
-        current_sample = fields[-2].upper()
-    
-    if not current_sample:
-        for sample_name in runs_by_sample:
-            for field in re.split('[^A-Za-z0-9-]', fields[-1]):
-                if field.upper() == sample_name.upper():
-                    current_sample = sample_name
-                    break
+    elif fields[-1] in runs_by_sample:
+        current_sample = fields[-1]
 
-            #if sample_name in fields[-1] or sample_name in fields[-2]:
-            #    current_sample = sample_name
-            #    break
+    elif fields[-2].upper() in runs_by_sample:
+        current_sample = fields[-2].upper()
+    elif fields[-2] in runs_by_sample:
+        current_sample = fields[-2]
+
+    else:
+        for field in re.split('[^A-Za-z0-9-]', fields[-1]):
+            if field.upper() in runs_by_sample:
+                current_sample = field.upper()
+            elif field in runs_by_sample:
+                current_sample = field
 
     if not current_sample:
         d = os.path.sep.join(fields[:-2])
         if d not in orphaned_dirs:
-            orphaned_dirs[d] = {"count": 0, "files": []
-        }
+            orphaned_dirs[d] = {"count": 0, "files": []}
         orphaned_dirs[d]["count"] += 1
         orphaned_dirs[d]["files"].append(fields[-2:])
 
