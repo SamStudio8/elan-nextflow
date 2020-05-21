@@ -4,16 +4,13 @@ echo "[ELAN]" `date` " - LETS ROLL"
 
 set -euo pipefail
 
-# Load the environment and credentials
+# Credentials
 source ~/.ocarina
 
-# Hit up the usual dir
-cd /cephfs/covid/software/sam/pre-elan
-
 # Pull down the entire sequencing run manifest
-/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait > latest.tsv
+/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait --task-wait-minutes 2 > latest.tsv
 # and link it to the file system
-find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python ../elan/bin/ocarina_resolve.py latest.tsv > q 2> t
+find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python /cephfs/covid/software/sam/elan/bin/ocarina_resolve.py latest.tsv > q 2> t
 
 COUNT_MAJORA=`wc -l latest.tsv | cut -f1 -d' '`
 COUNT_ELAN=`wc -l q | cut -f1 -d' '`
