@@ -19,7 +19,7 @@ SITE_COUNTS=`awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' q | sor
 SITE_COUNTS_NEW=`grep '^1' q | awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
 
 SITE_MISSING_FILE=`grep 'ORPHAN-SITE' t | awk '{print $6 " " $2}' | sort -k2nr`
-FILE_MISSING_META=`grep 'ORPHAN-DIRX' t | awk '$2 > 1 {print $2,$8}' | sort -nr | column -t`
+FILE_MISSING_META=`grep 'ORPHAN-DIRX' t | awk '$2 > 2 {print $2,$8}' | sort -nr | column -t`
 
 ###############################################################################
 PRE='{"text":"<!channel>
@@ -36,11 +36,11 @@ These directories contain one or more directories with samples that do not have 
 Please check you have uploaded all your metadata this week...'"\`\`\`${FILE_MISSING_META}\`\`\`"'
 ***
 
-*New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"
+*New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
 
 ***
-_The inbound pipeline will be run autonomously at ten minutes past the next hour. Not even Sam will be able to save you._
-}'
+_The inbound pipeline will be run autonomously at ten minutes past the next hour._
+_Not even Sam can stop the pipeline now..._"}'
 ###############################################################################
 POST='{"text":"<!channel>
 
