@@ -8,7 +8,7 @@ set -euo pipefail
 source ~/.ocarina
 
 # Pull down the entire sequencing run manifest
-/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait --task-wait-minutes 2 > latest.tsv
+/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait-minutes 2 --task-wait > latest.tsv
 # and link it to the file system
 find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python /cephfs/covid/software/sam/elan/bin/ocarina_resolve.py latest.tsv > q 2> t
 
