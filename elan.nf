@@ -127,6 +127,25 @@ process samtools_filter_and_sort {
     """
 }
 
+process samtools_index {
+    tag { bam }
+    label 'bear'
+    conda "environments/samtools.yaml"
+
+    input:
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
+
+    output:
+    publishDir path: "${params.publish}/staging/alignment", pattern: "${bam.baseName}.bai", mode: "copy", overwrite: true
+    file "${bam.baseName}.bai"
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into indexed_manifest_ch
+
+    script:
+    """
+    samtools index ${bam} ${bam.baseName}.bai
+    """
+}
+
 process samtools_depth {
     tag { bam }
     conda "environments/samtools.yaml"
@@ -137,7 +156,7 @@ process samtools_depth {
     memory { (3 + (2 * task.attempt))+"GB" }
 
     input:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from indexed_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/depth", pattern: "${coguk_id}.${run_name}.climb.bam.depth", mode: "copy", overwrite: true
