@@ -136,13 +136,13 @@ process samtools_index {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/staging/alignment", pattern: "${bam.baseName}.bai", mode: "copy", overwrite: true
-    file "${bam.baseName}.bai"
+    publishDir path: "${params.publish}/staging/alignment", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
+    file "${bam.baseName}.bam.bai"
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into indexed_manifest_ch
 
     script:
     """
-    samtools index ${bam} ${bam.baseName}.bai
+    samtools index ${bam} ${bam.baseName}.bam.bai
     """
 }
 
