@@ -59,7 +59,7 @@ POST='{"text":"<!channel>
 
 *Cumulative uploaded sequences by centre*'"\`\`\`${SITE_COUNTS}\`\`\`"'
 
-_Happy Friday!_"}'
+_The pipeline will start in a few minutes. Happy Friday!_"}'
 ###############################################################################
 
 # Announce
