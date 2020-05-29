@@ -42,7 +42,8 @@ Please check you have uploaded all your metadata this week...'"\`\`\`${FILE_MISS
 *New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
 
 ***
-_The inbound pipeline will be run autonomously at ten minutes past the next hour._
+_Files and metadata uploaded in the past 10-15 minutes may not have been seen in time to be counted here._
+_The inbound pipeline will be run autonomously at ten minutes past the next hour. Files and metadata must be uploaded before one minute past the next hour._
 _Not even Sam can stop the pipeline now..._"}'
 ###############################################################################
 POST='{"text":"<!channel>
