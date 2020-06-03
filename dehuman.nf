@@ -9,7 +9,7 @@ params.k2db = "/data/kraken2db"
 Channel
     .fromPath(params.manifest)
     .splitCsv(header:true, sep:'\t')
-    .map { row-> tuple(row.ena_sample_name, row.central_sample_id, row.sample_center_name, row.collection_date, row.adm0, row.adm1, row.run_name, row.published_name, file(row.climb_fn), row.run_center_name, row.library_strategy, row.library_source, row.library_selection, row.instrument_make, row.instrument_model) }
+    .map { row-> tuple(row.ena_sample_name, row.central_sample_id, row.sample_center_name, row.collection_date, row.received_date, row.adm0, row.adm1, row.run_name, row.published_name, file(row.climb_fn), row.run_center_name, row.library_strategy, row.library_source, row.library_selection, row.instrument_make, row.instrument_model, row.virus_identifier, row.min_ct_value, row.max_ct_value, row.library_primers, row.library_protocol, row.library_seq_kit, row.library_seq_protocol) }
     .set { manifest_ch }
 
 process extract_bam_reads {
@@ -18,10 +18,10 @@ process extract_bam_reads {
     label 'bear'
 
     input:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument from manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from manifest_ch
 
     output:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file("${bam}.fasta") into bamfa_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file("${bam}.fasta"), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol into bamfa_manifest_ch
 
     """
     samtools view ${bam} | awk '{print ">"\$1"\\n"\$10}' > ${bam}.fasta
@@ -33,11 +33,11 @@ process kraken_bam_reads {
     conda "environments/kraken2.yaml"
 
     input:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta) from bamfa_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from bamfa_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/k2", pattern: "*k2*", mode: "copy", overwrite: true
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file("${bam_fasta}.k2o.9606.ls") into k2_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file("${bam_fasta}.k2o.9606.ls"), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol into k2_manifest_ch
     file "${bam_fasta}.k2o"
     file "${bam_fasta}.k2r"
 
@@ -53,12 +53,12 @@ process dehumanise_bam {
     label 'bear'
 
     input:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls) from k2_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from k2_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/dh", pattern: "${coguk_id}.${run_name}.dh", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/alignment-clean/", pattern: "${coguk_id}.${run_name}.climb.public.bam", mode: "copy", overwrite: true
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file("${coguk_id}.${run_name}.climb.public.bam") into ascp_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file("${coguk_id}.${run_name}.climb.public.bam"), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol into ascp_manifest_ch
     file "${coguk_id}.${run_name}.climb.public.bam"
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
@@ -86,9 +86,9 @@ process ascp_bam {
     maxRetries 5
 
     input:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam) from ascp_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from ascp_manifest_ch
     output:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam) into publish_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol into publish_manifest_ch
 
     """
     export ASPERA_SCP_PASS=\$WEBIN_PASS
@@ -103,10 +103,10 @@ process publish_bam {
     cpus 6 //# massively over-request local cores to prevent sending too much to API at once
 
     errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
-    maxRetries 5
+    maxRetries 1
 
     input:
-    tuple ena_sample_name, coguk_id, sample_center, collection_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam) from publish_manifest_ch
+    tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from publish_manifest_ch
 
     output:
     file "${public_bam}.txt" into dh_accession_report_ch
@@ -117,13 +117,33 @@ process publish_bam {
     pyena --study-accession ${params.study} --my-data-is-ready --no-ftp \
           --sample-name ${ena_sample_name} \
           --sample-center-name '${sample_center}' \
+          --sample-taxon '2697049' \
+          --sample-attr 'collector name' 'not provided' \
+          --sample-attr 'collecting institution' '${sample_center}' \
           --sample-attr 'collection date' ${collection_date} \
           --sample-attr 'geographic location (country and/or sea)' 'United Kingdom' \
-          --sample-attr 'geographic location (region and locality)' ${adm1} \
+          --sample-attr 'geographic location (region and locality)' '${adm1}' \
+          --sample-attr 'definition for seropositive sample' 'not provided' \
+          --sample-attr 'serotype (required for a seropositive sample)' 'not provided' \
+          --sample-attr 'host common name' 'not provided' \
+          --sample-attr 'host health state' 'not provided' \
+          --sample-attr 'host scientific name' 'Human' \
+          --sample-attr 'host sex' 'not provided' \
+          --sample-attr 'host subject id' 'not provided' \
+          --sample-attr 'isolate' 'not provided' \
+          --sample-attr 'receipt date' '${received_date}' \
+          --sample-attr 'sample capture status' 'active surveillance in response to outbreak' \
+          --sample-attr 'virus identifier' 'not provided' \
+          --sample-attr 'ENA-CHECKLIST' 'ERC000033' \
+          --sample-attr 'min_cycle_threshold' '${min_ct}' \
+          --sample-attr 'max_cycle_threshold' '${max_ct}' \
+          --experiment-attr 'artic_primer_version' '${exp_primers}' \
+          --experiment-attr 'artic_protocol_version' '${exp_protocol}' \
           --run-name ${ena_run_name} \
           --run-file-path ${public_bam} \
           --run-center-name '${run_center}' \
           --run-instrument '${run_instrument}' \
+          --run-lib-protocol '${exp_seq_kit}|${exp_seq_protocol}' \
           --run-lib-source ${l_source} \
           --run-lib-selection ${l_selection} \
           --run-lib-strategy ${l_strategy} > ${public_bam}.txt
