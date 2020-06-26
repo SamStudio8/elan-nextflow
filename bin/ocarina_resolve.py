@@ -66,7 +66,10 @@ for row in manifest:
         source_site = row.get("submission_org_code")
         seq_site = row.get("sequencing_org_code")
         if seq_site == "SANG":
-            source_site = central_sample_id[:4] # SANG submits on behalf of some sites
+            if source_site == "SANG":
+                source_site = central_sample_id[:4] # SANG submits on behalf of some sites
+            else:
+                pass # skip and pass through the submission_org
 
 
         lp = row.get("library_primers")
