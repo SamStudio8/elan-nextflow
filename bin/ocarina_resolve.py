@@ -154,10 +154,19 @@ for line in sys.stdin.readlines():
 
         #sys.stderr.write("[WARN] %s not in Majora\n" % str(fields))
         continue
-    elif len(runs_by_sample[current_sample]) == 1:
-        # Assume if there is only one run for this sample, this is the right one...?
-        target_run_name = list(runs_by_sample[current_sample].keys())[0]
-        runs_by_sample[current_sample][target_run_name].update({"user": username, "path": os.path.sep.join(fields[:-1])})
+    
+    #NOTE samstudio8/2020-07-02
+    # I should have done this sooner, given the mistakes users are making when submitting samples
+    # to SANG, there is a potential for a race condition where one site can accidentally pick up
+    # the "wrong" run metadata. What with sites now going back to upload old failures we can
+    # no longer give people the benefit of the doubt when one run is being uploaded,
+    # Going forward the path must contain the run_name exactly to be correctly disambiguated.
+    #
+    #elif len(runs_by_sample[current_sample]) == 1:
+    #    # Assume if there is only one run for this sample, this is the right one...?
+    #    target_run_name = list(runs_by_sample[current_sample].keys())[0]
+    #    runs_by_sample[current_sample][target_run_name].update({"user": username, "path": os.path.sep.join(fields[:-1])})
+    #
     else:
         # Attempt to disambiguate by looking for a directory named after the run
         for target_run_name in runs_by_sample[current_sample]:
