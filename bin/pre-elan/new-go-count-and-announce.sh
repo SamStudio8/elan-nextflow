@@ -17,6 +17,8 @@ set -o pipefail
 
 COUNT_MAJORA=`wc -l latest.tsv | cut -f1 -d' '`
 COUNT_ELAN_NEW=`grep -c '^1' q`
+COUNT_ELAN_OLD=`ocarina --env get summary --md | awk '{sum+=$6} END {print sum}'`
+COUNT_ELAN_OLDANDNEW=`expr $COUNT_ELAN_NEW + $COUNT_ELAN_OLD`
 SITE_COUNTS=`awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' q | sort | uniq -c | sort -nr`
 SITE_COUNTS_NEW=`grep '^1' q | awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
 
@@ -55,6 +57,7 @@ POST='{"text":"<!channel>
 *COG-UK inbound pipeline ready*
 '$COUNT_MAJORA' sample sequencing experiments in Majora
 '$COUNT_ELAN_NEW' new sequences this week
+'$COUNT_ELAN_OLDANDNEW' sequences matched to Majora metadata
 
 ***
 
