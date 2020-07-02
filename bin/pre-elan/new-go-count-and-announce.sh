@@ -16,7 +16,6 @@ find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | pytho
 set -o pipefail
 
 COUNT_MAJORA=`wc -l latest.tsv | cut -f1 -d' '`
-COUNT_ELAN=`wc -l q | cut -f1 -d' '`
 COUNT_ELAN_NEW=`grep -c '^1' q`
 SITE_COUNTS=`awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' q | sort | uniq -c | sort -nr`
 SITE_COUNTS_NEW=`grep '^1' q | awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
@@ -56,13 +55,10 @@ POST='{"text":"<!channel>
 *COG-UK inbound pipeline ready*
 '$COUNT_MAJORA' sample sequencing experiments in Majora
 '$COUNT_ELAN_NEW' new sequences this week
-'$COUNT_ELAN' sequences matched to Majora metadata
 
 ***
 
 *New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
-
-*Cumulative uploaded sequences by centre*'"\`\`\`${SITE_COUNTS}\`\`\`"'
 
 _The pipeline will start in a few minutes. Happy Friday!_"}'
 ###############################################################################
