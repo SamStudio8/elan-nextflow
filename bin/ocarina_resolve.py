@@ -242,8 +242,8 @@ for sample_name in matched_samples:
                 missing_samples_by_site[site]["deleted"][sample_name] = matched_samples[sample_name].keys()
             else:
                 missing_samples_by_site[site]["missing"][sample_name] = matched_samples[sample_name].keys()
-            if site not in sites_seen:
-                missing_samples_by_site[site]["sample_count"] += 1
+                if site not in sites_seen:
+                    missing_samples_by_site[site]["sample_count"] += 1
             sites_seen.add(site)
 
 for site in missing_samples_by_site:
@@ -253,7 +253,7 @@ for site in missing_samples_by_site:
         sys.stderr.write("[MAJORA][ORPHAN-COGX][%s] %s in Majora but not CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
     for cogid in sorted(missing_samples_by_site[site]["deleted"]):
         locations = missing_samples_by_site[site]["deleted"][cogid]
-        sys.stderr.write("[MAJORA][DELETE-COGX][%s] %s in Majora, and released. but no longer on CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
+        #sys.stderr.write("[MAJORA][DELETE-COGX][%s] %s in Majora, and released. but no longer on CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
 
 d_i = 0
 for d_key, d in orphaned_dirs.items():
