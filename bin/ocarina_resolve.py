@@ -247,13 +247,14 @@ for sample_name in matched_samples:
             sites_seen.add(site)
 
 for site in missing_samples_by_site:
-    sys.stderr.write("[NOFILE][ORPHAN-SITE][%s] %d biosamples sequenced at %s missing a matched file on CLIMB\n" % (site, missing_samples_by_site[site]["sample_count"], site))
-    for cogid in sorted(missing_samples_by_site[site]["missing"]):
-        locations = missing_samples_by_site[site]["missing"][cogid]
-        sys.stderr.write("[MAJORA][ORPHAN-COGX][%s] %s in Majora but not CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
-    for cogid in sorted(missing_samples_by_site[site]["deleted"]):
-        locations = missing_samples_by_site[site]["deleted"][cogid]
-        #sys.stderr.write("[MAJORA][DELETE-COGX][%s] %s in Majora, and released. but no longer on CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
+    if missing_samples_by_site[site]["sample_count"] > 0:
+        sys.stderr.write("[NOFILE][ORPHAN-SITE][%s] %d biosamples sequenced at %s missing a matched file on CLIMB\n" % (site, missing_samples_by_site[site]["sample_count"], site))
+        for cogid in sorted(missing_samples_by_site[site]["missing"]):
+            locations = missing_samples_by_site[site]["missing"][cogid]
+            sys.stderr.write("[MAJORA][ORPHAN-COGX][%s] %s in Majora but not CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
+        for cogid in sorted(missing_samples_by_site[site]["deleted"]):
+            locations = missing_samples_by_site[site]["deleted"][cogid]
+            #sys.stderr.write("[MAJORA][DELETE-COGX][%s] %s in Majora, and released. but no longer on CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
 
 d_i = 0
 for d_key, d in orphaned_dirs.items():
