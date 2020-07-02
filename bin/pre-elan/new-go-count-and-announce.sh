@@ -22,7 +22,8 @@ SITE_COUNTS=`awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' q | sor
 SITE_COUNTS_NEW=`grep '^1' q | awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
 
 SITE_MISSING_FILE=`grep 'ORPHAN-SITE' t | awk '{print $6 " " $2}' | sort -k2nr`
-FILE_MISSING_META=`grep 'ORPHAN-DIRX' t | awk '$2 > 2 {print $2,$8}' | sort -nr | column -t`
+FILE_MISSING_META=`grep 'ORPHAN-DIRX' t | grep -v jacksond | awk '$2 > 2 {print $2,$8}' | sort -nr | column -t`
+SANG_MISSING_META=`grep 'ORPHAN-FILE' t | grep jacksond | cut -f2 -d' ' | awk -F'/' '{print $(NF-1)}' | cut -c1-4 | tr -d '[0-9]_' | sort | uniq -c | sort -nr`
 
 ###############################################################################
 PRE='{"text":"<!channel>
@@ -37,6 +38,10 @@ Please check your upload directories...'"\`\`\`${SITE_MISSING_FILE}\`\`\`"'
 *Uploaded sequences missing metadata by secondary directory*
 These directories contain one or more directories with samples that do not have metadata.
 Please check you have uploaded all your metadata this week...'"\`\`\`${FILE_MISSING_META}\`\`\`"'
+
+*Samples sequenced by Sanger missing biosample metadata*
+Metadata is missing for samples submitted from these sites, for sequencing at Sanger.
+Local sites should ensure they have uploaded the biosample-only metadata for samples not sequenced locally.'"\`\`\`${SANG_MISSING_META}\`\`\`"'
 ***
 
 *New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
