@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 source ~/.path
 source ~/.ocarina
-cd /cephfs/covid/software/sam/elan
+cd $ELAN_SOFTWARE_DIR
 
 MSG='{"text":"<!channel> *COG-UK inbound pipeline begins...*
 _HERE WE GO!_"}'
@@ -35,7 +35,7 @@ if [ $ret -ne 0 ]; then
     exit $ret
 fi
 
-bash $PRE_ELAN_DIR/new-publish.sh $DATESTAMP
+bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP
 ret=$?
 MSG='{"text":"<!channel> *COG-UK publishing pipeline finished...*
 ...with exit status '"$ret"'"}'
