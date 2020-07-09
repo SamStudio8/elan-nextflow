@@ -15,7 +15,7 @@ lines=`awk -vRS= 'END{print}' nf.elan.$DATESTAMP.log`
 MSG='{"text":"<!channel> *COG-UK inbound pipeline finished...*
 ...with exit status '"$ret"'
 '"\`\`\`${lines}\`\`\`"'
- _Happy Friday!_"}'
+ _Have a nice day!_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
 if [ $ret -ne 0 ]; then
