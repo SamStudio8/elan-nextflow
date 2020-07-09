@@ -3,6 +3,7 @@
 echo "[ELAN]" `date` " - LETS ROLL"
 
 set -euo pipefail
+DATESTAMP=`date '+%Y%m%d'`
 
 # Credentials
 source ~/.ocarina
@@ -14,6 +15,8 @@ source ~/.ocarina
 set +o pipefail
 find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python /cephfs/covid/software/sam/elan/bin/ocarina_resolve.py latest.tsv > q 2> t
 set -o pipefail
+cp t $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
+chmod 644 $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 
 COUNT_MAJORA=`wc -l latest.tsv | cut -f1 -d' '`
 COUNT_ELAN_NEW=`grep -c '^1' q`
@@ -35,22 +38,34 @@ PRE='{"text":"<!channel>
 ***
 *Samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre*
 Please check your upload directories...'"\`\`\`${SITE_MISSING_FILE}\`\`\`"'
+To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
+```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
+_Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
 
+***
 *Uploaded sequences missing metadata by secondary directory*
 These directories contain one or more directories with samples that do not have metadata.
 Please check you have uploaded all your metadata this week...'"\`\`\`${FILE_MISSING_META}\`\`\`"'
+To inspect the uploaded sequences that are missing metadata from your site, execute:
+```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
+_Replace climb-covid19-nichollss with the username of the uploader from the table above_
 
+***
 *Samples sequenced by Sanger missing biosample metadata*
 Metadata is missing for samples submitted from these sites, for sequencing at Sanger.
 Local sites should ensure they have uploaded the biosample-only metadata for samples not sequenced locally.'"\`\`\`${SANG_MISSING_META}\`\`\`"'
+To inspect the sequences uploaded from Sanger that are missing metadata from your site, execute:
+```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-jacksond | grep BIRM```
+_Replace BIRM with your barcode prefix from the table above, without changing the username._
 ***
 
 *New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
 
 ***
 _Files and metadata uploaded in the past 10-15 minutes may not have been seen in time to be counted here._
-_The inbound pipeline will be run autonomously at ten minutes past the next hour. Files and metadata must be uploaded before one minute past the next hour._
-_Not even Sam can stop the pipeline now..._"}'
+_Please try and help yourself with the commands above to self-diagnose basic missing data issues before contacting Sam._
+_The inbound pipeline will be run autonomously at ten minutes past the next hour._
+_Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"}'
 ###############################################################################
 POST='{"text":"<!channel>
 
