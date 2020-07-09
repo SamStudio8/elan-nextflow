@@ -29,14 +29,17 @@ chmod 755 $COG_PUBLISHED_DIR/$1/qc
 chmod 755 $COG_PUBLISHED_DIR/$1/summary
 
 # Linky
+echo 'Linking FASTA'
 for fas in `cat pass.fasta.ls`;
 do
-    echo "Linking $fas"
+    #echo "Linking $fas"
     ln -s $fas $COG_PUBLISHED_DIR/$1/fasta/
 done
+
+echo 'Linking BAMs'
 for bam in `cat pass.bam.ls`;
 do
-    echo "Linking $bam"
+    #echo "Linking $bam"
     ln -s $bam $COG_PUBLISHED_DIR/$1/alignment/
     ln -s $bam.bai $COG_PUBLISHED_DIR/$1/alignment/
 done
@@ -54,16 +57,16 @@ ls -lah $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 # Make QC tables available
 for qcc in `find $ELAN_DIR/staging/qc/ -name '*qc'`;
 do
-    echo "Linking $qcc"
+    #echo "Linking $qcc"
     ln -s $qcc $COG_PUBLISHED_DIR/$1/qc/
+    chmod 644 $qcc
 done
 
 # Fix perms
 echo "Fixing perms..."
-find $ELAN_DIR -type d -exec chmod 755 {} \;
-find $ELAN_DIR -type f -exec chmod 644 {} \;
-find $COG_PUBLISHED_DIR/$1/ -type l -exec chmod 644 {} \;
-chmod 755 $ELAN_DIR/staging/qc; #???
+#find $ELAN_DIR -type d -exec chmod 755 {} \;
+#find $ELAN_DIR -type f -exec chmod 644 {} \;
+#find $COG_PUBLISHED_DIR/$1/ -type l -exec chmod 644 {} \;
 
 # Repoint latest
 ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/latest
@@ -80,4 +83,4 @@ sudo setfacl -d -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
 COUNT_PASS=`wc -l pass.fasta.ls | cut -f1 -d' '`
 COUNT_NEW=`wc -l $ELAN_DIR/staging/summary/$1/swell.qc.tsv | cut -f1 -d' '`
 
-curl -X POST -H 'Content-type: application/json' --data '{"text":"<!channel>\n*COG-UK inbound pipeline complete*\n'$COUNT_NEW' new sequences matched to Majora metadata\n'$COUNT_PASS' sequences passed basic quality control to date!\nArtifacts successfully published by elan-nextflow to `'$COG_PUBLISHED_DIR'/latest`\n***\n_QC Reports have been calculated and can be reached from your Majora profile._\n_Thanks for your patience, have a nice weekend!_"}' $SLACK_REAL_HOOK
+curl -X POST -H 'Content-type: application/json' --data '{"text":"<!channel>\n*COG-UK inbound pipeline complete*\n'$COUNT_NEW' new sequences matched to Majora metadata\n'$COUNT_PASS' sequences passed basic quality control to date!\nArtifacts successfully published by elan-nextflow to `'$COG_PUBLISHED_DIR'/latest`\n***\n_QC Reports have been calculated and can be reached from your Majora profile._\n_The outbound distribution pipeline will run next Monday._\n_Thanks for your patience, have a nice day!_"}' $SLACK_REAL_HOOK
