@@ -64,6 +64,7 @@ _Replace BIRM with your barcode prefix from the table above, without changing th
 ***
 _Files and metadata uploaded in the past 10-15 minutes may not have been seen in time to be counted here._
 _Please try and help yourself with the commands above to self-diagnose basic missing data issues before contacting Sam._
+_Please note that Sam will not be able to assist in queries to disambiguate barcode prefixes that are shared across sites (e.g. LOND)._
 _The inbound pipeline will be run autonomously at ten minutes past the next hour._
 _Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"}'
 ###############################################################################
