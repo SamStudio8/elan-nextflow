@@ -11,6 +11,7 @@ DATESTAMP=`date '+%Y%m%d'`
 $NEXTFLOW_BIN run elan.nf -c elan.config --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP > nf.elan.$DATESTAMP.log 2>&1;
 ret=$?
 lines=`awk -vRS= 'END{print}' nf.elan.$DATESTAMP.log`
+mv .nextflow.log elan.nextflow.log
 
 MSG='{"text":"<!channel> *COG-UK inbound pipeline finished...*
 ...with exit status '"$ret"'
@@ -30,6 +31,7 @@ MSG='{"text":"<!channel> *COG-UK QC pipeline finished...*
 '"\`\`\`${lines}\`\`\`"'"
 }'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
+cat elan.nextflow.log .nextflow.log > inbound.nextflow.log
 
 if [ $ret -ne 0 ]; then
     exit $ret
@@ -44,4 +46,4 @@ if [ $ret -ne 0 ]; then
     exit $ret
 fi
 
-mv .nextflow.log $ELAN_DIR/staging/summary/$DATESTAMP/nf.elan.$DATESTAMP.log
+mv inbound.nextflow.log $ELAN_DIR/staging/summary/$DATESTAMP/nf.elan.$DATESTAMP.log
