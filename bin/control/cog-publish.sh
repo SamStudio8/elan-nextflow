@@ -55,15 +55,14 @@ chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 ls -lah $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 
 # Make QC tables available
-for qcc in `find $ELAN_DIR/staging/qc/ -name '*qc'`;
+for qcc in `find $ELAN_DIR/staging/qc/ -name '*.qc'`;
 do
     #echo "Linking $qcc"
     ln -s $qcc $COG_PUBLISHED_DIR/$1/qc/
-    chmod 644 $qcc
 done
 
 # Fix perms
-echo "Fixing perms..."
+#echo "Fixing perms..."
 #find $ELAN_DIR -type d -exec chmod 755 {} \;
 #find $ELAN_DIR -type f -exec chmod 644 {} \;
 #find $COG_PUBLISHED_DIR/$1/ -type l -exec chmod 644 {} \;
