@@ -79,7 +79,7 @@ POST='{"text":"<!channel>
 
 *New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
 
-_The pipeline will start in a few minutes. Happy Friday!_"}'
+_The pipeline will start in a few minutes. Have a nice day!_"}'
 ###############################################################################
 
 # Announce
