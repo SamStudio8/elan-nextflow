@@ -33,7 +33,7 @@ SANG_MISSING_META=`grep 'ORPHAN-FILE' t | grep jacksond | cut -f2 -d' ' | awk -F
 PRE='{"text":"<!channel>
 
 *COG-UK inbound-distribution pre-pipeline report*
-'$COUNT_ELAN_NEW' new sequences this week
+'$COUNT_ELAN_NEW' new sequences today
 
 ***
 *Samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre*
@@ -45,7 +45,7 @@ _Replace BIRM with your site code from the table above. Ensure to maintain the b
 ***
 *Uploaded sequences missing metadata by secondary directory*
 These directories contain one or more directories with samples that do not have metadata.
-Please check you have uploaded all your metadata this week...'"\`\`\`${FILE_MISSING_META}\`\`\`"'
+Please check you have uploaded all your metadata...'"\`\`\`${FILE_MISSING_META}\`\`\`"'
 To inspect the uploaded sequences that are missing metadata from your site, execute:
 ```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
 _Replace climb-covid19-nichollss with the username of the uploader from the table above_
@@ -72,7 +72,7 @@ POST='{"text":"<!channel>
 
 *COG-UK inbound pipeline ready*
 '$COUNT_MAJORA' sample sequencing experiments in Majora
-'$COUNT_ELAN_NEW' new sequences this week
+'$COUNT_ELAN_NEW' new sequences today
 '$COUNT_ELAN_OLDANDNEW' sequences matched to Majora metadata
 
 ***
