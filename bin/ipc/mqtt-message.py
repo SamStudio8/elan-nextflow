@@ -9,8 +9,9 @@ parser.add_argument('-t', '--topic', required=True)
 parser.add_argument("--attr", action='append', nargs=2, metavar=('key', 'value'))
 args = parser.parse_args()
 
-
-payload = json.dumps({x[0]: x[1] for x in args.attr})
+payload = ""
+if args.attr:
+    payload = json.dumps({x[0]: x[1] for x in args.attr})
 
 publish.single(
     args.topic,
