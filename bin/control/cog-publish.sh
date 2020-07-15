@@ -73,11 +73,12 @@ ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/elan.
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.tsv
 
 # Init phylo directory
-mkdir $COG_PUBLISHED_DIR/$1/phylogenetics
-sudo setfacl -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
-sudo setfacl -d -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
-sudo setfacl -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
-sudo setfacl -d -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
+mkdir $COG_RESULTS_DIR/phylogenetics/$1
+#mkdir $COG_PUBLISHED_DIR/$1/phylogenetics
+#sudo setfacl -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
+#sudo setfacl -d -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
+#sudo setfacl -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
+#sudo setfacl -d -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
 
 COUNT_PASS=`wc -l pass.fasta.ls | cut -f1 -d' '`
 COUNT_NEW=`wc -l $ELAN_DIR/staging/summary/$1/swell.qc.tsv | cut -f1 -d' '`
