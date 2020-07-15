@@ -2,7 +2,9 @@
 
 ## Housekeeping
 
-    conda activate sam-ipc
+    conda create -n my-ipc python=python3.7
+    conda activate my-ipc
+    pip install paho-mqtt
 
 ## Send a message
 
