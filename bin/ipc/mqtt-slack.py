@@ -31,7 +31,7 @@ def on_message(client, userdata, msg):
 
     try:
         smsg = "\n".join([
-                "*COGUK Interprocess Communication System*",
+                #"*COGUK Interprocess Communication System*",
                 "`%s`" % msg.topic,
                 "",
                 "```",

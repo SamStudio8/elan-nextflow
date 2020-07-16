@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
 import json
 import subprocess
 import argparse
@@ -7,9 +8,27 @@ import os
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--topic', default="COGUK/infrastructure/pipelines/elan/status")
 parser.add_argument('-c', '--cmd', required=True)
+parser.add_argument('--who', required=True)
 parser.add_argument('--envprefix')
 parser.add_argument('--envreq', nargs='+')
 args = parser.parse_args()
+
+def emit(who, payload):
+    publish.single(
+        "COGUK/infrastructure/pipelines/%s/status" % who,
+        payload=json.dumps(payload),
+        hostname="localhost",
+        transport="tcp",
+        port=1883,
+        qos=2,
+        client_id="",
+        keepalive=60,
+        retain=False,
+        will=None,
+        auth=None,
+        tls=None,
+        protocol=mqtt.MQTTv311,
+    )
 
 def on_connect(client, userdata, flags, rc):
     print("subbed to ", args.topic)
@@ -36,9 +55,11 @@ def on_message(client, userdata, msg):
         print("elan finished")
         try:
             print("starting command")
+            emit(args.who, {"status": "started"})
             print("[cmd] %s" % args.cmd)
             print("[env] %s" % str(new_env))
             subprocess.call(args.cmd, shell=True, env=env)
+            emit(args.who, {"status": "finished"})
             print("finished command")
         except Exception as e:
             print("unable to initialise subprocess")
