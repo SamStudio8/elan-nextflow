@@ -47,3 +47,8 @@ if [ $ret -ne 0 ]; then
 fi
 
 mv inbound.nextflow.log $ELAN_DIR/staging/summary/$DATESTAMP/nf.elan.$DATESTAMP.log
+
+# Scream into the COGUK/ether
+eval "$(conda shell.bash hook)"
+conda activate sam-ipc
+python $ELAN_SOFTWARE_DIR/bin/ipc/mqtt-message.py -t 'COGUK/infrastructure/pipelines/elan/status' --attr status finished --attr date $DATESTAMP
