@@ -8,6 +8,7 @@ _HERE WE GO!_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
 DATESTAMP=`date '+%Y%m%d'`
+
 $NEXTFLOW_BIN run elan.nf -c elan.config --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP > nf.elan.$DATESTAMP.log 2>&1;
 ret=$?
 lines=`awk -vRS= 'END{print}' nf.elan.$DATESTAMP.log`
