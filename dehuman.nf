@@ -102,8 +102,9 @@ process publish_bam {
 
     cpus 6 //# massively over-request local cores to prevent sending too much to API at once
 
-    errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
-    maxRetries 1
+    //errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
+    //maxRetries 1
+    errorStrategy 'ignore'
 
     input:
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file(public_bam), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from publish_manifest_ch
@@ -116,10 +117,10 @@ process publish_bam {
     """
     pyena --study-accession ${params.study} --my-data-is-ready --no-ftp \
           --sample-name ${ena_sample_name} \
-          --sample-center-name '${sample_center}' \
+          --sample-center-name "${sample_center}" \
           --sample-taxon '2697049' \
           --sample-attr 'collector name' 'not provided' \
-          --sample-attr 'collecting institution' '${sample_center}' \
+          --sample-attr 'collecting institution' "${sample_center}" \
           --sample-attr 'collection date' ${collection_date} \
           --sample-attr 'geographic location (country and/or sea)' 'United Kingdom' \
           --sample-attr 'geographic location (region and locality)' '${adm1}' \
@@ -141,7 +142,7 @@ process publish_bam {
           --experiment-attr 'artic_protocol_version' '${exp_protocol}' \
           --run-name ${ena_run_name} \
           --run-file-path ${public_bam} \
-          --run-center-name '${run_center}' \
+          --run-center-name "${run_center}" \
           --run-instrument '${run_instrument}' \
           --run-lib-protocol '${exp_seq_kit}|${exp_seq_protocol}' \
           --run-lib-source ${l_source} \
