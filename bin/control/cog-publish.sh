@@ -54,6 +54,11 @@ cp $ELAN_DIR/staging/summary/$1/majora.metadata.tsv $COG_PUBLISHED_DIR/$1/majora
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 ls -lah $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 
+# An easier to use consensus and metadata table (samstudio8/majora/27)
+python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/$1/fasta/ > $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
+chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
+chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
+
 # Make QC tables available
 for qcc in `find $ELAN_DIR/staging/qc/ -name '*.qc'`;
 do
@@ -71,6 +76,8 @@ done
 ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/latest
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.fasta
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.tsv
+ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.matched.fasta
+ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.matched.tsv
 
 # Init phylo directory
 mkdir $COG_RESULTS_DIR/phylogenetics/$1
