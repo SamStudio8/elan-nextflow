@@ -16,7 +16,7 @@ process play_ocarina {
     input:
     tuple coguk_id, run_name, username, pipeuuid, fasta, bam, qc, sourcesite, seqsite, platform from manifest_ch
 
-    cpus 5 //# massively over-request local cores to prevent sending too much to API at once
+    cpus 4 //# massively over-request local cores to prevent sending too much to API at once
 
     script:
     """
