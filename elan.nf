@@ -195,7 +195,7 @@ process swell {
     publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc") into ocarina_file_manifest_ch
     file "${coguk_id}.${run_name}.qc" into report_ch
-    file "${coguk_id}.${run_name}.swell.quickcheck" into quickcheck_fasta_ch
+    file "${coguk_id}.${run_name}.swell.quickcheck" into quickcheck_swell_ch
 
     script:
     if ( tiles == "1" )
@@ -244,5 +244,6 @@ report_ch
 
 quickcheck_fasta_ch
     .mix( quickcheck_bam_ch )
+    .mix( quickcheck_swell_ch )
     .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.publish}/staging/summary/${params.datestamp}")
 
