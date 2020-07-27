@@ -8,7 +8,7 @@ from slack import WebClient
 from slack.errors import SlackApiError
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-t', '--topic', default="COGUK/infrastructure/pipelines/elan/status")
+parser.add_argument('-t', '--topic', default="COGUK/#")
 parser.add_argument('-c', '--channel', default="#majora-test")
 args = parser.parse_args()
 
