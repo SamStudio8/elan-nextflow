@@ -123,7 +123,8 @@ process samtools_filter_and_sort {
     memory '5 GB'
 
     """
-    samtools view -h -F4 ${bam} | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.${run_name}.climb.bam
+    cp ${bam} ${coguk_id}.${run_name}.upload.bam
+    samtools view -h -F4 ${coguk_id}.${run_name}.upload.bam | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.${run_name}.climb.bam
     """
 }
 
