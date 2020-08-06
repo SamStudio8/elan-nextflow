@@ -107,13 +107,32 @@ process save_uploads {
 
 }
 
+process rehead_bam {
+    tag { bam }
+    label 'bear'
+    conda "environments/samtools.yaml"
+
+    input:
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
+
+    output:
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.inbound.bam") into reheaded_manifest_ch
+
+    script:
+    """
+    samtools view -H --no-PG ${bam} > ${bam}.head
+    elan_cleanhead.py ${bam}.head '${coguk_id}.${run_name}' > ${bam}.head.ok
+    samtools reheader -P ${bam}.head.ok ${bam} > ${coguk_id}.${run_name}.inbound.bam
+    """
+}
+
 process samtools_filter_and_sort {
     tag { bam }
     conda "environments/samtools.yaml"
     label 'bear'
 
     input:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from reheaded_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/alignment", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
@@ -123,8 +142,7 @@ process samtools_filter_and_sort {
     memory '5 GB'
 
     """
-    cp ${bam} ${coguk_id}.${run_name}.upload.bam
-    samtools view -h -F4 ${coguk_id}.${run_name}.upload.bam | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.${run_name}.climb.bam
+    samtools view -h -F4 ${bam} | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.${run_name}.climb.bam
     """
 }
 

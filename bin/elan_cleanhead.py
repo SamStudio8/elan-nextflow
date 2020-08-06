@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys
 
 def get_by_contains_ext(s, exts):
