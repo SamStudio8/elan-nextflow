@@ -10,20 +10,39 @@ from slack.errors import SlackApiError
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--topic', default="COGUK/#")
 parser.add_argument('-c', '--channel', default="#majora-test")
+parser.add_argument('-d', '--drop', nargs='*', default=[])
 args = parser.parse_args()
 
 def on_connect(client, userdata, flags, rc):
     print("subbed to ", args.topic)
     client.subscribe(args.topic, qos=2)
 
+def on_message_wrap(client, userdata, msg):
+    try:
+        return on_message(client, userdata, msg)
+    except Exception as e:
+        print(e)
+
 def on_message(client, userdata, msg):
-    payload = json.loads(msg.payload)
+
+    try:
+        payload = json.loads(msg.payload)
+    except Exception as e:
+        print("invalid", msg.topic)
+        return
+
     token = os.getenv('SLACK_TOKEN')
     if not token:
         print("boo no token")
         return
 
-    print(payload)
+    for d in args.drop:
+        if d in msg.topic:
+            print('ignored (%s)' % d, msg.topic, payload)
+            return
+
+    print(msg.topic, payload)
+
     try:
         sclient = WebClient(token=token)
     except Exception as e:
@@ -50,7 +69,7 @@ def on_message(client, userdata, msg):
 
 client = mqtt.Client()
 client.on_connect = on_connect
-client.on_message = on_message
+client.on_message = on_message_wrap
 
 client.connect("localhost", 1883, 60)
 client.loop_forever()
