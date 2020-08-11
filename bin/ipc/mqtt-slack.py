@@ -43,6 +43,8 @@ def on_message(client, userdata, msg):
 
     print(msg.topic, payload)
 
+    announce = payload.get("announce", False)
+
     try:
         sclient = WebClient(token=token)
     except Exception as e:
@@ -51,7 +53,7 @@ def on_message(client, userdata, msg):
     try:
         smsg = "\n".join([
                 #"*COGUK Interprocess Communication System*",
-                "`%s`" % msg.topic,
+                "%s`%s`" % ("<!channel>\n" if announce else "", msg.topic),
                 "",
                 "```",
                 json.dumps(payload, indent=4, sort_keys=True),
