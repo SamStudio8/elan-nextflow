@@ -4,6 +4,7 @@ import json
 import subprocess
 import argparse
 import os
+from datetime import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--topic', default="COGUK/infrastructure/pipelines/elan/status")
@@ -14,6 +15,7 @@ parser.add_argument('--envreq', nargs='+')
 args = parser.parse_args()
 
 def emit(who, payload):
+    payload["ts"] = int(datetime.now().strftime("%s"))
     publish.single(
         "COGUK/infrastructure/pipelines/%s/status" % who,
         payload=json.dumps(payload),
@@ -45,22 +47,37 @@ def on_message(client, userdata, msg):
                 print("cowardly refusing to start command without '%s'. report this to the message sender." % e)
                 return
 
-    new_env = {}
+    new_partial_env = {}
     if args.envprefix:
-        new_env.update( {"%s_%s" % (args.envprefix, k.upper()): v for k,v in payload.items()} )
+        new_partial_env.update( {"%s_%s" % (args.envprefix, k.upper()): v for k,v in payload.items()} )
     env = os.environ.copy()
-    env.update(new_env)
+    env.update(new_partial_env)
 
     if status == "finished":
         print("elan finished")
         try:
             print("starting command")
-            emit(args.who, {"status": "started"})
+            emit(args.who, {"status": "started", "announce": False})
+
             print("[cmd] %s" % args.cmd)
-            print("[env] %s" % str(new_env))
-            subprocess.call(args.cmd, shell=True, env=env)
-            emit(args.who, {"status": "finished"})
-            print("finished command")
+            print("[env] %s" % str(new_partial_env))
+
+            proc = subprocess.Popen(
+                    args.cmd,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    env=env,
+            )
+            stdout, stderr = proc.communicate()
+            rc = proc.returncode
+
+            emit(args.who, {
+                "status": "finished",
+                "return_code": rc,
+                "announce": True if rc > 0 else False,
+            })
+            print("finished command with return code %s" % str(rc))
         except Exception as e:
             print("unable to initialise subprocess")
             print(e)
