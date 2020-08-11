@@ -16,9 +16,10 @@ parser.add_argument('--reply-to')
 parser.add_argument('-t', '--to', action='append', nargs=1, metavar=('email'), required=True)
 parser.add_argument('-s', '--subject', required=True)
 parser.add_argument('-a', '--attach', action='append', nargs=1, metavar=('path'))
+parser.add_argument('--body-start', default="")
 args = parser.parse_args()
 
-header = []
+header = ["\n".join([x+',' for x in args.body_start.split(",")])]
 footer = [
     "\n--\nThis message was sent automatically on behalf of the COVID-19 Genomics UK Consortium.",
     "If you believe you were not the intended recipient of this message, or if you no longer wish to receive these automated messages, please contact %s" % os.getenv("MAJE_MAINTAINER") + ", or reply to this message." if args.reply_to else ".",
@@ -38,7 +39,7 @@ if hasattr(args, "from_name"):
 else:
     msg['From'] = os.getenv("MAJE_USER")
 
-msg.attach(MIMEText("\n".join(header + open(args.body).readlines() + footer)))
+msg.attach(MIMEText("\n".join(header + [line.strip() for line in open(args.body).readlines()] + footer)))
 
 for path in args.attach:
     path = path[0]
