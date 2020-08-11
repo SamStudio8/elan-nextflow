@@ -62,9 +62,8 @@ process dehumanise_bam {
     file "${coguk_id}.${run_name}.climb.public.bam"
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
-    errorStrategy 'retry' 
-    maxRetries 3
-    memory { (12 + (2 * task.attempt))+"GB" }
+    errorStrategy 'ignore'
+    memory "15GB"
 
     script:
     if ( run_platform == "ILLUMINA" )
