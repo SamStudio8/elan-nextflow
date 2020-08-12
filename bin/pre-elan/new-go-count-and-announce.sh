@@ -30,8 +30,7 @@ FILE_MISSING_META=`grep 'ORPHAN-DIRX' t | grep -v jacksond | awk '$2 > 2 {print 
 SANG_MISSING_META=`grep 'ORPHAN-FILE' t | grep jacksond | cut -f2 -d' ' | awk -F'/' '{print $(NF-1)}' | cut -c1-4 | tr -d '[0-9]_' | sort | uniq -c | sort -nr`
 
 ###############################################################################
-PRE='{"text":"<!channel>
-
+PRE='{"text":"
 *COG-UK inbound-distribution pre-pipeline report*
 '$COUNT_ELAN_NEW' new sequences today
 
@@ -68,8 +67,7 @@ _Please note that Sam will not be able to assist in queries to disambiguate barc
 _The inbound pipeline will be run autonomously at ten minutes past the next hour._
 _Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"}'
 ###############################################################################
-POST='{"text":"<!channel>
-
+POST='{"text":"
 *COG-UK inbound pipeline ready*
 '$COUNT_MAJORA' sample sequencing experiments in Majora
 '$COUNT_ELAN_NEW' new sequences today
