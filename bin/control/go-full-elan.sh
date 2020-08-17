@@ -24,7 +24,14 @@ if [ $ret -ne 0 ]; then
     exit $ret
 fi
 
-$NEXTFLOW_BIN run ocarina.nf -c elan.config --manifest $ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls > nf.ocarina.$DATESTAMP.log 2>&1;
+# OCARINA_FILE only written if elan processed at least one sample
+OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
+if [ ! -f "$OCARINA_FILE" ]; then
+    curl -X POST -H 'Content-type: application/json' --data '{"text":"\n*COG-UK inbound pipeline empty*\nNo new valid files today, try again tomorrow."}' $SLACK_REAL_HOOK
+    exit 0
+fi
+
+$NEXTFLOW_BIN run ocarina.nf -c elan.config --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
 ret=$?
 lines=`awk -vRS= 'END{print}' nf.ocarina.$DATESTAMP.log`
 MSG='{"text":"<!channel> *COG-UK QC pipeline finished...*
