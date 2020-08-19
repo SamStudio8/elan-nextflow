@@ -62,6 +62,7 @@ _Replace BIRM with your barcode prefix from the table above, without changing th
 
 ***
 _Files and metadata uploaded in the past 10-15 minutes may not have been seen in time to be counted here._
+_Malformed files that keep appearing and failing Elan QC every day will be addressed automatically soon._
 _The inbound pipeline will be run autonomously at ten minutes past the next hour._
 _Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"}'
 ###############################################################################
