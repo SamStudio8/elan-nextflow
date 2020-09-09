@@ -38,7 +38,11 @@ if len(sys.argv) != 3:
 min_len = int(sys.argv[2])
 
 # Handle rename of FASTA sequence
-fasta_fh = open(sys.argv[1])
+try:
+    fasta_fh = open(sys.argv[1])
+except IOError:
+    sys.exit(1)
+
 heng_iter = readfq(fasta_fh)
 for name, seq, qual in heng_iter:
     break # first record only?
