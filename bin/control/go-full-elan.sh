@@ -3,7 +3,7 @@ source ~/.path
 source ~/.ocarina
 cd $ELAN_SOFTWARE_DIR
 
-MSG='{"text":"<!channel> *COG-UK inbound pipeline begins...*
+MSG='{"text":"*COG-UK inbound pipeline begins...*
 _HERE WE GO!_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
@@ -14,13 +14,15 @@ ret=$?
 lines=`awk -vRS= 'END{print}' nf.elan.$DATESTAMP.log`
 mv .nextflow.log elan.nextflow.log
 
-MSG='{"text":"<!channel> *COG-UK inbound pipeline finished...*
+MSG='{"text":"*COG-UK inbound pipeline finished...*
 ...with exit status '"$ret"'
 '"\`\`\`${lines}\`\`\`"'
  _Have a nice day!_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
 if [ $ret -ne 0 ]; then
+    MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
+    curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
     exit $ret
 fi
 
@@ -34,7 +36,7 @@ fi
 $NEXTFLOW_BIN run ocarina.nf -c elan.config --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
 ret=$?
 lines=`awk -vRS= 'END{print}' nf.ocarina.$DATESTAMP.log`
-MSG='{"text":"<!channel> *COG-UK QC pipeline finished...*
+MSG='{"text":"*COG-UK QC pipeline finished...*
 ...with exit status '"$ret"'
 '"\`\`\`${lines}\`\`\`"'"
 }'
@@ -42,15 +44,19 @@ curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 cat elan.nextflow.log .nextflow.log > inbound.nextflow.log
 
 if [ $ret -ne 0 ]; then
+    MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
+    curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
     exit $ret
 fi
 
 bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP
 ret=$?
-MSG='{"text":"<!channel> *COG-UK publishing pipeline finished...*
+MSG='{"text":"*COG-UK publishing pipeline finished...*
 ...with exit status '"$ret"'"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 if [ $ret -ne 0 ]; then
+    MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
+    curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
     exit $ret
 fi
 
