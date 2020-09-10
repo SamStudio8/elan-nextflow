@@ -1,4 +1,8 @@
 #!/usr/bin/bash
+
+eval "$(conda shell.bash hook)"
+conda activate samstudio8
+
 set -euo pipefail
 
 echo $1
