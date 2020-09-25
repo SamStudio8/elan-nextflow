@@ -167,8 +167,8 @@ process tag_ocarina {
 
     script:
     """
-    ocarina --env put publish --publish-group '${ena_run_name}' --service 'ENA-SAMPLE' --accession ${sample_acc} --public --submitted
-    ocarina --env put publish --publish-group '${ena_run_name}' --service 'ENA-RUN' --accession ${run_acc} --public --submitted
+    ocarina --oauth --env put publish --publish-group '${ena_run_name}' --service 'ENA-SAMPLE' --accession ${sample_acc} --public --submitted
+    ocarina --oauth --env put publish --publish-group '${ena_run_name}' --service 'ENA-RUN' --accession ${run_acc} --public --submitted
     """
 }
 
