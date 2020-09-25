@@ -20,12 +20,12 @@ process play_ocarina {
 
     script:
     """
-    ocarina --angry --env put file --path "${fasta}" --type consensus --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline "bioinfo-${run_name}" Pipeline unknown 0 --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --meta sequencing platform "${platform}";
-    ocarina --angry --env put file --path "${bam}" --type alignment --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline "bioinfo-${run_name}" Pipeline unknown 0 --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}";
+    ocarina --oauth --angry --env put file --path "${fasta}" --type consensus --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline "bioinfo-${run_name}" Pipeline unknown 0 --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --meta sequencing platform "${platform}";
+    ocarina --oauth --angry --env put file --path "${bam}" --type alignment --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline "bioinfo-${run_name}" Pipeline unknown 0 --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}";
 
 	tail -n1 ${qc} | while read fp num_seqs num_bases pc_acgt pc_masked pc_invalid longest_gap longest_ungap bp num_pos mean_cov pc_pos_cov_gte1 pc_pos_cov_gte5 pc_pos_cov_gte10 pc_pos_cov_gte20 pc_pos_cov_gte50 pc_pos_cov_gte100 pc_pos_cov_gte200 pc_tiles_gte1 pc_tiles_gte5 pc_tiles_gte10 pc_tiles_gte20 pc_tiles_gte50 pc_tiles_gte100 pc_tiles_gte200 n_tiles tile_vector tileset_counted tileset_reported; \n
 	do
-	   ocarina --env put metric --artifact-path ${fasta} \
+	   ocarina --oauth --env put metric --artifact-path ${fasta} \
                                                      -m sequence num_seqs \$num_seqs \
                                                      -m sequence num_bases \$num_bases \
                                                      -m sequence pc_acgt \$pc_acgt \
@@ -33,7 +33,7 @@ process play_ocarina {
                                                      -m sequence pc_invalid \$pc_invalid \
                                                      -m sequence longest_gap \$longest_gap \
                                                      -m sequence longest_ungap \$longest_ungap;
-	   ocarina --env put metric --artifact-path ${bam} \
+	   ocarina --oauth --env put metric --artifact-path ${bam} \
                                                      -m mapping num_pos \$num_pos \
                                                      -m mapping mean_cov \$mean_cov \
                                                      -m mapping pc_pos_cov_gte1 \$pc_pos_cov_gte1 \
@@ -53,7 +53,7 @@ process play_ocarina {
                                                      #-m tile-mapping pc_tiles_medcov_gte100 \$pc_tiles_gte100 \
                                                      #-m tile-mapping pc_tiles_medcov_gte200 \$pc_tiles_gte200;
         done
-        ocarina --angry --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-elan-minimal-qc' --test-version 1;
-        ocarina --angry --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-high-quality-public' --test-version 1;
+        ocarina --oauth --angry --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-elan-minimal-qc' --test-version 1;
+        ocarina --oauth --angry --env put qc --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --test-name 'cog-uk-high-quality-public' --test-version 1;
     """
 }
