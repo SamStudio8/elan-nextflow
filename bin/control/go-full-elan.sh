@@ -11,8 +11,13 @@ DATESTAMP=`date '+%Y%m%d'`
 
 $NEXTFLOW_BIN run elan.nf -c elan.config --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP > nf.elan.$DATESTAMP.log 2>&1;
 ret=$?
-lines=`awk -vRS= 'END{print}' nf.elan.$DATESTAMP.log`
 mv .nextflow.log elan.nextflow.log
+
+if [ $ret -ne 0 ]; then
+    lines=`tail -n 25 nf.elan.$DATESTAMP.log`
+else
+    lines=`awk -vRS= 'END{print}' nf.elan.$DATESTAMP.log`
+fi
 
 MSG='{"text":"*COG-UK inbound pipeline finished...*
 ...with exit status '"$ret"'
