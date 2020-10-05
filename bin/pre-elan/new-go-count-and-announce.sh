@@ -9,7 +9,7 @@ DATESTAMP=`date '+%Y%m%d'`
 source ~/.ocarina
 
 # Pull down the entire sequencing run manifest
-/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait-minutes 3 --task-wait > latest.tsv
+/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait-attempts 60 --task-wait > latest.tsv
 # and link it to the file system
 
 set +o pipefail
