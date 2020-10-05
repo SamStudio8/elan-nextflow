@@ -1,26 +1,34 @@
 #!/usr/bin/bash
 
-echo "[ELAN]" `date` " - LETS ROLL"
+# conda env and credentials
+eval "$(conda shell.bash hook)"
+conda activate samstudio8
+source ~/.ocarina
 
 set -euo pipefail
 DATESTAMP=`date '+%Y%m%d'`
+echo "[ELAN]" `date` " - LETS ROLL"
 
-# Credentials
-source ~/.ocarina
+# Pull down the entire sequencing run manifest as JSON over the new v3 API
+#ocarina --quiet --env --oauth get dataview --mdv ELAN1 -o elan1.mdv.json --task-wait --task-wait-attempts 60
+#set +o pipefail
+#find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python /cephfs/covid/software/sam/elan/bin/ocarina_resolve_mdv.py elan1.mdv.json latest.tsv > q 2> t
+#set -o pipefail
 
-# Pull down the entire sequencing run manifest
-/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait-attempts 60 --task-wait > latest.tsv
-# and link it to the file system
+# Keep the v2 requests for now
+ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait-attempts 60 --task-wait > latest.tsv
 
+# Map filesystem to metadata to find work to do
 set +o pipefail
 find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python /cephfs/covid/software/sam/elan/bin/ocarina_resolve.py latest.tsv > q 2> t
 set -o pipefail
+
 cp t $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 chmod 644 $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 
 COUNT_MAJORA=`wc -l latest.tsv | cut -f1 -d' '`
 COUNT_ELAN_NEW=`grep -c '^1' q`
-COUNT_ELAN_OLD=`/rds/homes/n/nicholsz/.conda/envs/samstudio8/bin/ocarina --env get summary --md | awk '{sum+=$6} END {print sum}'`
+COUNT_ELAN_OLD=`ocarina --env get summary --md | awk '{sum+=$6} END {print sum}'`
 COUNT_ELAN_OLDANDNEW=`expr $COUNT_ELAN_NEW + $COUNT_ELAN_OLD`
 SITE_COUNTS=`awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' q | sort | uniq -c | sort -nr`
 SITE_COUNTS_NEW=`grep '^1' q | awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
