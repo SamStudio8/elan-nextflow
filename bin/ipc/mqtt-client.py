@@ -54,13 +54,15 @@ def on_message(client, userdata, msg):
     env.update(new_partial_env)
 
     if status == "finished":
-        print("elan finished")
+        print("finished state on subscribed topic observed")
         try:
             print("starting command")
             emit(args.who, {"status": "started", "announce": False})
 
             print("[cmd] %s" % args.cmd)
             print("[env] %s" % str(new_partial_env))
+
+            start_time = datetime.now()
 
             proc = subprocess.Popen(
                     args.cmd,
@@ -72,10 +74,18 @@ def on_message(client, userdata, msg):
             stdout, stderr = proc.communicate()
             rc = proc.returncode
 
+            end_time = datetime.now()
+
+            if rc == 0:
+                status = "finished"
+            else:
+                status = "failed"
+
             emit(args.who, {
-                "status": "finished",
+                "status": status,
                 "return_code": rc,
                 "announce": True if rc > 0 else False,
+                "time_elapsed": str(end_time - start_time),
             })
             print("finished command with return code %s" % str(rc))
         except Exception as e:
