@@ -1,9 +1,10 @@
 #!/usr/bin/bash
+source ~/.path
+source ~/.ocarina
 
 # conda env and credentials
 eval "$(conda shell.bash hook)"
 conda activate samstudio8
-source ~/.ocarina
 
 set -euo pipefail
 DATESTAMP=`date '+%Y%m%d'`
