@@ -5,4 +5,4 @@ channels:
   - defaults
 dependencies:
   - pip:
-    - git+https://github.com/samstudio8/pyena.git@2cf7665fdab8d5f809993ca46a4ec020c8935003
+    - git+https://github.com/samstudio8/pyena.git@40e12df8dc5702f4b231d42e89fc76ecbf998433
