@@ -68,11 +68,11 @@ process dehumanise_bam {
     script:
     if ( run_platform == "ILLUMINA" )
         """
-        dehumanise ${params.dhmanifest} ${bam} --preset sr --bam -o ${coguk_id}.${run_name}.climb.public.bam --trash-minalen 25 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls}
+        dehumanise ${params.dhmanifest} ${bam} --preset sr --bam -o ${coguk_id}.${run_name}.climb.public.bam --trash-minalen 25 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls} --pg-date ${params.datestamp}
         """
     else if( run_platform == 'OXFORD_NANOPORE' )
         """
-        dehumanise ${params.dhmanifest} ${bam} --preset map-ont --bam -o ${coguk_id}.${run_name}.climb.public.bam --trash-minalen 10 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls}
+        dehumanise ${params.dhmanifest} ${bam} --preset map-ont --bam -o ${coguk_id}.${run_name}.climb.public.bam --trash-minalen 10 --log ${coguk_id}.${run_name}.dh --known ${bam_hum_ls} --pg-date ${params.datestamp}
         """
     else
         error "Invalid alignment mode for technology ${run_platform}"

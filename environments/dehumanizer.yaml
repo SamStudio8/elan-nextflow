@@ -5,4 +5,4 @@ channels:
   - defaults
 dependencies:
   - pip:
-    - git+https://github.com/samstudio8/dehumanizer.git@6cd98aaa618a0f1fe09d982d1605792ba8cf6e39
+    - git+https://github.com/samstudio8/dehumanizer.git@a3a5d26f92987d1983a5976bb5a3a90688c97d7a
