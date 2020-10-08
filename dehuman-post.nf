@@ -6,7 +6,7 @@ params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
 Channel
     .fromPath(params.manifest)
     .splitCsv(header:['ena_sample_name', 'coguk_id', 'sample_center', 'collection_date', 'received_date', 'adm0', 'adm1', 'run_name', 'ena_run_name', 'bam', 'run_center', 'l_strategy', 'l_source', 'l_selection', 'run_platform', 'run_instrument', 'bam_fasta', 'bam_hum_ls', 'public_bam', 'gisaid_id', 'min_ct', 'max_ct', 'exp_primers', 'exp_protocol', 'exp_seq_kit', 'exp_seq_protocol'], sep:'\t')
-    .map { row-> tuple(row.ena_sample_name, row.coguk_id, row.sample_center, row.collection_date, row.received_date, row.adm0, row.adm1, row.run_name, row.ena_run_name, file(row.bam), row.run_center, row.l_strategy, row.l_source, row.l_selection, row.run_platform, row.run_instrument, row.bam_fasta, row.bam_hum_ls, [params.publish, 'staging', 'alignment-clean', row.public_bam].join('/'), row.gisaid_id, row.min_ct, row.max_ct, row.exp_primers, row.exp_protocol, row.exp_seq_kit, row.exp_seq_protocol) }
+    .map { row-> tuple(row.ena_sample_name, row.coguk_id, row.sample_center, row.collection_date, row.received_date, row.adm0, row.adm1, row.run_name, row.ena_run_name, row.bam, row.run_center, row.l_strategy, row.l_source, row.l_selection, row.run_platform, row.run_instrument, row.bam_fasta, row.bam_hum_ls, [params.publish, 'staging', 'alignment-clean', row.public_bam].join('/'), row.gisaid_id, row.min_ct, row.max_ct, row.exp_primers, row.exp_protocol, row.exp_seq_kit, row.exp_seq_protocol) }
     .set { ascp_manifest_ch }
 
 process ascp_bam {
@@ -93,6 +93,9 @@ process tag_ocarina {
 
     input:
     tuple ena_run_name, sample_acc, run_acc from dh_ocarina_report_ch_split
+
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
+    maxRetries 3
 
     cpus 6 //# massively over-request local cores to prevent sending too much to API at once
 
