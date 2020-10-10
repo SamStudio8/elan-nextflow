@@ -4,6 +4,10 @@ import csv
 import os
 import uuid
 import re
+import datetime
+
+RECENT_DAYS_NO = 14
+RECENT_DAYS_DESC = "two weeks"
 
 def best_effort_path(exts, dir_path, coguk_id, use_id=False):
     candidates = []
@@ -119,6 +123,7 @@ for sample in runs_by_sample:
             new_samples += 1
 #sys.stderr.write("[NOTE] Detected %d total samples, %d currently unpublished samples\n" % (len(runs_by_sample), new_samples))
 sys.stderr.write("[NOTE] Detected %d total consensus sequences, %d currently unpublished\n" % (tot_count, new_count))
+sys.stderr.write("[NOTE][META][RECENT-DAYS]|%d\n" % RECENT_DAYS_NO)
 
 orphaned_dirs = {}
 for line in sys.stdin.readlines():
@@ -146,9 +151,21 @@ for line in sys.stdin.readlines():
                 current_sample = field
 
     if not current_sample:
+        mod_time = datetime.datetime.fromtimestamp( os.path.getmtime(line.strip()) )
+        if mod_time >= (datetime.datetime.now() - datetime.timedelta(days=RECENT_DAYS_NO)):
+            recent = True
+        else:
+            recent = False
+
         d = os.path.sep.join(fields[:-2])
         if d not in orphaned_dirs:
-            orphaned_dirs[d] = {"count": 0, "files": []}
+            orphaned_dirs[d] = {"username": username, "count": 0, "files": [], "recent-count":0, "unrecent-count": 0}
+
+        if recent:
+            orphaned_dirs[d]["recent-count"] += 1
+        else:
+            orphaned_dirs[d]["unrecent-count"] += 1
+
         orphaned_dirs[d]["count"] += 1
         orphaned_dirs[d]["files"].append(fields[-2:])
 
@@ -226,12 +243,19 @@ for sample_name in matched_samples:
     if sum(matched_samples[sample_name][run_name] for run_name in matched_samples[sample_name]) == 0:
         # If not seen at all
         sites_seen = set([])
+        most_recent_run_date = {}
+
         for run_name in matched_samples[sample_name]:
+            is_missing = False
             site = runs_by_sample[sample_name][run_name]["site"]
             if site not in missing_samples_by_site and site not in sites_seen:
                 missing_samples_by_site[site] = {
                     "count": 0,
                     "sample_count": 0,
+
+                    "recent_sample_run_count": 0,
+                    "unrecent_sample_run_count": 0,
+
                     "missing": {},
                     "deleted": {},
                     "deleted_count": 0,
@@ -241,14 +265,32 @@ for sample_name in matched_samples:
                 missing_samples_by_site[site]["deleted_count"] += 1
                 missing_samples_by_site[site]["deleted"][sample_name] = matched_samples[sample_name].keys()
             else:
+                is_missing = True
                 missing_samples_by_site[site]["missing"][sample_name] = matched_samples[sample_name].keys()
                 if site not in sites_seen:
                     missing_samples_by_site[site]["sample_count"] += 1
             sites_seen.add(site)
 
+            if is_missing:
+                # Get the most recent run date
+                run_dt = datetime.datetime.strptime(runs_by_sample[sample_name][run_name]["seq_date"], "%Y-%m-%d")
+                if site not in most_recent_run_date:
+                    most_recent_run_date[site] = run_dt
+                else:
+                    if most_recent_run_date[site] < run_dt:
+                        most_recent_run_date[site] = run_dt
+
+        for site in most_recent_run_date:
+            if most_recent_run_date[site] >= (datetime.datetime.now() - datetime.timedelta(days=RECENT_DAYS_NO)):
+                missing_samples_by_site[site]["recent_sample_run_count"] += 1
+            else:
+                missing_samples_by_site[site]["unrecent_sample_run_count"] += 1
+
 for site in missing_samples_by_site:
     if missing_samples_by_site[site]["sample_count"] > 0:
         sys.stderr.write("[NOFILE][ORPHAN-SITE][%s] %d biosamples sequenced at %s missing a matched file on CLIMB\n" % (site, missing_samples_by_site[site]["sample_count"], site))
+        sys.stderr.write("[NOFILE][ORPHAN-NEW-SITE][%s] %d biosamples sequenced at %s (%s ago or newer) missing a matched file on CLIMB\n" % (site, missing_samples_by_site[site]["recent_sample_run_count"], site, RECENT_DAYS_DESC))
+        sys.stderr.write("[NOFILE][ORPHAN-OLD-SITE][%s] %d biosamples sequenced at %s (%s ago or older) missing a matched file on CLIMB\n" % (site, missing_samples_by_site[site]["unrecent_sample_run_count"], site, RECENT_DAYS_DESC))
         for cogid in sorted(missing_samples_by_site[site]["missing"]):
             locations = missing_samples_by_site[site]["missing"][cogid]
             sys.stderr.write("[MAJORA][ORPHAN-COGX][%s] %s in Majora but not CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
@@ -256,9 +298,20 @@ for site in missing_samples_by_site:
             locations = missing_samples_by_site[site]["deleted"][cogid]
             #sys.stderr.write("[MAJORA][DELETE-COGX][%s] %s in Majora, and released. but no longer on CLIMB. Possible run names: %s\n" % (site, cogid, str(list(locations))))
 
+old_userfiles = {}
 d_i = 0
 for d_key, d in orphaned_dirs.items():
     d_i += 1
     sys.stderr.write("[NOMETA][ORPHAN-DIRX][OD%s] %d FASTA orphaned without metadata inside %s\n" % (d_i, d["count"], d_key))
+    sys.stderr.write("[NOMETA][ORPHAN-NEW-DIRX][OD%s] %d FASTA orphaned without metadata inside %s (%s ago or newer)\n" % (d_i, d["recent-count"], d_key, RECENT_DAYS_DESC))
+    sys.stderr.write("[NOMETA][ORPHAN-OLD-DIRX][OD%s] %d FASTA orphaned without metadata inside %s (%s ago or older))\n" % (d_i, d["unrecent-count"], d_key, RECENT_DAYS_DESC))
     for f in d["files"]:
         sys.stderr.write("[NOMETA][ORPHAN-FILE][OD%s] %s/%s #Delete this file to suppress this error.\n" % (d_i, d_key, os.path.sep.join(f)))
+
+    if d["username"] not in old_userfiles:
+        old_userfiles[d["username"]] = 0
+    old_userfiles[d["username"]] += d["unrecent-count"]
+
+for user, count in old_userfiles.items():
+    if count > 0:
+        sys.stderr.write("[NOMETA][ORPHAN-USER-DIRX]|%s|%d|FASTA orphaned without metadata by user\n" % (user, count))

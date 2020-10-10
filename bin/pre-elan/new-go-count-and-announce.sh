@@ -34,37 +34,76 @@ COUNT_ELAN_OLDANDNEW=`expr $COUNT_ELAN_NEW + $COUNT_ELAN_OLD`
 SITE_COUNTS=`awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' q | sort | uniq -c | sort -nr`
 SITE_COUNTS_NEW=`grep '^1' q | awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
 
-SITE_MISSING_FILE=`grep 'ORPHAN-SITE' t | awk '{print $6 " " $2}' | sort -k2nr`
-FILE_MISSING_META=`grep 'ORPHAN-DIRX' t | grep -v jacksond | awk '$2 > 2 {print $2,$8}' | sort -nr | column -t`
+FILE_MISSING_META=`grep 'ORPHAN-NEW-DIRX' t | grep -v jacksond | awk '$2 > 2 {print $2,$8}' | sort -nr | column -t`
+OLD_FILE_MISSING_META=`grep 'ORPHAN-USER-DIRX' t | grep -v jacksond | cut -f2,3 -d'|' | sed 's,|, ,' | column -t`
+
 SANG_MISSING_META=`grep 'ORPHAN-FILE' t | grep jacksond | cut -f2 -d' ' | awk -F'/' '{print $(NF-1)}' | cut -c1-4 | tr -d '[0-9]_' | sort | uniq -c | sort -nr`
 
+RECENT_DAYS_DEF=`grep 'RECENT-DAYS' t | cut -f2 -d'|'`
+NEW_SITE_MISSING_FILE=`grep 'ORPHAN-NEW-SITE' t | awk '$2 > 0 {print $6 " " $2}' | sort -k2nr`
+OLD_SITE_MISSING_FILE=`grep 'ORPHAN-OLD-SITE' t | awk '$2 > 0 {print $6 " " $2}' | sort -k2nr`
+
 ###############################################################################
+if [ "$1" = "PRE" ]; then
 PRE='{"text":"
 *COG-UK inbound-distribution pre-pipeline report*
-'$COUNT_ELAN_NEW' new sequences today
+'$COUNT_ELAN_NEW' new sequences today"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
+PRE='{"text":"
 ***
-*Samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre*
-Please check your upload directories...'"\`\`\`${SITE_MISSING_FILE}\`\`\`"'
+*Recent samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre*
+Please check your upload directories...'"\`\`\`${NEW_SITE_MISSING_FILE}\`\`\`"'
 To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
 ```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
 _Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
+_Recent is defined as sequenced in the past '${RECENT_DAYS_DEF}' days._"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
+PRE='{"text":"
 ***
-*Uploaded sequences missing metadata by secondary directory*
-These directories contain one or more directories with samples that do not have metadata.
+*Recently uploaded sequences missing metadata, by secondary directory*
+These directories contain one or more directories with recently uploaded sequences that do not have metadata in Majora.
 Please check you have uploaded all your metadata...'"\`\`\`${FILE_MISSING_META}\`\`\`"'
 To inspect the uploaded sequences that are missing metadata from your site, execute:
 ```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
 _Replace climb-covid19-nichollss with the username of the uploader from the table above_
+_Recent is defined as uploaded in the past '${RECENT_DAYS_DEF}' days._"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
+PRE='{"text":"
 ***
-*Samples sequenced by Sanger missing biosample metadata*
+*All samples sequenced by Sanger missing biosample metadata*
 Metadata is missing for samples submitted from these sites, for sequencing at Sanger.
 Local sites should ensure they have uploaded the biosample-only metadata for samples not sequenced locally.'"\`\`\`${SANG_MISSING_META}\`\`\`"'
 To inspect the sequences uploaded from Sanger that are missing metadata from your site, execute:
 ```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-jacksond | grep BIRM```
 _Replace BIRM with your barcode prefix from the table above, without changing the username._
+_Sanger sequences are assumed to be uploaded by climb-covid19-jacksond. If that changes, contact Sam._"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+
+PRE='{"text":"
+***
+*Older samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre*
+Please check your upload directories...'"\`\`\`${OLD_SITE_MISSING_FILE}\`\`\`"'
+To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
+```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
+_Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
+_Older is defined as sequenced more than '${RECENT_DAYS_DEF}' days ago._"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+
+PRE='{"text":"
+***
+*Older uploaded sequences missing metadata by uploading user*
+These users have orphaned sample sequences that are still missing metadata.
+'"\`\`\`${OLD_FILE_MISSING_META}\`\`\`"'
+To inspect the uploaded sequences that are missing metadata from your site, execute:
+```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
+_Replace climb-covid19-nichollss with the username of the uploader from the table above_
+_Older is defined as uploaded more than '${RECENT_DAYS_DEF}' days ago._"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+
+PRE='{"text":"
 ***
 
 *New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
@@ -74,7 +113,12 @@ _Files and metadata uploaded in the past 10-15 minutes may not have been seen in
 _Malformed files that keep appearing and failing Elan QC every day will be addressed automatically soon._
 _The inbound pipeline will be run autonomously at ten minutes past the next hour._
 _Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+
+fi
+
 ###############################################################################
+if [ "$1" = "POST" ]; then
 POST='{"text":"
 *COG-UK inbound pipeline ready*
 '$COUNT_MAJORA' sample sequencing experiments in Majora
@@ -86,7 +130,5 @@ POST='{"text":"
 *New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
 
 _The pipeline will start in a few minutes. Have a nice day!_"}'
-###############################################################################
-
-# Announce
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+fi
