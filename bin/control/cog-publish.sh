@@ -33,13 +33,14 @@ chmod 755 $COG_PUBLISHED_DIR/$1/qc
 chmod 755 $COG_PUBLISHED_DIR/$1/summary
 
 # Linky
-echo 'Linking FASTA'
+echo "[CPUB]" `date` " - Linking FASTA"
 for fas in `cat pass.fasta.ls`;
 do
     #echo "Linking $fas"
     ln -s $fas $COG_PUBLISHED_DIR/$1/fasta/
 done
 
+echo "[CPUB]" `date` " - Linking BAM"
 echo 'Linking BAMs'
 for bam in `cat pass.bam.ls`;
 do
@@ -49,6 +50,7 @@ do
 done
 
 # Merge FASTA into one location
+echo "[CPUB]" `date` " - Merging consensus"
 find $COG_PUBLISHED_DIR/$1/fasta/ -name '*.fasta'| xargs cat > $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
 ls -lah $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
@@ -64,6 +66,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
 # Make QC tables available
+echo "[CPUB]" `date` " - Linking QC"
 for qcc in `find $ELAN_DIR/staging/qc/ -name '*.qc'`;
 do
     #echo "Linking $qcc"
@@ -77,6 +80,7 @@ done
 #find $COG_PUBLISHED_DIR/$1/ -type l -exec chmod 644 {} \;
 
 # Repoint latest
+echo "[CPUB]" `date` " - Linking latest"
 ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/latest
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.fasta
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.tsv
