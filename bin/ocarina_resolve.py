@@ -47,10 +47,15 @@ manifest = csv.DictReader(open(sys.argv[1]), delimiter='\t')
 runs_by_sample = {}
 new_count = 0
 tot_count = 0
+invalid_count = 0
 
 
 countries = {"UK-ENG": "England", "UK-WLS": "Wales", "UK-NIR": "Northern_Ireland", "UK-SCT": "Scotland", "": "UNKNOWN"}
 for row in manifest:
+    if None in row.keys():
+        sys.stderr.write("[SKIP] Ignoring %s:%s as it has too many columns (there is probably a tab character in the source data...)\n" % (row.get("central_sample_id"), row.get("run_name")))
+        invalid_count += 1
+        continue
     run_name = row.get("run_name")
     central_sample_id = row.get("central_sample_id")
 
@@ -123,6 +128,7 @@ for sample in runs_by_sample:
             new_samples += 1
 #sys.stderr.write("[NOTE] Detected %d total samples, %d currently unpublished samples\n" % (len(runs_by_sample), new_samples))
 sys.stderr.write("[NOTE] Detected %d total consensus sequences, %d currently unpublished\n" % (tot_count, new_count))
+sys.stderr.write("[NOTE][META][BAD-LINES]|%d\n" % invalid_count)
 sys.stderr.write("[NOTE][META][RECENT-DAYS]|%d\n" % RECENT_DAYS_NO)
 
 orphaned_dirs = {}

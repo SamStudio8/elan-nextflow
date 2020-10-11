@@ -39,6 +39,13 @@ OLD_FILE_MISSING_META=`grep 'ORPHAN-USER-DIRX' t | grep -v jacksond | cut -f2,3 
 
 SANG_MISSING_META=`grep 'ORPHAN-FILE' t | grep jacksond | cut -f2 -d' ' | awk -F'/' '{print $(NF-1)}' | cut -c1-4 | tr -d '[0-9]_' | sort | uniq -c | sort -nr`
 
+INVALID_LC=`grep 'BAD-LINES' t | cut -f2 -d'|'`
+if [ $INVALID_LC -gt 0 ]; then
+    INVALID_MSG='Additionally, <@U0100HRPMAR>, there are '${INVALID_LC}' bad lines of metadata for you to investigate.'
+else
+    INVALID_MSG=""
+fi
+
 RECENT_DAYS_DEF=`grep 'RECENT-DAYS' t | cut -f2 -d'|'`
 NEW_SITE_MISSING_FILE=`grep 'ORPHAN-NEW-SITE' t | awk '$2 > 0 {print $6 " " $2}' | sort -k2nr`
 OLD_SITE_MISSING_FILE=`grep 'ORPHAN-OLD-SITE' t | awk '$2 > 0 {print $6 " " $2}' | sort -k2nr`
@@ -57,7 +64,8 @@ Please check your upload directories...'"\`\`\`${NEW_SITE_MISSING_FILE}\`\`\`"'
 To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
 ```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
 _Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
-_Recent is defined as sequenced in the past '${RECENT_DAYS_DEF}' days._"}'
+_Recent is defined as sequenced in the past '${RECENT_DAYS_DEF}' days._
+'${INVALID_MSG}'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
 PRE='{"text":"
