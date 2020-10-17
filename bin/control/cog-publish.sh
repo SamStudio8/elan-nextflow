@@ -10,7 +10,7 @@ echo $1
 source ~/.ocarina
 
 # Get files that pass QC
-ocarina --quiet --env get pag --test-name 'cog-uk-elan-minimal-qc' --ls-files --pass --task-wait --task-wait-attempts 60 --task-wait-minutes 1 > elan.pass.latest
+ocarina --quiet --env get pag --test-name 'cog-uk-elan-minimal-qc' --ls-files --pass --task-wait --task-wait-attempts 75 --task-wait-minutes 1 > elan.pass.latest
 
 grep 'consensus' elan.pass.latest > elan.pass.latest.consensus.ls
 cut -f3 elan.pass.latest.consensus.ls > pass.fasta.ls
