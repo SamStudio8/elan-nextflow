@@ -60,6 +60,11 @@ cp $ELAN_DIR/staging/summary/$1/majora.metadata.tsv $COG_PUBLISHED_DIR/$1/majora
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 ls -lah $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 
+# Make other summary information available
+cp $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls $COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.all.ls
+grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls > $COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.bad.ls
+chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
+
 # An easier to use consensus and metadata table (samstudio8/majora/27)
 python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/$1/fasta/ > $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
@@ -95,7 +100,25 @@ mkdir $COG_RESULTS_DIR/phylogenetics/$1
 #sudo setfacl -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
 #sudo setfacl -d -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
 
+# Announce summary table and failures
+DASH_DATE=`date -d $1 +%Y-%m-%d`
+TABLE=`ocarina -q --env get summary --md --gte-date $DASH_DATE | column -t -s'|'`
+
+BAD_EGGS=`grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls | cut -f2,3 -d' ' | sort | uniq -c | column -t -o$'\t' | sed 's,bam,bam failed samtools quickcheck,' | sed 's,fasta,fasta had short or no sequence,' | sed 's,swell,bam was aligned to wrong reference or had no alignments,' | column -t -s$'\t' | sort -nr`
+
+POST='{"text":"
+*COG-UK inbound pipeline QC summary* '"\`\`\`${TABLE}\`\`\`"'
+
+**
+*COG-UK inbound pipeline failure summary* '"\`\`\`${BAD_EGGS}\`\`\`"'
+
+_These sequences have failed fatally and cannot be processed by Elan._
+_Please refer to '"\`$COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.bad.ls\`"' to identify the specific sequences for your organisation._
+_These errors will appear every day, forever, until the data in question has been corrected or removed._
+"}'
+curl -X POST -H 'Content-type: application/json' --data "$POST" $SLACK_REAL_HOOK
+
+# Final summary
 COUNT_PASS=`wc -l pass.fasta.ls | cut -f1 -d' '`
 COUNT_NEW=`wc -l $ELAN_DIR/staging/summary/$1/swell.qc.tsv | cut -f1 -d' '`
-
 curl -X POST -H 'Content-type: application/json' --data '{"text":"\n*COG-UK inbound pipeline complete*\n'$COUNT_NEW' new sequences matched to Majora metadata\n'$COUNT_PASS' sequences passed basic quality control to date!\nArtifacts successfully published by elan-nextflow to `'$COG_PUBLISHED_DIR'/latest`\n***\n_QC Reports have been calculated and can be reached from your Majora profile._\n_The outbound distribution pipeline will run next Monday._\n_Thanks for your patience, have a nice day!_"}' $SLACK_REAL_HOOK
