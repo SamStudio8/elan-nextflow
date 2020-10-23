@@ -109,6 +109,9 @@ BAD_EGGS=`grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls | cut -f2
 POST='{"text":"
 *COG-UK inbound pipeline QC summary* '"\`\`\`${TABLE}\`\`\`"'
 
+_Note that these figures are only intended as feedback to individual sites - quality control is not a contest!_
+_Due to the many different extraction and sequencing techniques, as well as local policies with regard to uploading sequences that failed local QC, these QC metrics should not be used to compare performance between sequencing sites._
+
 **
 *COG-UK inbound pipeline failure summary* '"\`\`\`${BAD_EGGS}\`\`\`"'
 
