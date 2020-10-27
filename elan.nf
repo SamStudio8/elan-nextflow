@@ -143,6 +143,7 @@ process samtools_filter_and_sort {
 
     """
     samtools view -h -F4 ${bam} | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.${run_name}.climb.bam
+    chmod 644 ${coguk_id}.${run_name}.climb.bam
     """
 }
 
@@ -162,6 +163,7 @@ process samtools_index {
     script:
     """
     samtools index ${bam} ${bam.baseName}.bam.bai
+    chmod 644 ${bam.baseName}.bam.bai
     """
 }
 
@@ -183,6 +185,7 @@ process samtools_depth {
 
     """
     samtools depth -d0 -a ${bam} > ${bam}.depth
+    chmod 644 ${bam}.depth
     """
 }
 
@@ -197,6 +200,7 @@ process rehead_fasta {
 
     """
     elan_rehead.py ${fasta} 'COG-UK/${coguk_id}/${seqsite}:${run_name}|${coguk_id}|${adm0}|${adm1}|${sourcesite}|${cor_date}|${seqsite}|${seq_date}' > ${coguk_id}.${run_name}.climb.fasta
+    chmod 644 ${coguk_id}.${run_name}.climb.fasta
     """
 }
 
@@ -222,24 +226,28 @@ process swell {
         rv=0
         swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V1/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v1" -x "tileset_reported" "ARTIC-v1" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
         echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${fasta} ${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
+        chmod 644 ${coguk_id}.${run_name}.qc
         """
     else if( tiles == "2" )
         """
         rv=0
         swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V2/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v2" -x "tileset_reported" "ARTIC-v2" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
         echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${fasta} ${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
+        chmod 644 ${coguk_id}.${run_name}.qc
         """
     else if( tiles == "3" )
         """
         rv=0
         swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V3/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v3" -x "tileset_reported" "ARTIC-v3" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
         echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${fasta} ${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
+        chmod 644 ${coguk_id}.${run_name}.qc
         """
     else
         """
         rv=0
         swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V2/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v2" -x "tileset_reported" "unknown" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
         echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${fasta} ${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
+        chmod 644 ${coguk_id}.${run_name}.qc
         """
 }
 process post_swell {
