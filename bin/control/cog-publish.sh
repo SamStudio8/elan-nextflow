@@ -77,8 +77,8 @@ done
 
 # Fix perms
 echo "[CPUB]" `date` " - Fixing permissions"
-find $ELAN_DIR -type f  \! -perm -644 -exec chmod 644 {} \;
-find $ELAN_DIR -type d  \! -perm -755 -exec chmod 755 {} \;
+#find $ELAN_DIR -type f  \! -perm -644 -exec chmod 644 {} \;
+#find $ELAN_DIR -type d  \! -perm -755 -exec chmod 755 {} \;
 
 # Repoint latest
 echo "[CPUB]" `date` " - Linking latest"
