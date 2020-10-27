@@ -36,7 +36,6 @@ chmod 755 $COG_PUBLISHED_DIR/$1/summary
 echo "[CPUB]" `date` " - Linking FASTA"
 for fas in `cat pass.fasta.ls`;
 do
-    #echo "Linking $fas"
     ln -s $fas $COG_PUBLISHED_DIR/$1/fasta/
 done
 
@@ -44,7 +43,6 @@ echo "[CPUB]" `date` " - Linking BAM"
 echo 'Linking BAMs'
 for bam in `cat pass.bam.ls`;
 do
-    #echo "Linking $bam"
     ln -s $bam $COG_PUBLISHED_DIR/$1/alignment/
     ln -s $bam.bai $COG_PUBLISHED_DIR/$1/alignment/
 done
@@ -74,15 +72,13 @@ chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 echo "[CPUB]" `date` " - Linking QC"
 for qcc in `find $ELAN_DIR/staging/qc/ -name '*.qc'`;
 do
-    #echo "Linking $qcc"
     ln -s $qcc $COG_PUBLISHED_DIR/$1/qc/
 done
 
 # Fix perms
-#echo "Fixing perms..."
-#find $ELAN_DIR -type d -exec chmod 755 {} \;
-#find $ELAN_DIR -type f -exec chmod 644 {} \;
-#find $COG_PUBLISHED_DIR/$1/ -type l -exec chmod 644 {} \;
+echo "[CPUB]" `date` " - Fixing permissions"
+find $ELAN_DIR -type f  \! -perm -644 -exec chmod 644 {} \;
+find $ELAN_DIR -type d  \! -perm -755 -exec chmod 755 {} \;
 
 # Repoint latest
 echo "[CPUB]" `date` " - Linking latest"
