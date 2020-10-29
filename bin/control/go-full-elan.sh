@@ -13,7 +13,12 @@ DATESTAMP=`date '+%Y%m%d'`
 OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
 
 if [ ! -f "$OCARINA_FILE" ]; then
-    $NEXTFLOW_BIN run elan.nf -c elan.config --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP > nf.elan.$DATESTAMP.log 2>&1;
+    # If a log already exists, then the pipeline needs to be resumed
+    RESUME_FLAG=""
+    if [ -f "nf.elan.$DATESTAMP.log" ]; then
+        RESUME_FLAG="-resume"
+    fi
+    $NEXTFLOW_BIN run elan.nf -c elan.config --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;
     ret=$?
     mv .nextflow.log elan.nextflow.log
 
