@@ -11,14 +11,17 @@ DATESTAMP=`date '+%Y%m%d'`
 
 # OCARINA_FILE only written if elan processed at least one sample
 OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
+ELAN_OK_FLAG="$ELAN_DIR/staging/summary/$DATESTAMP/elan.ok.flag"
 
-if [ ! -f "$OCARINA_FILE" ]; then
+if [ ! -f "$ELAN_OK_FLAG" ]; then
     # If a log already exists, then the pipeline needs to be resumed
     RESUME_FLAG=""
     if [ -f "nf.elan.$DATESTAMP.log" ]; then
         RESUME_FLAG="-resume"
+        MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log to force a full restart."}'
+        curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
     fi
-    $NEXTFLOW_BIN run elan.nf -c elan.config --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN run elan.nf -c elan.config --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;"
     ret=$?
     mv .nextflow.log elan.nextflow.log
 
@@ -37,10 +40,13 @@ _Have a nice day!_"}'
     if [ $ret -ne 0 ]; then
         MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
-        exit $ret
+        $ELAN_SOFTWARE_DIR/bin/control/handle-elan.sh $DATESTAMP
+        exit $ret # get out of here before we loop ourselves into infinity
+    else
+        touch $ELAN_OK_FLAG
     fi
 else
-    MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Elan as the ocarina file already exists for today"}'
+    MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Elan as the OK flag already exists for today"}'
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 fi
 
