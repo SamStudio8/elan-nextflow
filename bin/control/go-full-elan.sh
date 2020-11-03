@@ -38,8 +38,6 @@ _Have a nice day!_"}'
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
     if [ $ret -ne 0 ]; then
-        MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
-        curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
         $ELAN_SOFTWARE_DIR/bin/control/handle-elan.sh $DATESTAMP
         exit $ret # get out of here before we loop ourselves into infinity
     else
