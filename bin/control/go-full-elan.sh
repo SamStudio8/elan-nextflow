@@ -12,6 +12,7 @@ DATESTAMP=`date '+%Y%m%d'`
 # OCARINA_FILE only written if elan processed at least one sample
 OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
 ELAN_OK_FLAG="$ELAN_DIR/staging/summary/$DATESTAMP/elan.ok.flag"
+OCARINA_OK_FLAG="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.ok.flag"
 
 if [ ! -f "$ELAN_OK_FLAG" ]; then
     # If a log already exists, then the pipeline needs to be resumed
@@ -54,20 +55,27 @@ if [ ! -f "$OCARINA_FILE" ]; then
     exit 0
 fi
 
-$NEXTFLOW_BIN run ocarina.nf -c elan.config --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
-ret=$?
-lines=`awk -vRS= 'END{print}' nf.ocarina.$DATESTAMP.log`
-MSG='{"text":"*COG-UK QC pipeline finished...*
+if [ ! -f "$OCARINA_OK_FLAG" ]; then
+    $NEXTFLOW_BIN run ocarina.nf -c elan.config --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
+    ret=$?
+    lines=`awk -vRS= 'END{print}' nf.ocarina.$DATESTAMP.log`
+    MSG='{"text":"*COG-UK QC pipeline finished...*
 ...with exit status '"$ret"'
 '"\`\`\`${lines}\`\`\`"'"
 }'
-curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
-cat elan.nextflow.log .nextflow.log > inbound.nextflow.log
-
-if [ $ret -ne 0 ]; then
-    MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
-    exit $ret
+    cat elan.nextflow.log .nextflow.log > inbound.nextflow.log
+
+    if [ $ret -ne 0 ]; then
+        MSG='{"text":"<!channel> *COG-UK inbound pipeline failed (Ocarina)*"}'
+        curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
+        exit $ret
+    else
+        touch $OCARINA_OK_FLAG
+    fi
+else
+    MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Ocarina as the OK flag already exists for today"}'
+    curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 fi
 
 bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP
