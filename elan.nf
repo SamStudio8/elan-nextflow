@@ -65,7 +65,7 @@ process fasta_quickcheck {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus from validbam_manifest_ch
 
     output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, env(rv) into valid_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, env(rv) optional true into valid_manifest_ch
     file "${coguk_id}.${run_name}.fasta.quickcheck" into quickcheck_fasta_ch
 
     shell:
