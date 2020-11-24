@@ -330,16 +330,48 @@ fi
 
 ###############################################################################
 if [ "$1" = "POST" ]; then
-POST='{"text":"
-*COG-UK inbound pipeline ready*
-'$COUNT_MAJORA' sample sequencing experiments in Majora
-'$COUNT_ELAN_NEW' new sequences today
-'$COUNT_ELAN_OLDANDNEW' sequences matched to Majora metadata
 
-***
-
-*New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
-
-_The pipeline will start in a few minutes. Have a nice day!_"}'
+POST='{
+    "attachments": [
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":tada: COG-UK inbound-distribution pipeline ready",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "
+*'$COUNT_MAJORA'* sample sequencing experiments in Majora
+*'$COUNT_ELAN_NEW'* new sequences today
+*'$COUNT_ELAN_OLDANDNEW'* sequences matched to Majora metadata"
+                    },
+                    "accessory": {
+                        "type": "image",
+                        "image_url": "https://avatars.slack-edge.com/2019-05-03/627972616934_a621b7d3a28c2b6a7bd1_512.jpg",
+                        "alt_text": "Majora is watching."
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
+_The pipeline will start in a few minutes. Have a nice day!_"
+                        }
+                    ]
+                }
+            ],
+            "color": "#36C5F0",
+        }
+    ]
+}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 fi
