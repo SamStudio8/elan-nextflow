@@ -52,68 +52,249 @@ OLD_SITE_MISSING_FILE=`grep 'ORPHAN-OLD-SITE' t | awk '$2 > 0 {print $6 " " $2}'
 
 ###############################################################################
 if [ "$1" = "PRE" ]; then
-PRE='{"text":"
-*COG-UK inbound-distribution pre-pipeline report*
-'$COUNT_ELAN_NEW' new sequences today"}'
-curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
-PRE='{"text":"
-***
-*Recent samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre*
-Please check your upload directories...'"\`\`\`${NEW_SITE_MISSING_FILE}\`\`\`"'
+PRE='{
+    "attachments": [
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":tada: COG-UK inbound-distribution pre-pipeline report",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*'$COUNT_ELAN_NEW'* new sequences today"
+                    },
+                    "accessory": {
+                        "type": "image",
+                        "image_url": "https://avatars.slack-edge.com/2019-05-03/627972616934_a621b7d3a28c2b6a7bd1_512.jpg",
+                        "alt_text": "Majora is watching."
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+            ],
+            "color": "#36C5F0",
+        },
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Recent samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text":"
+Please check your upload directories...'"\`\`\`${NEW_SITE_MISSING_FILE}\`\`\`"'"
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
 To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
 ```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
 _Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
-_Recent is defined as sequenced in the past '${RECENT_DAYS_DEF}' days._
-'${INVALID_MSG}'"}'
+_Recent is defined as sequenced in the past '${RECENT_DAYS_DEF}' days._"
+                        }
+                    ]
+                }
+            ],
+            "color": "#E01E5A",
+        },
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Recently uploaded sequences missing metadata, by secondary directory",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text":"
+These directories contain one or more directories with recently uploaded sequences that do not have metadata in Majora.
+Please check you have uploaded all your metadata..."
+                    }
+                }
+            ],
+            "color": "#E01E5A"
+        }
+    ]
+}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
-PRE='{"text":"
-***
-*Recently uploaded sequences missing metadata, by secondary directory*
-These directories contain one or more directories with recently uploaded sequences that do not have metadata in Majora.
-Please check you have uploaded all your metadata...'"\`\`\`${FILE_MISSING_META}\`\`\`"'
+
+# Message payload too large for attachment block
+PRE='{"text": "'"\`\`\`${FILE_MISSING_META}\`\`\`"'"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+
+
+PRE='{
+    "attachments": [
+        {
+            "blocks": [
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
 To inspect the uploaded sequences that are missing metadata from your site, execute:
 ```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
-_Replace climb-covid19-nichollss with the username of the uploader from the table above_
-_Recent is defined as uploaded in the past '${RECENT_DAYS_DEF}' days._"}'
-curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
-
-PRE='{"text":"
-***
-*All samples sequenced by Sanger missing biosample metadata*
+_Replace climb-covid19-nichollss with the username of the uploader from the table above._
+_Recent is defined as uploaded in the past '${RECENT_DAYS_DEF}' days._"
+                        }
+                    ]
+                }
+            ],
+            "color": "#E01E5A",
+        },
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "All samples sequenced by Sanger missing biosample metadata",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text":"
 Metadata is missing for samples submitted from these sites, for sequencing at Sanger.
-Local sites should ensure they have uploaded the biosample-only metadata for samples not sequenced locally.'"\`\`\`${SANG_MISSING_META}\`\`\`"'
+Local sites should ensure they have uploaded the biosample-only metadata for samples not sequenced locally.'"\`\`\`${SANG_MISSING_META}\`\`\`"'"
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
 To inspect the sequences uploaded from Sanger that are missing metadata from your site, execute:
 ```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-jacksond | grep BIRM```
 _Replace BIRM with your barcode prefix from the table above, without changing the username._
-_Sanger sequences are assumed to be uploaded by climb-covid19-jacksond. If that changes, contact Sam._"}'
+_Sanger sequences are assumed to be uploaded by climb-covid19-jacksond. If that changes, contact Sam._"
+                        }
+                    ]
+                }
+            ],
+            "color": "#E01E5A",
+        }
+    ]
+}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
-PRE='{"text":"
-***
-*Older samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre*
-Please check your upload directories...'"\`\`\`${OLD_SITE_MISSING_FILE}\`\`\`"'
+
+PRE='{
+    "attachments": [
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Older samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text":"
+Please check your upload directories...'"\`\`\`${OLD_SITE_MISSING_FILE}\`\`\`"'"
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
 To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
 ```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
 _Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
-_Older is defined as sequenced more than '${RECENT_DAYS_DEF}' days ago._"}'
-curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
-
-PRE='{"text":"
-***
-*Older uploaded sequences missing metadata by uploading user*
+_Older is defined as sequenced more than '${RECENT_DAYS_DEF}' days ago._"
+                        }
+                    ]
+                }
+            ],
+            "color": "#f2c744",
+        },
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Older uploaded sequences missing metadata by uploading user",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text":"
 These users have orphaned sample sequences that are still missing metadata.
-'"\`\`\`${OLD_FILE_MISSING_META}\`\`\`"'
+'"\`\`\`${OLD_FILE_MISSING_META}\`\`\`"'",
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
 To inspect the uploaded sequences that are missing metadata from your site, execute:
 ```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
-_Replace climb-covid19-nichollss with the username of the uploader from the table above_
-_Older is defined as uploaded more than '${RECENT_DAYS_DEF}' days ago._"}'
-curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
-
-EPOCH=`date +'%s'`
-PRE='{
-    "attachments": [
+_Replace climb-covid19-nichollss with the username of the uploader from the table above._
+_Older is defined as uploaded more than '${RECENT_DAYS_DEF}' days ago._"
+                        }
+                    ]
+                }
+            ],
+            "color": "#f2c744",
+        },
         {
             "blocks": [
                 {
@@ -140,6 +321,7 @@ PRE='{
     ]
 }'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+
 
 PRE='{"text": "'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
