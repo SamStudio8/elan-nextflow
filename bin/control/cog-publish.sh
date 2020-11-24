@@ -114,4 +114,48 @@ curl -X POST -H 'Content-type: application/json' --data "$POST" $SLACK_REAL_HOOK
 # Final summary
 COUNT_PASS=`wc -l pass.fasta.ls | cut -f1 -d' '`
 COUNT_NEW=`wc -l $ELAN_DIR/staging/summary/$1/swell.qc.tsv | cut -f1 -d' '`
-curl -X POST -H 'Content-type: application/json' --data '{"text":"\n*COG-UK inbound pipeline complete*\n'$COUNT_NEW' new sequences matched to Majora metadata\n'$COUNT_PASS' sequences passed basic quality control to date!\nArtifacts successfully published by elan-nextflow to `'$COG_PUBLISHED_DIR'/latest`\n***\n_QC Reports have been calculated and can be reached from your Majora profile._\n_The outbound distribution pipeline will run next Monday._\n_Thanks for your patience, have a nice day!_"}' $SLACK_REAL_HOOK
+POST='{
+    "attachments": [
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":tada: COG-UK inbound-distribution pipeline finished",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "
+*'$COUNT_NEW'* new sequences matched to Majora metadata today
+*'$COUNT_PASS'* sequences passed basic quality control to date
+Artifacts successfully published by elan-nextflow to `'$COG_PUBLISHED_DIR'/latest`
+                    },
+                    "accessory": {
+                        "type": "image",
+                        "image_url": "https://avatars.slack-edge.com/2019-05-03/627972616934_a621b7d3a28c2b6a7bd1_512.jpg",
+                        "alt_text": "Majora is watching."
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
+_QC Reports have been calculated and can be reached from your Majora profile._
+_The outbound distribution pipeline will run next Monday._
+_Thanks for your patience, have a nice day!_"
+                        }
+                    ]
+                }
+            ],
+            "color": "#36C5F0",
+        }
+    ]
+}'
+curl -X POST -H 'Content-type: application/json' --data "$POST" $SLACK_REAL_HOOK
