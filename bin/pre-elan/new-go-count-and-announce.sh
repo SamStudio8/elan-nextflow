@@ -111,16 +111,37 @@ _Replace climb-covid19-nichollss with the username of the uploader from the tabl
 _Older is defined as uploaded more than '${RECENT_DAYS_DEF}' days ago._"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
-PRE='{"text":"
-***
+EPOCH=`date +'%s'`
+PRE='{
+    "attachments": [
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "New sequences by centre",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "_Files and metadata uploaded in the past 30 minutes may not have been seen in time to be counted here. The inbound pipeline will be run autonomously at ten minutes past the next hour. Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"
+                    }
+                }
+            ],
+            "color": "#36a64f"
+        }
+    ]
+}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
-*New sequences by centre*'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'
-
-***
-_Files and metadata uploaded in the past 10-15 minutes may not have been seen in time to be counted here._
-_Malformed files that keep appearing and failing Elan QC every day will be addressed automatically soon._
-_The inbound pipeline will be run autonomously at ten minutes past the next hour._
-_Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"}'
+PRE='{"text": "'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
 fi
