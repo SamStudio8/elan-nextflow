@@ -374,4 +374,6 @@ _The pipeline will start in a few minutes. Have a nice day!_"
     ]
 }'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+POST='{"text": "*New sequences by centre*\n'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 fi
