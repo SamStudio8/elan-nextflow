@@ -17,7 +17,7 @@ echo "[ELAN]" `date` " - LETS ROLL"
 #set -o pipefail
 
 # Keep the v2 requests for now
-ocarina --quiet --env get sequencing --run-name '*' --tsv --task-wait-attempts 75 --task-wait > latest.tsv
+ocarina --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > latest.tsv
 
 # Map filesystem to metadata to find work to do
 set +o pipefail
