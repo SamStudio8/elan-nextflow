@@ -45,7 +45,7 @@ process samtools_quickcheck {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from manifest_ch
 
     output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into validbam_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) optional true into validbam_manifest_ch
     file "${coguk_id}.${run_name}.bam.quickcheck" into quickcheck_bam_ch
 
     shell:
