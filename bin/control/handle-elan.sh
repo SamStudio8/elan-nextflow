@@ -18,5 +18,5 @@ fi
 
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 if [ $RAISE -ne 0 ]; then
-    $ELAN_SOFTWARE_DIR/bin/control/go-full-elan.sh
+    $ELAN_SOFTWARE_DIR/bin/control/go-full-elan.sh $DATESTAMP
 fi

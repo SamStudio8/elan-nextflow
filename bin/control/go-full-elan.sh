@@ -7,7 +7,8 @@ MSG='{"text":"*COG-UK inbound pipeline begins...*
 _HERE WE GO!_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
-DATESTAMP=`date '+%Y%m%d'`
+DATESTAMP=$1
+echo $DATESTAMP
 
 # OCARINA_FILE only written if elan processed at least one sample
 OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
