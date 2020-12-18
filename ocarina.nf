@@ -13,6 +13,9 @@ process play_ocarina {
     label 'ocarina'
     conda "environments/ocarina.yaml"
 
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
+    maxRetries 1
+
     input:
     tuple coguk_id, run_name, username, pipeuuid, fasta, bam, qc, sourcesite, seqsite, platform from manifest_ch
 
