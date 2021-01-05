@@ -63,6 +63,7 @@ grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls > $COG_PUBLISHED_DI
 chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 
 # An easier to use consensus and metadata table (samstudio8/majora/27)
+echo "[CPUB]" `date` " - Reconciling consensus"
 python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/$1/fasta/ > $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
