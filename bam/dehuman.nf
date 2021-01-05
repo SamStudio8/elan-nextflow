@@ -13,7 +13,7 @@ Channel
 
 process extract_bam_reads {
     tag { bam }
-    conda "environments/samtools.yaml"
+    conda "../environments/samtools.yaml"
     label 'bear'
 
     input:
@@ -29,7 +29,7 @@ process extract_bam_reads {
 
 process kraken_bam_reads {
     tag { bam }
-    conda "environments/kraken2.yaml"
+    conda "../environments/kraken2.yaml"
 
     input:
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from bamfa_manifest_ch
@@ -48,7 +48,7 @@ process kraken_bam_reads {
 
 process dehumanise_bam {
     tag { bam }
-    conda "environments/dehumanizer.yaml"
+    conda "../environments/dehumanizer.yaml"
     label 'bear'
 
     input:

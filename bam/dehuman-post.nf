@@ -28,7 +28,7 @@ process ascp_bam {
 
 process publish_bam {
     tag { bam }
-    conda "environments/pyena.yaml"
+    conda "../environments/pyena.yaml"
 
     cpus 6 //# massively over-request local cores to prevent sending too much to API at once
 
@@ -89,7 +89,7 @@ dh_ocarina_report_ch
 process tag_ocarina {
     tag { bam }
     label 'ocarina'
-    conda "environments/ocarina.yaml"
+    conda "../environments/ocarina.yaml"
 
     input:
     tuple ena_run_name, sample_acc, run_acc from dh_ocarina_report_ch_split
