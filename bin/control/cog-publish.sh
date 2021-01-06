@@ -24,12 +24,10 @@ wc -l pass.bam.ls
 mkdir $COG_PUBLISHED_DIR/$1/
 mkdir $COG_PUBLISHED_DIR/$1/fasta
 mkdir $COG_PUBLISHED_DIR/$1/alignment
-mkdir $COG_PUBLISHED_DIR/$1/qc
 mkdir $COG_PUBLISHED_DIR/$1/summary
 chmod 755 $COG_PUBLISHED_DIR/$1/
 chmod 755 $COG_PUBLISHED_DIR/$1/fasta
 chmod 755 $COG_PUBLISHED_DIR/$1/alignment
-chmod 755 $COG_PUBLISHED_DIR/$1/qc
 chmod 755 $COG_PUBLISHED_DIR/$1/summary
 
 # Linky
@@ -70,10 +68,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
 # Make QC tables available
 echo "[CPUB]" `date` " - Linking QC"
-for qcc in `find $ELAN_DIR/staging/qc/ -name '*.qc'`;
-do
-    ln -s $qcc $COG_PUBLISHED_DIR/$1/qc/
-done
+ln -fn -s $ELAN_DIR/staging/qc $COG_PUBLISHED_DIR/$1/qc
 
 # Repoint latest
 echo "[CPUB]" `date` " - Linking latest"
