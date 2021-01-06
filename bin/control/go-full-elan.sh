@@ -79,7 +79,7 @@ else
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 fi
 
-bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP
+bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_DIR/staging/summary/$DATESTAMP/publish.log
 ret=$?
 MSG='{"text":"*COG-UK publishing pipeline finished...*
 ...with exit status '"$ret"'"}'
