@@ -60,22 +60,25 @@ for row in metadata_fh:
     else:
         seen_files.add(c_fn)
 
-    if os.path.exists(c_fn):
-        # If the path exists, open it and dump out the FASTA.
+    # If the path exists, open it and dump out the FASTA.
+    try:
+        # NOTE(samstudio8, 20210106) - Use a try here to open the file straight away,
+        # this allows us to skip a `stat` on the file system from os.path.exists
+        c_fh = open(c_fn)
+    except FileNotFoundError:
+        # Skip to the next record in the hope it actually exists, this is a dud
+        continue
+
+    for name, seq, qual in readfq(c_fh):
         # Modify the header slightly to include the current valid row number for mapping later
         # (although this is unnessary now the table will be perfectly paired)
         # We can actually do whatever we like to the header here, as all of the metadata is in scope, so knock yourself out.
-        c_fh = open(c_fn)
-        for name, seq, qual in readfq(c_fh):
-            name = "COGUK/%s/%s:%s" % (row["central_sample_id"], row["sequencing_org_code"], row["run_name"])
-            row["fasta_header"] = name
-            print(">%s|%d" % (name, valid_rn))
-            print(seq)
-        c_fh.close()
-        valid_rn += 1
-    else:
-        # Skip to the next record in the hope it actually exists, this is a dud
-        continue
+        name = "COGUK/%s/%s:%s" % (row["central_sample_id"], row["sequencing_org_code"], row["run_name"])
+        row["fasta_header"] = name
+        print(">%s|%d" % (name, valid_rn))
+        print(seq)
+    c_fh.close()
+    valid_rn += 1
 
     # Write the metadata out for perfect pairing
     new_metadata_fh.writerow(row)
