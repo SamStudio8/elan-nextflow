@@ -21,12 +21,14 @@ ocarina --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-a
 
 # Map filesystem to metadata to find work to do
 set +o pipefail
+echo "[ELAN]" `date` " - Find files"
 find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python /cephfs/covid/software/sam/elan/bin/ocarina_resolve.py latest.tsv > q 2> t
 set -o pipefail
 
 cp t $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 chmod 644 $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 
+echo "[ELAN]" `date` " - Handle messages"
 COUNT_MAJORA=`wc -l latest.tsv | cut -f1 -d' '`
 COUNT_ELAN_NEW=`grep -c '^1' q`
 COUNT_ELAN_OLD=`ocarina --env get summary --md | awk '{sum+=$6} END {print sum}'`
