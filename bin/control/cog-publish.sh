@@ -7,11 +7,24 @@ set -euo pipefail
 
 echo $1
 
+# Get last successful pipe date based on latest symlink
+LAST_DIR_NAME=`readlink $COG_PUBLISHED_DIR/latest`
+LAST_DIR_DATE=`basename $LAST_DIR_NAME`
+LAST_DATE=`date -d $LAST_DIR_DATE '+%Y-%m-%d'`
+echo "[CPUB] LAST_DATE=$LAST_DATE"
+
 source ~/.ocarina
 
-# Get files that pass QC
-ocarina --quiet --env get pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.pass.latest
+# Get files that pass QC since last pipe
+ocarina --quiet --env get pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.pass.latest
+cp elan.pass.latest $ELAN_DIR/staging/summary/$1/
 
+# Get files that were suppressed and withdrawn since last pipe
+ocarina --quiet --env get pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.kill.latest
+cp elan.kill.latest $ELAN_DIR/staging/summary/$1/
+
+
+# Files to add
 grep 'consensus' elan.pass.latest > elan.pass.latest.consensus.ls
 cut -f3 elan.pass.latest.consensus.ls > pass.fasta.ls
 wc -l pass.fasta.ls
@@ -19,6 +32,20 @@ wc -l pass.fasta.ls
 grep 'alignment' elan.pass.latest > elan.pass.latest.alignment.ls
 cut -f3 elan.pass.latest.alignment.ls > pass.bam.ls
 wc -l pass.bam.ls
+
+
+# Files to kill (there may be none - so protect the grep from failure)
+set +e
+grep 'consensus' elan.kill.latest > elan.kill.latest.consensus.ls
+set -e
+cut -f3 elan.kill.latest.consensus.ls > kill.fasta.ls
+wc -l kill.fasta.ls
+
+set +e
+grep 'alignment' elan.kill.latest > elan.kill.latest.alignment.ls
+set -e
+cut -f3 elan.kill.latest.alignment.ls > kill.bam.ls
+wc -l kill.bam.ls
 
 # mkdirs
 mkdir $COG_PUBLISHED_DIR/$1/
@@ -30,19 +57,59 @@ chmod 755 $COG_PUBLISHED_DIR/$1/fasta
 chmod 755 $COG_PUBLISHED_DIR/$1/alignment
 chmod 755 $COG_PUBLISHED_DIR/$1/summary
 
+# Copy the links of the last alignment and fasta to today (faster than the previous individual linking)
+cp -r $COG_PUBLISHED_DIR/latest/alignment/ $COG_PUBLISHED_DIR/$1/
+cp -r $COG_PUBLISHED_DIR/latest/fasta/ $COG_PUBLISHED_DIR/$1/
+
+
 # Linky
-echo "[CPUB]" `date` " - Linking FASTA"
+# Use -f force in case a late publishing pipeline from the previous day leaves
+# some PAGs published today (after midnight)
+echo "[CPUB]" `date` " - Linking new FASTA"
 for fas in `cat pass.fasta.ls`;
 do
-    ln -s $fas $COG_PUBLISHED_DIR/$1/fasta/
+    ln -sf $fas $COG_PUBLISHED_DIR/$1/fasta/
 done
 
-echo "[CPUB]" `date` " - Linking BAM"
+echo "[CPUB]" `date` " - Linking new BAM"
 for bam in `cat pass.bam.ls`;
 do
-    ln -s $bam $COG_PUBLISHED_DIR/$1/alignment/
-    ln -s $bam.bai $COG_PUBLISHED_DIR/$1/alignment/
+    ln -sf $bam $COG_PUBLISHED_DIR/$1/alignment/
+    ln -sf $bam.bai $COG_PUBLISHED_DIR/$1/alignment/
 done
+
+
+# Unlinky
+# Ignore unlinking errors as yesterday's unlinks may still be included
+echo "[CPUB]" `date` " - Unlinking suppressed FASTA"
+for fas in `cat kill.fasta.ls`;
+do
+    base=`basename $fas`
+    set +e
+    unlink $COG_PUBLISHED_DIR/$1/fasta/$base
+    ret=$?
+    set -e
+
+    if [ $ret -eq 0 ]; then
+        echo "[KILL][FAS] $base"
+    fi
+done
+
+echo "[CPUB]" `date` " - Unlinking suppressed BAM"
+for bam in `cat kill.bam.ls`;
+do
+    base=`basename $bam`
+    set +e
+    unlink $COG_PUBLISHED_DIR/$1/alignment/$bam
+    ret=$?
+    unlink $COG_PUBLISHED_DIR/$1/alignment/$bam.bai
+    set -e
+
+    if [ $ret -eq 0 ]; then
+        echo "[KILL][BAM] $base"
+    fi
+done
+
 
 # Merge FASTA into one location
 echo "[CPUB]" `date` " - Merging consensus"
@@ -67,6 +134,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
 # Make QC tables available
+# NOTE(samstudio8 20210107) - As all QC data is shared, just softlink the qc dir root instead of wasting time linking each qc table
 echo "[CPUB]" `date` " - Linking QC"
 ln -fn -s $ELAN_DIR/staging/qc $COG_PUBLISHED_DIR/$1/qc
 
