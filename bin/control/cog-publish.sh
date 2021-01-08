@@ -52,7 +52,7 @@ mkdir $COG_PUBLISHED_DIR/$1/
 mkdir $COG_PUBLISHED_DIR/$1/fasta
 mkdir $COG_PUBLISHED_DIR/$1/alignment
 mkdir $COG_PUBLISHED_DIR/$1/summary
-chmod 755 $COG_PUBLISHED_DIR/$1/
+chmod 700 $COG_PUBLISHED_DIR/$1/ # Initially prevent users accessing this directory until complete
 chmod 755 $COG_PUBLISHED_DIR/$1/fasta
 chmod 755 $COG_PUBLISHED_DIR/$1/alignment
 chmod 755 $COG_PUBLISHED_DIR/$1/summary
@@ -140,6 +140,7 @@ ln -fn -s $ELAN_DIR/staging/qc $COG_PUBLISHED_DIR/$1/qc
 
 # Repoint latest
 echo "[CPUB]" `date` " - Linking latest"
+chmod 755 $COG_PUBLISHED_DIR/$1/
 ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/latest
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.fasta
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.tsv
