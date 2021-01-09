@@ -177,7 +177,7 @@ _These errors will appear every day, forever, until the data in question has bee
 curl -X POST -H 'Content-type: application/json' --data "$POST" $SLACK_REAL_HOOK
 
 # Final summary
-COUNT_PASS=`wc -l pass.fasta.ls | cut -f1 -d' '`
+COUNT_PASS=`ocarina --env get summary --md | awk '{sum+=$8} END {print sum}'`
 COUNT_NEW=`wc -l $ELAN_DIR/staging/summary/$1/swell.qc.tsv | cut -f1 -d' '`
 POST='{
     "attachments": [
