@@ -157,7 +157,12 @@ for line in sys.stdin.readlines():
                 current_sample = field
 
     if not current_sample:
-        mod_time = datetime.datetime.fromtimestamp( os.path.getmtime(line.strip()) )
+        try:
+            mod_time = datetime.datetime.fromtimestamp( os.path.getmtime(line.strip()) )
+        except OSError:
+            # Assume if the file can't be reached it is new for the sake of argument
+            mod_time = datetime.datetime.now()
+
         if mod_time >= (datetime.datetime.now() - datetime.timedelta(days=RECENT_DAYS_NO)):
             recent = True
         else:
