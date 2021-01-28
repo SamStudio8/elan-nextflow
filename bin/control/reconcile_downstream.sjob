@@ -1,0 +1,8 @@
+#!/bin/bash
+#SBATCH --qos lomannj
+#SBATCH --account lomannj-covid-19-realtime-epidemiology
+#SBATCH --time 10:0:0
+#SBATCH --mem 10G
+#SBATCH --job-name EPUB_RCN
+
+python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py $COG_PUBLISHED_DIR/$DATESTAMP/majora.$DATESTAMP.metadata.tsv $COG_PUBLISHED_DIR/$DATESTAMP/fasta/ > $COG_PUBLISHED_DIR/$DATESTAMP/elan.$DATESTAMP.consensus.matched.fasta

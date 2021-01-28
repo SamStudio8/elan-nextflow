@@ -128,8 +128,13 @@ grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls > $COG_PUBLISHED_DI
 chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 
 # An easier to use consensus and metadata table (samstudio8/majora/27)
-echo "[CPUB]" `date` " - Reconciling consensus"
-python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/$1/fasta/ > $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
+# NOTE samstudio8/2021-01-28
+#      Send the reconcile job to SLURM where the I/O is faster to save some time
+#      and improve consistency. --wait will block until complete and the script is
+#      set to fail on failure. We'll need to wrap this up to ensure it runs in future.
+echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
+DATESTAMP=$1
+sbatch --export=ALL --wait test_wait.sjob $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
