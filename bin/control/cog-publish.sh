@@ -110,13 +110,6 @@ do
     fi
 done
 
-
-# Merge FASTA into one location
-echo "[CPUB]" `date` " - Merging consensus"
-find $COG_PUBLISHED_DIR/$1/fasta/ -name '*.fasta'| xargs cat > $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
-chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
-ls -lah $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
-
 # Make metadata available
 cp $ELAN_DIR/staging/summary/$1/majora.metadata.tsv $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
@@ -137,6 +130,12 @@ DATESTAMP=$1
 sbatch --export=ALL --wait test_wait.sjob $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
+
+# NOTE samstudio8/2021-01-28
+#      I've scrapped the consensus merging (cat) step as we're basically double
+#      handling data to generate the FASTA. This symlinks the matched FASTA to
+#      replace the "unmatched" FASTA. The files will be the same going forward.
+ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
 # Make QC tables available
 # NOTE(samstudio8 20210107) - As all QC data is shared, just softlink the qc dir root instead of wasting time linking each qc table
