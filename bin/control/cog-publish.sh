@@ -8,7 +8,7 @@ set -euo pipefail
 echo $1
 
 # Get last successful pipe date based on latest symlink
-LAST_DIR_NAME=`readlink $COG_PUBLISHED_DIR/latest`
+LAST_DIR_NAME=`readlink $COG_PUBLISHED_DIR/head`
 LAST_DIR_DATE=`basename $LAST_DIR_NAME`
 LAST_DATE=`date -d $LAST_DIR_DATE '+%Y-%m-%d'`
 echo "[CPUB] LAST_DATE=$LAST_DATE"
@@ -49,18 +49,9 @@ wc -l kill.bam.ls
 
 # mkdirs
 mkdir $COG_PUBLISHED_DIR/$1/
-mkdir $COG_PUBLISHED_DIR/$1/fasta
-mkdir $COG_PUBLISHED_DIR/$1/alignment
 mkdir $COG_PUBLISHED_DIR/$1/summary
 chmod 700 $COG_PUBLISHED_DIR/$1/ # Initially prevent users accessing this directory until complete
-chmod 755 $COG_PUBLISHED_DIR/$1/fasta
-chmod 755 $COG_PUBLISHED_DIR/$1/alignment
 chmod 755 $COG_PUBLISHED_DIR/$1/summary
-
-# Copy the links of the last alignment and fasta to today (faster than the previous individual linking)
-cp -r $COG_PUBLISHED_DIR/latest/alignment/ $COG_PUBLISHED_DIR/$1/
-cp -r $COG_PUBLISHED_DIR/latest/fasta/ $COG_PUBLISHED_DIR/$1/
-
 
 # Linky
 # Use -f force in case a late publishing pipeline from the previous day leaves
@@ -68,14 +59,14 @@ cp -r $COG_PUBLISHED_DIR/latest/fasta/ $COG_PUBLISHED_DIR/$1/
 echo "[CPUB]" `date` " - Linking new FASTA"
 for fas in `cat pass.fasta.ls`;
 do
-    ln -sf $fas $COG_PUBLISHED_DIR/$1/fasta/
+    ln -sf $fas $COG_PUBLISHED_DIR/latest/fasta/
 done
 
 echo "[CPUB]" `date` " - Linking new BAM"
 for bam in `cat pass.bam.ls`;
 do
-    ln -sf $bam $COG_PUBLISHED_DIR/$1/alignment/
-    ln -sf $bam.bai $COG_PUBLISHED_DIR/$1/alignment/
+    ln -sf $bam $COG_PUBLISHED_DIR/latest/alignment/
+    ln -sf $bam.bai $COG_PUBLISHED_DIR/latest/alignment/
 done
 
 
@@ -86,7 +77,7 @@ for fas in `cat kill.fasta.ls`;
 do
     base=`basename $fas`
     set +e
-    unlink $COG_PUBLISHED_DIR/$1/fasta/$base
+    unlink $COG_PUBLISHED_DIR/latest/fasta/$base
     ret=$?
     set -e
 
@@ -100,9 +91,9 @@ for bam in `cat kill.bam.ls`;
 do
     base=`basename $bam`
     set +e
-    unlink $COG_PUBLISHED_DIR/$1/alignment/$bam
+    unlink $COG_PUBLISHED_DIR/latest/alignment/$bam
     ret=$?
-    unlink $COG_PUBLISHED_DIR/$1/alignment/$bam.bai
+    unlink $COG_PUBLISHED_DIR/latest/alignment/$bam.bai
     set -e
 
     if [ $ret -eq 0 ]; then
@@ -126,8 +117,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 #      and improve consistency. --wait will block until complete and the script is
 #      set to fail on failure. We'll need to wrap this up to ensure it runs in future.
 echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
-DATESTAMP=$1
-sbatch --export=ALL --wait test_wait.sjob $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+sbatch --export=ALL,DATESTAMP=$1 --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
@@ -135,21 +125,35 @@ chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 #      I've scrapped the consensus merging (cat) step as we're basically double
 #      handling data to generate the FASTA. This symlinks the matched FASTA to
 #      replace the "unmatched" FASTA. The files will be the same going forward.
-ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
+ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
 
 # Make QC tables available
 # NOTE(samstudio8 20210107) - As all QC data is shared, just softlink the qc dir root instead of wasting time linking each qc table
-echo "[CPUB]" `date` " - Linking QC"
-ln -fn -s $ELAN_DIR/staging/qc $COG_PUBLISHED_DIR/$1/qc
+# NOTE(samstudio8 20210128) - No need to do this anymore as we have canonical latest/ dir
 
 # Repoint latest
 echo "[CPUB]" `date` " - Linking latest"
 chmod 755 $COG_PUBLISHED_DIR/$1/
-ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/latest
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.fasta
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.tsv
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.matched.fasta
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.matched.tsv
+
+# NOTE samstudio8 2021-01-28
+#      https://github.com/SamStudio8/elan-nextflow/issues/12
+#      We've now moved away from providing symlinks at a daily resolution because
+#      its hilariously expensive to maintain them and nobody actually uses them.
+#      latest/ is now a real dir rather than a symlink. To match the expected
+#      behaviour of the latest files being accessible via latest/ we'll additionally
+#      now symlink the FASTA and TSV. Eventually we can deprecate providing them
+#      above this dir.
+#      I now use a `head` symlink to keep track of the last successful run.
+ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/latest/elan.consensus.fasta
+ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/latest/majora.metadata.tsv
+ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_DIR/latest/elan.consensus.matched.fasta
+ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv $COG_PUBLISHED_DIR/latest/majora.metadata.matched.tsv
+ln -fn -s $COG_PUBLISHED_DIR/$1/summary $COG_PUBLISHED_DIR/latest/summary
+ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/head
 
 # Init phylo directory
 mkdir $COG_RESULTS_DIR/phylogenetics/$1
