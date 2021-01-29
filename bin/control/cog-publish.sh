@@ -16,11 +16,11 @@ echo "[CPUB] LAST_DATE=$LAST_DATE"
 source ~/.ocarina
 
 # Get files that pass QC since last pipe
-ocarina --quiet --env get pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.pass.latest
+ocarina --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.pass.latest
 cp elan.pass.latest $ELAN_DIR/staging/summary/$1/
 
 # Get files that were suppressed and withdrawn since last pipe
-ocarina --quiet --env get pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.kill.latest
+ocarina --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.kill.latest
 cp elan.kill.latest $ELAN_DIR/staging/summary/$1/
 
 
