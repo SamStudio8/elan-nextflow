@@ -5,5 +5,18 @@
 #SBATCH --mem 10G
 #SBATCH --job-name EPUB_RCN
 
+eval "$(conda shell.bash hook)" # use conda to hammer a tiny nail
+
+set -euo pipefail
+
+conda env remove -q -y -n epub_rcn
+conda create -q -y -n epub_rcn python=3.7
+conda activate epub_rcn
+
+python --version
+
 echo $DATESTAMP
 python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py $COG_PUBLISHED_DIR/$DATESTAMP/majora.$DATESTAMP.metadata.tsv $COG_PUBLISHED_DIR/latest/fasta/ > $COG_PUBLISHED_DIR/$DATESTAMP/elan.$DATESTAMP.consensus.matched.fasta
+
+conda deactivate
+conda env remove -q -y -n epub_rcn
