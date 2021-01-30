@@ -117,7 +117,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 #      and improve consistency. --wait will block until complete and the script is
 #      set to fail on failure. We'll need to wrap this up to ensure it runs in future.
 echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
-sbatch --export=ALL,DATESTAMP=$1 --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
