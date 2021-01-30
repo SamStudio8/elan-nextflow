@@ -120,7 +120,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 #      `until` will resubmit the reconcile job until it exits 0
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
 echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
-until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
 do
     ret=$?
     echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
