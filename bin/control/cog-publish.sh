@@ -48,8 +48,8 @@ cut -f3 elan.kill.latest.alignment.ls > kill.bam.ls
 wc -l kill.bam.ls
 
 # mkdirs
-mkdir $COG_PUBLISHED_DIR/$1/
-mkdir $COG_PUBLISHED_DIR/$1/summary
+mkdir -p $COG_PUBLISHED_DIR/$1/
+mkdir -p $COG_PUBLISHED_DIR/$1/summary
 chmod 700 $COG_PUBLISHED_DIR/$1/ # Initially prevent users accessing this directory until complete
 chmod 755 $COG_PUBLISHED_DIR/$1/summary
 
@@ -156,7 +156,7 @@ ln -fn -s $COG_PUBLISHED_DIR/$1/summary $COG_PUBLISHED_DIR/latest/summary
 ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/head
 
 # Init phylo directory
-mkdir $COG_RESULTS_DIR/phylogenetics/$1
+mkdir -p $COG_RESULTS_DIR/phylogenetics/$1
 #mkdir $COG_PUBLISHED_DIR/$1/phylogenetics
 #sudo setfacl -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
 #sudo setfacl -d -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
