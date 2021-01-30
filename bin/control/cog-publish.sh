@@ -115,9 +115,17 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 # NOTE samstudio8/2021-01-28
 #      Send the reconcile job to SLURM where the I/O is faster to save some time
 #      and improve consistency. --wait will block until complete and the script is
-#      set to fail on failure. We'll need to wrap this up to ensure it runs in future.
+#      set to fail on failure.
+# NOTE samstudio8/2021-01-30
+#      `until` will resubmit the reconcile job until it exits 0
+#      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
 echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
-sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+do
+    ret=$?
+    echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
+    sleep 1
+done
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
