@@ -1,3 +1,5 @@
 elan.config
 *log*
 *.ls
+slurm*out
+*swp
