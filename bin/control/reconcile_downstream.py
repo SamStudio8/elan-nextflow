@@ -37,10 +37,14 @@ import sys
 
 METADATA_FP = sys.argv[1]
 PUBLISHED_DIR = sys.argv[2]
+if len(sys.argv) == 4:
+    NEW_METADATA_FP = sys.argv[3]
+else:
+    NEW_METADATA_FP = METADATA_FP.replace(".tsv", ".matched.tsv")
 
 # Open the metadata file
 metadata_fh = csv.DictReader(open(METADATA_FP), delimiter="\t")
-new_metadata_fh = csv.DictWriter(open(METADATA_FP.replace(".tsv", ".matched.tsv"), 'w'), metadata_fh.fieldnames + ["fasta_header"], delimiter="\t")
+new_metadata_fh = csv.DictWriter(open(NEW_METADATA_FP, 'w'), metadata_fh.fieldnames + ["fasta_header"], delimiter="\t")
 new_metadata_fh.writeheader()
 
 seen_files = set([])
