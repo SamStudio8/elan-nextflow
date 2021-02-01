@@ -32,8 +32,8 @@ process publish_bam {
 
     cpus 6 //# massively over-request local cores to prevent sending too much to API at once
 
-    //errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
-    //maxRetries 1
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
+    maxRetries 2
     errorStrategy 'ignore'
 
     input:
