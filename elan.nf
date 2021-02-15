@@ -84,7 +84,7 @@ process save_uploads {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, fstatus from valid_manifest_ch
 
     output:
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into validbak_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file("${coguk_id}.${run_name}.uploaded.fasta"), file("${coguk_id}.${run_name}.uploaded.bam") into validbak_manifest_ch
 
     errorStrategy 'ignore'
 
