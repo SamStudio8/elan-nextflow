@@ -18,5 +18,6 @@ fi
 
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 if [ $RAISE -ne 0 ]; then
+    sleep 300 # give java some time to calm down
     $ELAN_SOFTWARE_DIR/bin/control/go-full-elan.sh $DATESTAMP
 fi
