@@ -19,8 +19,6 @@ process play_ocarina {
     input:
     tuple coguk_id, run_name, username, pipeuuid, fasta, bam, qc, sourcesite, seqsite, platform from manifest_ch
 
-    cpus 2 //# previously massively over-requested local cores to prevent sending too much to API at once, but now there are user limits
-
     script:
     """
     ocarina --oauth --angry --env put file --path "${fasta}" --type consensus --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline-hook "bioinfo-${run_name}" --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --meta sequencing platform "${platform}";
