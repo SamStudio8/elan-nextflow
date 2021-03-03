@@ -22,7 +22,7 @@ process ascp_bam {
 
     """
     export ASPERA_SCP_PASS=\$WEBIN_PASS
-    ${params.ascpbin} -T --policy high -L- ${public_bam} \$WEBIN_USER@webin.ebi.ac.uk:.
+    ${params.ascpbin} -T --policy low -L- ${public_bam} \$WEBIN_USER@webin.ebi.ac.uk:.
     """
 }
 
