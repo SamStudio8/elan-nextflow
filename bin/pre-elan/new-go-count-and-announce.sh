@@ -53,7 +53,7 @@ NEW_SITE_MISSING_FILE=`grep 'ORPHAN-NEW-SITE' t | awk '$2 > 0 {print $6 " " $2}'
 OLD_SITE_MISSING_FILE=`grep 'ORPHAN-OLD-SITE' t | awk '$2 > 0 {print $6 " " $2}' | sort -k2nr`
 
 ###############################################################################
-if [ "$1" = "PRE" ]; then
+if [ "$1" = "LONG" ]; then
 
 PRE='{
     "attachments": [
@@ -314,7 +314,7 @@ _Older is defined as uploaded more than '${RECENT_DAYS_DEF}' days ago._"
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "_Files and metadata uploaded in the past 30 minutes may not have been seen in time to be counted here. The inbound pipeline will be run autonomously at ten minutes past the next hour. Files and metadata must be uploaded before one minute past the next hour. Not even Sam can stop the pipeline now..._"
+                        "text": "_Files and metadata uploaded in the past 30 minutes may not have been seen in time to be counted here. Files and metadata must be uploaded before one minute past the next hour to appear in the end of day report. The pipeline will start autonomously tomorrow morning, not even Sam can stop the pipeline now..._"
                     }
                 }
             ],
@@ -327,11 +327,9 @@ curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
 PRE='{"text": "'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
-
 fi
-
 ###############################################################################
-if [ "$1" = "POST" ]; then
+if [ "$1" = "SHORT" ]; then
 
 POST='{
     "attachments": [
@@ -341,7 +339,7 @@ POST='{
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": ":tada: COG-UK inbound-distribution pipeline ready",
+                        "text": ":tada: COG-UK inbound-distribution pre-pipeline short report",
                         "emoji": true
                     }
                 },
@@ -366,7 +364,7 @@ POST='{
                         {
                             "type": "mrkdwn",
                             "text":"
-_The pipeline will start in a few minutes. Have a nice day!_"
+_The pipeline will start tomorrow morning. Good night!_"
                         }
                     ]
                 }
@@ -379,4 +377,54 @@ curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 POST='{"text": "*New sequences by centre*\n'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 fi
+###############################################################################
+if [ "$1" = "SHORTSTART" ]; then
+
+POST='{
+    "attachments": [
+        {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":sunrise: COG-UK inbound-distribution pipeline ready",
+                        "emoji": true
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "
+*'$COUNT_MAJORA'* sample sequencing experiments in Majora
+*'$COUNT_ELAN_NEW'* new sequences today
+*'$COUNT_ELAN_OLDANDNEW'* sequences matched to Majora metadata"
+                    },
+                    "accessory": {
+                        "type": "image",
+                        "image_url": "https://avatars.slack-edge.com/2019-05-03/627972616934_a621b7d3a28c2b6a7bd1_512.jpg",
+                        "alt_text": "Majora is watching."
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text":"
+_Good morning! The pipeline will start shortly. Have a nice day!_"
+                        }
+                    ]
+                }
+            ],
+            "color": "#36C5F0",
+        }
+    ]
+}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+POST='{"text": "*New sequences by centre*\n'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
+curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
+fi
+###############################################################################
 echo "[ELAN]" `date` " - Pull complete"
