@@ -6,4 +6,4 @@ channels:
 dependencies:
   - samtools
   - pip:
-    - git+https://github.com/samstudio8/ocarina.git@c1bfd595c5070b827175200ffa989320f497dcb6
+    - git+https://github.com/samstudio8/ocarina.git@15ec10caeac8571ab2824a1227c78ff38bb3ce44
