@@ -6,9 +6,10 @@ params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
 params.minlen = 10000
 
 process save_manifest {
+    //cache false //this may have unintended consequences if latest.tsv is accidentally updated
     output:
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
-    file 'majora.metadata.tsv'
+    file 'majora.metadata.tsv' into resolve_ch
 
     """
     cp ${params.dump} majora.metadata.tsv
@@ -16,13 +17,17 @@ process save_manifest {
 }
 
 process resolve_uploads {
+
+    input:
+    file manifest from resolve_ch
+
     output:
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
     file 'files.ls' into start_ch
     file 'files.err'
     """
-    find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py ${params.dump} > files.ls 2> files.err
+    find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py ${manifest} > files.ls 2> files.err
     """
 }
 
