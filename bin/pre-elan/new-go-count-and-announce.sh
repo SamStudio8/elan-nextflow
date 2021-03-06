@@ -63,7 +63,7 @@ LONG='{
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": ":tada: COG-UK inbound-distribution pre-pipeline report",
+                        "text": ":star: COG-UK inbound-distribution pre-pipeline report",
                         "emoji": true
                     }
                 },
@@ -339,7 +339,7 @@ SHORT='{
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": ":tada: COG-UK inbound-distribution pre-pipeline short report",
+                        "text": ":star2: COG-UK inbound-distribution pre-pipeline count",
                         "emoji": true
                     }
                 },
