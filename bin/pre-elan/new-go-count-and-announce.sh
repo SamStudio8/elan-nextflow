@@ -55,7 +55,7 @@ OLD_SITE_MISSING_FILE=`grep 'ORPHAN-OLD-SITE' t | awk '$2 > 0 {print $6 " " $2}'
 ###############################################################################
 if [ "$1" = "LONG" ]; then
 
-PRE='{
+LONG='{
     "attachments": [
         {
             "blocks": [
@@ -150,11 +150,11 @@ curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
 
 # Message payload too large for attachment block
-PRE='{"text": "'"\`\`\`${FILE_MISSING_META}\`\`\`"'"}'
+LONG='{"text": "'"\`\`\`${FILE_MISSING_META}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
 
-PRE='{
+LONG='{
     "attachments": [
         {
             "blocks": [
@@ -220,7 +220,7 @@ _Sanger sequences are assumed to be uploaded by climb-covid19-jacksond. If that 
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
 
-PRE='{
+LONG='{
     "attachments": [
         {
             "blocks": [
@@ -325,13 +325,13 @@ _Older is defined as uploaded more than '${RECENT_DAYS_DEF}' days ago._"
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 
 
-PRE='{"text": "'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
+LONG='{"text": "'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 fi
 ###############################################################################
 if [ "$1" = "SHORT" ]; then
 
-POST='{
+SHORT='{
     "attachments": [
         {
             "blocks": [
@@ -374,13 +374,13 @@ _The pipeline will start tomorrow morning. Good night!_"
     ]
 }'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
-POST='{"text": "*New sequences by centre*\n'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
+SHORT='{"text": "*New sequences by centre*\n'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 fi
 ###############################################################################
 if [ "$1" = "SHORTSTART" ]; then
 
-POST='{
+SHORTSTART='{
     "attachments": [
         {
             "blocks": [
@@ -423,7 +423,7 @@ _Good morning! The pipeline will start shortly. Have a nice day!_"
     ]
 }'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
-POST='{"text": "*New sequences by centre*\n'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
+SHORTSTART='{"text": "*New sequences by centre*\n'"\`\`\`${SITE_COUNTS_NEW}\`\`\`"'"}'
 curl -X POST -H 'Content-type: application/json' --data "${!1}" "${!2}"
 fi
 ###############################################################################
