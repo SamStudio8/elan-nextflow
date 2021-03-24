@@ -17,7 +17,13 @@ else
 fi
 
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
+
+sleep 30 # breathe
+
+# kill any remaining jobs that might be stranded
+squeue | awk '$3 ~ /^elan-/ { print $1 }' | xargs scancel
+
 if [ $RAISE -ne 0 ]; then
-    sleep 300 # give java some time to calm down
+    sleep 300 # give java some more time to calm down
     $ELAN_SOFTWARE_DIR/bin/control/go-full-elan.sh $DATESTAMP
 fi
