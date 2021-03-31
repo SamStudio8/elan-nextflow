@@ -7,6 +7,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--topic', required=True)
 parser.add_argument("--attr", action='append', nargs=2, metavar=('key', 'value'))
+parser.add_argument("--host", default="localhost")
 args = parser.parse_args()
 
 payload = ""
@@ -16,7 +17,7 @@ if args.attr:
 publish.single(
     args.topic,
     payload=payload,
-    hostname="localhost",
+    hostname=args.host,
     transport="tcp",
     port=1883,
     qos=2,
