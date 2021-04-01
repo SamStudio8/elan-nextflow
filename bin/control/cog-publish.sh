@@ -121,7 +121,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
 echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
 
-if [ "$COG_PUBLISH_MODE" = "slurm"]; then
+if [ "$COG_PUBLISH_MODE" == "slurm" ]; then
     until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
     do
         ret=$?
