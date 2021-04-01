@@ -5,6 +5,8 @@
 #SBATCH --mem 10G
 #SBATCH --job-name EPUB_RCN
 
+# ignore PS1 error
+set +u
 eval "$(conda shell.bash hook)" # use conda to hammer a tiny nail
 
 set -euo pipefail
