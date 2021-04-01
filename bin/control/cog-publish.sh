@@ -120,12 +120,24 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 #      `until` will resubmit the reconcile job until it exits 0
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
 echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
-until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
-do
-    ret=$?
-    echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
-    sleep 1
-done
+
+if [ "$COG_PUBLISH_MODE" = "slurm"]; then
+    until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+    do
+        ret=$?
+        echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
+        sleep 60
+    done
+else
+    export DATESTAMP=$1
+    until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+    do
+        ret=$?
+        echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
+        sleep 60
+    done
+fi
+
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
 
