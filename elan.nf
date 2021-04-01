@@ -131,7 +131,7 @@ process rehead_bam {
     """
 }
 
-process samtools_filter_and_sort {
+process samtools_filter {
     tag { bam }
     conda "environments/samtools.yaml"
     label 'bear'
@@ -143,11 +143,8 @@ process samtools_filter_and_sort {
     publishDir path: "${params.publish}/staging/alignment", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.climb.bam") into sorted_manifest_ch
 
-    cpus 4
-    memory '5 GB'
-
     """
-    samtools view -h -F4 ${bam} | samtools sort -m1G -@ ${task.cpus} -o ${coguk_id}.${run_name}.climb.bam
+    samtools view -h -F4 ${bam} -o ${coguk_id}.${run_name}.climb.bam
     chmod 644 ${coguk_id}.${run_name}.climb.bam
     """
 }
@@ -157,19 +154,46 @@ process samtools_index {
     label 'bear'
     conda "environments/samtools.yaml"
 
+    errorStrategy 'ignore'
+
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
 
     output:
     publishDir path: "${params.publish}/staging/alignment", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
     file "${bam.baseName}.bam.bai"
-    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into indexed_manifest_ch
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into post_index_manifest_ch
+
+    file "${coguk_id}.${run_name}.index.quickcheck" into quickcheck_index_ch
 
     script:
     """
-    samtools index ${bam} ${bam.baseName}.bam.bai
-    chmod 644 ${bam.baseName}.bam.bai
+    rv=0
+    samtools index ${bam} ${bam.baseName}.bam.bai || rv=\$?
+    echo "\$rv bam_index ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.index.quickcheck
     """
+}
+process post_index {
+    tag { bam }
+
+    input:
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), idx_status from post_index_manifest_ch
+
+    output:
+    tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into indexed_manifest_ch
+
+    errorStrategy 'ignore'
+
+    script:
+    if (idx_status.toInteger() == 0)
+        """
+        echo 'index is good'
+        """
+    else
+        """
+        echo "Cowardly refusing to process ${coguk_id} ${run_name} any further as it has a bad-looking BAM"
+        exit 1
+        """
 }
 
 process samtools_depth {
@@ -177,7 +201,7 @@ process samtools_depth {
     conda "environments/samtools.yaml"
     label 'bear'
 
-    errorStrategy 'retry' 
+    errorStrategy 'retry'
     maxRetries 3
     memory { (3 + (2 * task.attempt))+"GB" }
 
@@ -299,5 +323,6 @@ report_ch
 quickcheck_fasta_ch
     .mix( quickcheck_bam_ch )
     .mix( quickcheck_swell_ch )
+    .mix( quickcheck_index_ch )
     .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.publish}/staging/summary/${params.datestamp}")
 
