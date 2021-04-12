@@ -88,11 +88,12 @@ def on_message(client, userdata, msg):
                 "announce": True if rc > 0 else False,
                 "time_elapsed": str(end_time - start_time),
             }
-            for p in args.payload_passthrough:
-                if p not in env:
-                    print("cannot passthrough environment variable '%s'. if you are using the envreq prefix, make sure to use the full parameter name." % p)
-                else:
-                    payload[p] = env[p]
+            if args.payload_passthrough:
+                for p in args.payload_passthrough:
+                    if p not in env:
+                        print("cannot passthrough environment variable '%s'. if you are using the envreq prefix, make sure to use the full parameter name." % p)
+                    else:
+                        payload[p] = env[p]
             emit(args.who, payload)
             print("finished command with return code %s" % str(rc))
         except Exception as e:
