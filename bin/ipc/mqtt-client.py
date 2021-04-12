@@ -12,6 +12,7 @@ parser.add_argument('-c', '--cmd', required=True)
 parser.add_argument('--who', required=True)
 parser.add_argument('--envprefix')
 parser.add_argument('--envreq', nargs='+')
+parser.add_argument('--payload-passthrough', nargs='+')
 args = parser.parse_args()
 
 def emit(who, payload):
@@ -81,12 +82,18 @@ def on_message(client, userdata, msg):
             else:
                 status = "failed"
 
-            emit(args.who, {
+            payload = {
                 "status": status,
                 "return_code": rc,
                 "announce": True if rc > 0 else False,
                 "time_elapsed": str(end_time - start_time),
-            })
+            }
+            for p in args.payload_passthrough:
+                if p not in env:
+                    print("cannot passthrough environment variable '%s'. if you are using the envreq prefix, make sure to use the full parameter name." % p)
+                else:
+                    payload[p] = env[p]
+            emit(args.who, payload)
             print("finished command with return code %s" % str(rc))
         except Exception as e:
             print("unable to initialise subprocess")
