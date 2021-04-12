@@ -62,7 +62,7 @@ process dehumanise_bam {
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
     errorStrategy 'ignore'
-    memory "15GB"
+    memory "20GB"
 
     script:
     if ( run_platform == "ILLUMINA" )
