@@ -42,15 +42,18 @@ def on_message(client, userdata, msg):
     status = payload.get("status")
 
     if args.envreq:
+        args.envreq = [e.upper() for e in args.envreq]
         upped_payload = [x.upper() for x in payload.keys()]
         for e in args.envreq:
-            if e.upper() not in upped_payload:
+            if e not in upped_payload:
                 print("cowardly refusing to start command without '%s'. report this to the message sender." % e)
                 return
 
     new_partial_env = {}
     if args.envprefix:
         new_partial_env.update( {"%s_%s" % (args.envprefix, k.upper()): v for k,v in payload.items()} )
+    else:
+        new_partial_env.update({"%s" % k.upper(): v for k,v in payload.items() if k.upper() in args.envreq})
     env = os.environ.copy()
     env.update(new_partial_env)
 
