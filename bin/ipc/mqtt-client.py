@@ -51,8 +51,10 @@ def on_message(client, userdata, msg):
 
     new_partial_env = {}
     if args.envprefix:
+        # Use the prefix to safely add all payload variables to the env as a form of namespacing
         new_partial_env.update( {"%s_%s" % (args.envprefix, k.upper()): v for k,v in payload.items()} )
     else:
+        # Without envprefix, only push through payload variables that are required by envreq
         new_partial_env.update({"%s" % k.upper(): v for k,v in payload.items() if k.upper() in args.envreq})
     env = os.environ.copy()
     env.update(new_partial_env)
