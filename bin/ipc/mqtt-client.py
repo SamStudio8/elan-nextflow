@@ -61,7 +61,20 @@ def on_message(client, userdata, msg):
         print("finished state on subscribed topic observed")
         try:
             print("starting command")
-            emit(args.who, {"status": "started", "announce": False})
+            extend_payload = {}
+            if args.payload_passthrough:
+                for p in args.payload_passthrough:
+                    if p not in env:
+                        print("cannot passthrough environment variable '%s'. make sure to use uppercasing. if you are using the envreq prefix, make sure to use the full prefixed name." % p)
+                    else:
+                        extend_payload[p] = env[p]
+
+            payload = {
+                "status": "started",
+                "announce": False
+            }
+            payload.update(extend_payload)
+            emit(args.who, payload)
 
             print("[cmd] %s" % args.cmd)
             print("[env] %s" % str(new_partial_env))
@@ -91,12 +104,7 @@ def on_message(client, userdata, msg):
                 "announce": True if rc > 0 else False,
                 "time_elapsed": str(end_time - start_time),
             }
-            if args.payload_passthrough:
-                for p in args.payload_passthrough:
-                    if p not in env:
-                        print("cannot passthrough environment variable '%s'. if you are using the envreq prefix, make sure to use the full parameter name." % p)
-                    else:
-                        payload[p] = env[p]
+            payload.update(extend_payload)
             emit(args.who, payload)
             print("finished command with return code %s" % str(rc))
         except Exception as e:
