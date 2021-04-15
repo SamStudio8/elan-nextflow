@@ -161,10 +161,10 @@ process samtools_index {
 
     output:
     publishDir path: "${params.publish}/staging/alignment", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
-    file "${bam.baseName}.bam.bai"
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into post_index_manifest_ch
 
     file "${coguk_id}.${run_name}.index.quickcheck" into quickcheck_index_ch
+    file "${bam.baseName}.bam.bai" optional true
 
     script:
     """
