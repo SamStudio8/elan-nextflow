@@ -102,13 +102,32 @@ do
 done
 
 # Make metadata available
+echo "[CPUB]" `date` " - Make metadata available"
 cp $ELAN_DIR/staging/summary/$1/majora.metadata.tsv $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 ls -lah $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
 
 # Make other summary information available
+echo "[CPUB]" `date` " - Make summary available"
 cp $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls $COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.all.ls
+
+echo "[CPUB]" `date` " - Parse quickcheck file"
+set +e
+# Guard against grep returning 1 in the case of no failed files
 grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls > $COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.bad.ls
+ret=$?
+set -e
+BAD_EGGS=''
+if [ $ret -eq 0 ]; then
+    BAD_EGGS=`grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls | cut -f2,3 -d' ' | sort | uniq -c | column -t -o$'\t' | sed 's,bam,bam failed samtools quickcheck,' | sed 's,fasta,fasta had short or no sequence,' | sed 's,swell,bam was aligned to wrong reference or had no alignments,' | column -t -s$'\t' | sort -nr`
+elif [ $ret -eq 1 ]; then
+    # No bad eggs
+    BAD_EGGS=''
+elif [ $ret -gt 1 ]; then
+    # POSIX says grep will exit >1 if there is a true error
+    exit $ret
+fi
+
 chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 
 # An easier to use consensus and metadata table (samstudio8/majora/27)
@@ -119,7 +138,7 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 # NOTE samstudio8/2021-01-30
 #      `until` will resubmit the reconcile job until it exits 0
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
-echo "[CPUB]" `date` " - Reconciling consensus (SLURM)"
+echo "[CPUB]" `date` " - Reconciling consensus"
 
 if [ "$COG_PUBLISH_MODE" == "slurm" ]; then
     until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
@@ -187,7 +206,6 @@ mkdir -p $COG_RESULTS_DIR/phylogenetics/$1
 DASH_DATE=`date -d $1 +%Y-%m-%d`
 TABLE=`ocarina -q --env get summary --md --gte-date $DASH_DATE | column -t -s'|'`
 
-BAD_EGGS=`grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls | cut -f2,3 -d' ' | sort | uniq -c | column -t -o$'\t' | sed 's,bam,bam failed samtools quickcheck,' | sed 's,fasta,fasta had short or no sequence,' | sed 's,swell,bam was aligned to wrong reference or had no alignments,' | column -t -s$'\t' | sort -nr`
 
 POST='{"text":"
 *COG-UK inbound pipeline QC summary* '"\`\`\`${TABLE}\`\`\`"'
