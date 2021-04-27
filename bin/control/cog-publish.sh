@@ -15,91 +15,100 @@ echo "[CPUB] LAST_DATE=$LAST_DATE"
 
 source ~/.ocarina
 
-# Get files that pass QC since last pipe
-ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.pass.latest
-cp elan.pass.latest $ELAN_DIR/staging/summary/$1/
+LINKS_OK_FLAG="$ELAN_DIR/staging/summary/$1/publish.links.ok"
 
-# Get files that were suppressed and withdrawn since last pipe
-ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.kill.latest
-cp elan.kill.latest $ELAN_DIR/staging/summary/$1/
+if [ ! -f "$LINKS_OK_FLAG" ]; then
 
+    # Get files that pass QC since last pipe
+    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.pass.latest
+    cp elan.pass.latest $ELAN_DIR/staging/summary/$1/
 
-# Files to add
-grep 'consensus' elan.pass.latest > elan.pass.latest.consensus.ls
-cut -f3 elan.pass.latest.consensus.ls > pass.fasta.ls
-wc -l pass.fasta.ls
-
-grep 'alignment' elan.pass.latest > elan.pass.latest.alignment.ls
-cut -f3 elan.pass.latest.alignment.ls > pass.bam.ls
-wc -l pass.bam.ls
+    # Get files that were suppressed and withdrawn since last pipe
+    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.kill.latest
+    cp elan.kill.latest $ELAN_DIR/staging/summary/$1/
 
 
-# Files to kill (there may be none - so protect the grep from failure)
-set +e
-grep 'consensus' elan.kill.latest > elan.kill.latest.consensus.ls
-set -e
-cut -f3 elan.kill.latest.consensus.ls > kill.fasta.ls
-wc -l kill.fasta.ls
+    # Files to add
+    grep 'consensus' elan.pass.latest > elan.pass.latest.consensus.ls
+    cut -f3 elan.pass.latest.consensus.ls > pass.fasta.ls
+    wc -l pass.fasta.ls
 
-set +e
-grep 'alignment' elan.kill.latest > elan.kill.latest.alignment.ls
-set -e
-cut -f3 elan.kill.latest.alignment.ls > kill.bam.ls
-wc -l kill.bam.ls
-
-# mkdirs
-mkdir -p $COG_PUBLISHED_DIR/$1/
-mkdir -p $COG_PUBLISHED_DIR/$1/summary
-chmod 700 $COG_PUBLISHED_DIR/$1/ # Initially prevent users accessing this directory until complete
-chmod 755 $COG_PUBLISHED_DIR/$1/summary
-
-# Linky
-# Use -f force in case a late publishing pipeline from the previous day leaves
-# some PAGs published today (after midnight)
-echo "[CPUB]" `date` " - Linking new FASTA"
-for fas in `cat pass.fasta.ls`;
-do
-    ln -sf $fas $COG_PUBLISHED_DIR/latest/fasta/
-done
-
-echo "[CPUB]" `date` " - Linking new BAM"
-for bam in `cat pass.bam.ls`;
-do
-    ln -sf $bam $COG_PUBLISHED_DIR/latest/alignment/
-    ln -sf $bam.bai $COG_PUBLISHED_DIR/latest/alignment/
-done
+    grep 'alignment' elan.pass.latest > elan.pass.latest.alignment.ls
+    cut -f3 elan.pass.latest.alignment.ls > pass.bam.ls
+    wc -l pass.bam.ls
 
 
-# Unlinky
-# Ignore unlinking errors as yesterday's unlinks may still be included
-echo "[CPUB]" `date` " - Unlinking suppressed FASTA"
-for fas in `cat kill.fasta.ls`;
-do
-    base=`basename $fas`
+    # Files to kill (there may be none - so protect the grep from failure)
     set +e
-    unlink $COG_PUBLISHED_DIR/latest/fasta/$base
-    ret=$?
+    grep 'consensus' elan.kill.latest > elan.kill.latest.consensus.ls
     set -e
+    cut -f3 elan.kill.latest.consensus.ls > kill.fasta.ls
+    wc -l kill.fasta.ls
 
-    if [ $ret -eq 0 ]; then
-        echo "[KILL][FAS] $base"
-    fi
-done
-
-echo "[CPUB]" `date` " - Unlinking suppressed BAM"
-for bam in `cat kill.bam.ls`;
-do
-    base=`basename $bam`
     set +e
-    unlink $COG_PUBLISHED_DIR/latest/alignment/$bam
-    ret=$?
-    unlink $COG_PUBLISHED_DIR/latest/alignment/$bam.bai
+    grep 'alignment' elan.kill.latest > elan.kill.latest.alignment.ls
     set -e
+    cut -f3 elan.kill.latest.alignment.ls > kill.bam.ls
+    wc -l kill.bam.ls
 
-    if [ $ret -eq 0 ]; then
-        echo "[KILL][BAM] $base"
-    fi
-done
+    # mkdirs
+    mkdir -p $COG_PUBLISHED_DIR/$1/
+    mkdir -p $COG_PUBLISHED_DIR/$1/summary
+    chmod 700 $COG_PUBLISHED_DIR/$1/ # Initially prevent users accessing this directory until complete
+    chmod 755 $COG_PUBLISHED_DIR/$1/summary
+
+    # Linky
+    # Use -f force in case a late publishing pipeline from the previous day leaves
+    # some PAGs published today (after midnight)
+    echo "[CPUB]" `date` " - Linking new FASTA"
+    for fas in `cat pass.fasta.ls`;
+    do
+        ln -sf $fas $COG_PUBLISHED_DIR/latest/fasta/
+    done
+
+    echo "[CPUB]" `date` " - Linking new BAM"
+    for bam in `cat pass.bam.ls`;
+    do
+        ln -sf $bam $COG_PUBLISHED_DIR/latest/alignment/
+        ln -sf $bam.bai $COG_PUBLISHED_DIR/latest/alignment/
+    done
+
+
+    # Unlinky
+    # Ignore unlinking errors as yesterday's unlinks may still be included
+    echo "[CPUB]" `date` " - Unlinking suppressed FASTA"
+    for fas in `cat kill.fasta.ls`;
+    do
+        base=`basename $fas`
+        set +e
+        unlink $COG_PUBLISHED_DIR/latest/fasta/$base
+        ret=$?
+        set -e
+
+        if [ $ret -eq 0 ]; then
+            echo "[KILL][FAS] $base"
+        fi
+    done
+
+    echo "[CPUB]" `date` " - Unlinking suppressed BAM"
+    for bam in `cat kill.bam.ls`;
+    do
+        base=`basename $bam`
+        set +e
+        unlink $COG_PUBLISHED_DIR/latest/alignment/$bam
+        ret=$?
+        unlink $COG_PUBLISHED_DIR/latest/alignment/$bam.bai
+        set -e
+
+        if [ $ret -eq 0 ]; then
+            echo "[KILL][BAM] $base"
+        fi
+    done
+
+    touch $LINKS_OK_FLAG
+else
+    echo "[CPUB] Skipping linking, delete $LINKS_OK_FLAG to repeat"
+fi
 
 # Make metadata available
 echo "[CPUB]" `date` " - Make metadata available"
@@ -138,23 +147,30 @@ chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 # NOTE samstudio8/2021-01-30
 #      `until` will resubmit the reconcile job until it exits 0
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
-echo "[CPUB]" `date` " - Reconciling consensus"
+RECONCILE_OK_FLAG="$ELAN_DIR/staging/summary/$1/publish.reconcile.ok"
+if [ ! -f "$RECONCILE_OK_FLAG" ]; then
 
-if [ "$COG_PUBLISH_MODE" == "slurm" ]; then
-    until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
-    do
-        ret=$?
-        echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
-        sleep 60
-    done
+    echo "[CPUB]" `date` " - Reconciling consensus"
+
+    if [ "$COG_PUBLISH_MODE" == "slurm" ]; then
+        until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+        do
+            ret=$?
+            echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
+            sleep 60
+        done
+    else
+        export DATESTAMP=$1
+        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+        do
+            ret=$?
+            echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
+            sleep 60
+        done
+    fi
+    touch $RECONCILE_OK_FLAG
 else
-    export DATESTAMP=$1
-    until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
-    do
-        ret=$?
-        echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
-        sleep 60
-    done
+    echo "[CPUB] Skipping reconcile, delete $RECONCILE_OK_FLAG to repeat"
 fi
 
 chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
