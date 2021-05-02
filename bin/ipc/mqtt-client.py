@@ -34,12 +34,26 @@ def emit(who, payload):
     )
 
 def on_connect(client, userdata, flags, rc):
-    print("subbed to ", args.topic)
+    control_topic = "COGUK/infrastructure/pipelines/%s/control" % args.who
+    print("subbed to", args.topic)
     client.subscribe(args.topic, qos=2)
+    print("control topic", control_topic)
+    client.subscribe(control_topic, qos=2)
 
 def on_message(client, userdata, msg):
     payload = json.loads(msg.payload)
-    status = payload.get("status")
+
+    status = action = None
+    if msg.topic.endswith("status"):
+        status = payload.get("status")
+        if not status:
+            print("received status message without status parameter")
+            return
+    elif msg.topic.endswith("control"):
+        action = payload.get("action")
+        if not action:
+            print("received control message without action parameter")
+            return
 
     if args.envreq:
         args.envreq = [e.upper() for e in args.envreq]
@@ -59,8 +73,19 @@ def on_message(client, userdata, msg):
     env = os.environ.copy()
     env.update(new_partial_env)
 
+    start_cmd = False
+    reason = "unknown"
     if status == "finished":
-        print("finished state on subscribed topic observed")
+        start_cmd = True
+        reason = "%s finished" % args.topic
+
+    if action == "raise":
+        start_cmd = True
+        reason = "manually raised by control message"
+
+    if start_cmd:
+
+        print(reason)
         try:
             print("starting command")
             extend_payload = {}
@@ -73,7 +98,8 @@ def on_message(client, userdata, msg):
 
             payload = {
                 "status": "started",
-                "announce": False
+                "announce": False,
+                "reason": reason,
             }
             payload.update(extend_payload)
             emit(args.who, payload)
