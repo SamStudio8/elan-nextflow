@@ -13,6 +13,8 @@ parser.add_argument('-c', '--channel', default="#majora-test")
 parser.add_argument('-d', '--drop', nargs='*', default=[])
 args = parser.parse_args()
 
+print("ignoring", args.drop)
+
 def on_connect(client, userdata, flags, rc):
     print("subbed to ", args.topic)
     client.subscribe(args.topic, qos=2)
