@@ -13,6 +13,7 @@ parser.add_argument('--who', required=True)
 parser.add_argument('--envprefix')
 parser.add_argument('--envreq', nargs='+')
 parser.add_argument('--payload-passthrough', nargs='+')
+parser.add_argument("--host", default="localhost")
 args = parser.parse_args()
 
 def emit(who, payload):
@@ -20,7 +21,7 @@ def emit(who, payload):
     publish.single(
         "COGUK/infrastructure/pipelines/%s/status" % who,
         payload=json.dumps(payload),
-        hostname="localhost",
+        hostname=args.host,
         transport="tcp",
         port=1883,
         qos=2,
@@ -143,5 +144,5 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect("localhost", 1883, 60)
+client.connect(args.host, 1883, 60)
 client.loop_forever()
