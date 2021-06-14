@@ -58,6 +58,9 @@ process samtools_quickcheck {
     rv=0
     samtools quickcheck $bam || rv=\$?
     echo "\$rv bam ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.bam.quickcheck
+    rv=0
+    samtools view $bam > /dev/null || rv=\$?
+    echo "\$rv bamv ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" >> ${coguk_id}.${run_name}.bam.quickcheck
     """
 }
 process fasta_quickcheck {
