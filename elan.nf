@@ -29,7 +29,7 @@ process resolve_uploads {
     output:
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
-    publishDir path: "${params.cog_publish}/elan/${params.datestamp}.missing.ls", pattern: "files.err", mode: "copy", overwrite: true
+    publishDir path: "${params.cog_publish}/elan", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "${params.datestamp}.missing.ls" }
     file 'files.ls' into start_ch
     tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
