@@ -25,9 +25,33 @@ process resolve_uploads {
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
     file 'files.ls' into start_ch
+    tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
     """
     find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py ${manifest} > files.ls 2> files.err
+    """
+}
+
+process announce_uploads {
+    // https://github.com/COG-UK/dipi-group/issues/89
+
+    label 'ocarina'
+    conda "environments/ocarina.yaml"
+
+    validExitStatus 0,1,2,3 // Don't care if this fails, it's just notifying
+    //errorStrategy 'retry'
+    //maxRetries 1
+
+    input:
+    tuple file(manifest), file(q), file(t) from announce_ch
+
+    output:
+    publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
+
+    """
+    ocarina --env get summary --md > summary.md
+    message_uploads.sh ${manifest} ${q} ${t} SHORTSTART \$ELAN_SLACK_HOOK summary.md
+    touch announce.ok
     """
 }
 
