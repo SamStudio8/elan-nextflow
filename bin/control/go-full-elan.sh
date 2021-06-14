@@ -23,7 +23,7 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
         MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
     fi
-    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN run elan.nf -c $ELAN_CONFIG --dump $PRE_ELAN_DIR/latest.tsv --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;"
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN run elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;"
     ret=$?
     mv .nextflow.log elan.nextflow.log
 

@@ -1,19 +1,24 @@
 #!/usr/bin/env nextflow
 
 params.uploads = "/cephfs/covid/bham/*/upload"
-params.dump = "/cephfs/covid/software/sam/pre-elan/latest.tsv"
 params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
+params.cog_publish = "/cephfs/covid/bham/artifacts/published"
 params.minlen = 10000
 
 process save_manifest {
-    //cache false //this may have unintended consequences if latest.tsv is accidentally updated
+    label 'ocarina'
+    conda "environments/ocarina.yaml"
+
+    errorStrategy 'retry'
+    maxRetries 1
+
     output:
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
     file 'majora.metadata.tsv' into resolve_ch
 
     """
-    cp ${params.dump} majora.metadata.tsv
-    """ 
+    ocarina --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > majora.metadata.tsv
+    """
 }
 
 process resolve_uploads {
@@ -24,6 +29,7 @@ process resolve_uploads {
     output:
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
+    publishDir path: "${params.cog_publish}/elan/${params.datestamp}.missing.ls", pattern: "files.err", mode: "copy", overwrite: true
     file 'files.ls' into start_ch
     tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
