@@ -1,8 +1,7 @@
 process {
   withLabel: bear {
-  	executor='slurm'
-  	clusterOptions=''
-        time='25m'
+    executor = 'slurm'
+    clusterOptions='--account=ACCOUNT --qos=QOS --time 300:0 --nodes 1'
   }
 }
 
@@ -12,5 +11,32 @@ aws {
   client {
 	  endpoint = ""
 	  protocol = 'HTTPS'
+  }
+}
+
+conda {
+  cacheDir = "/path/to/conda/cache/"
+}
+
+executor {
+  $local {
+    cpus = 60
+  }
+
+  $slurm {
+    queueSize = 1500
+    queueStatInterval = '30 sec'
+    pollInterval = '30 sec'
+  }
+}
+
+process {
+  withLabel: ocarina {
+    env {
+      MAJORA_DOMAIN   = "$MAJORA_DOMAIN"
+      MAJORA_USER     = "$MAJORA_USER"
+      MAJORA_TOKEN    = "$MAJORA_TOKEN"
+      ELAN_SLACK_HOOK = "$ELAN_SLACK_HOOK"
+    }
   }
 }
