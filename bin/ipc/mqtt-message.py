@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 import json
+import getpass
 
 import argparse
 
@@ -10,9 +11,12 @@ parser.add_argument("--attr", action='append', nargs=2, metavar=('key', 'value')
 parser.add_argument("--host", default="localhost")
 args = parser.parse_args()
 
-payload = ""
+payload = {}
+payload["user"] = getpass.getuser()
 if args.attr:
-    payload = json.dumps({x[0]: x[1] for x in args.attr})
+    payload.update( {x[0]: x[1] for x in args.attr} )
+
+payload = json.dumps(payload)
 
 publish.single(
     args.topic,
