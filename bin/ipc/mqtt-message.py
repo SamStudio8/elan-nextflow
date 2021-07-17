@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 import json
+import time
 import getpass
 
 import argparse
@@ -15,6 +16,8 @@ payload = {}
 payload["user"] = getpass.getuser()
 if args.attr:
     payload.update( {x[0]: x[1] for x in args.attr} )
+
+payload["ts"] = int(time.time())
 
 payload = json.dumps(payload)
 
