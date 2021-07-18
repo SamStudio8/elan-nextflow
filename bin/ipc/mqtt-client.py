@@ -93,7 +93,7 @@ def on_message(client, userdata, msg):
             if args.payload_passthrough:
                 for p in args.payload_passthrough:
                     if p not in env:
-                        print("cannot passthrough environment variable '%s'. make sure to use uppercasing. if you are using the envreq prefix, make sure to use the full prefixed name." % p)
+                        print("cannot passthrough environment variable '%s'. make sure to use uppercasing. if you are using the envreq prefix, make sure to use the full prefixed name." % str(p))
                     else:
                         extend_payload[p] = env[p]
 
@@ -109,6 +109,9 @@ def on_message(client, userdata, msg):
             print("[env] %s" % str(new_partial_env))
 
             start_time = datetime.now()
+
+            # Ensure all env values are strings
+            env = {str(k): str(v) for k,v in env.items()}
 
             proc = subprocess.Popen(
                     args.cmd,
@@ -139,6 +142,14 @@ def on_message(client, userdata, msg):
         except Exception as e:
             print("unable to initialise subprocess")
             print(e)
+            payload = {
+                "status": "falsestart",
+                "return_code": None,
+                "announce": True,
+                "time_elapsed": None,
+            }
+            payload.update(extend_payload)
+            emit(args.who, payload)
 
 client = mqtt.Client()
 client.on_connect = on_connect
