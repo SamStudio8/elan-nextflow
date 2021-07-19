@@ -37,12 +37,13 @@ process kraken_bam_reads {
     output:
     publishDir path: "${params.publish}/staging/k2", pattern: "*k2*", mode: "copy", overwrite: true
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file("${bam_fasta}.k2o.9606.ls"), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol into k2_manifest_ch
-    file "${bam_fasta}.k2o"
+    file "${bam_fasta}.k2o.gz"
     file "${bam_fasta}.k2r"
 
     cpus 4
     """
     kraken2 --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam_fasta}.k2o > ${bam_fasta}.k2o.9606.ls
+    gzip ${bam_fasta}.k2o
     """
 }
 
