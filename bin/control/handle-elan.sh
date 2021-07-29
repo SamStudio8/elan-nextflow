@@ -19,7 +19,7 @@ fi
 sleep 30 # breathe
 
 # kill any remaining jobs that might be stranded
-squeue | awk '$3 ~ /^elan-/ { print $1 }' | xargs scancel
+#squeue | awk '$3 ~ /^elan-/ { print $1 }' | xargs scancel
 
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
