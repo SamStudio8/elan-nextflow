@@ -161,7 +161,7 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
         done
     else
         export DATESTAMP=$1
-        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob > $ELAN_DIR/staging/summary/$DATESTAMP/reconcile.log
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
