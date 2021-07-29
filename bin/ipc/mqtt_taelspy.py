@@ -20,7 +20,14 @@ def on_message(client, userdata, msg):
         payload = json.loads(msg.payload)
         payload = make_payload(msg.topic, payload, payload["ts"] if payload.get("ts") else None)
         r = send_splunk(payload)
-        print(msg.topic, payload, r.status_code, r.text)
+        with open(output, 'a') as out_fh:
+            out_fh.write('\t'.join([str(x) for x in [
+                msg.topic,
+                time.time(),
+                payload,
+                r.status_code,
+                r.text,
+            ]]) + '\n')
     else:
         print(msg.topic, {})
 
@@ -61,8 +68,10 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--topic', default="COGUK/#")
     parser.add_argument('--allow', help="new-line delimited list of topics to allow")
     parser.add_argument("--host", default="localhost")
+    parser.add_argument("-o", required=True)
     args = parser.parse_args()
 
+    output = args.o
     topic = args.topic
     allow_set = set([x.strip() for x in open(args.allow).readlines()])
     client = mqtt.Client()
