@@ -12,7 +12,7 @@ COUNT_ELAN_NEW=`grep -c '^1' $q`
 COUNT_ELAN_OLD=`awk '{sum+=$6} END {print sum}' $summary`
 COUNT_ELAN_OLDANDNEW=`expr $COUNT_ELAN_NEW + $COUNT_ELAN_OLD`
 SITE_COUNTS=`awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' $q | sort | uniq -c | sort -nr`
-SITE_COUNTS_NEW=`grep '^1' $q | awk '$14=="SANG" {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
+SITE_COUNTS_NEW=`grep '^1' $q | awk '($14=="SANG" || $14=="PHEC") {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
 
 FILE_MISSING_META=`grep 'ORPHAN-NEW-DIRX' $t | grep -v jacksond | awk '$2 > 2 {print $2,$8}' | sort -nr | column -t`
 OLD_FILE_MISSING_META=`grep 'ORPHAN-USER-DIRX' $t | grep -v jacksond | cut -f2,3 -d'|' | sed 's,|, ,' | column -t`
