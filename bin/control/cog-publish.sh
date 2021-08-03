@@ -157,6 +157,8 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
+            MSG='{"text":"*COG-UK inbound pipeline* Restarting publish reconcile"}'
+            curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
             sleep 60
         done
     else
@@ -165,6 +167,8 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
+            MSG='{"text":"*COG-UK inbound pipeline* Restarting publish reconcile"}'
+            curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
             sleep 60
         done
     fi
