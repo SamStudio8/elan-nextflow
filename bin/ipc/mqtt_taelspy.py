@@ -16,20 +16,30 @@ def on_message_wrap(client, userdata, msg):
         print(e)
 
 def on_message(client, userdata, msg):
+    status_code = -77 # EX_NOPERM
+    text = {}
+    payload = {}
+
     if msg.topic in allow_set:
         payload = json.loads(msg.payload)
         payload = make_payload(msg.topic, payload, payload["ts"] if payload.get("ts") else None)
-        r = send_splunk(payload)
-        with open(output, 'a') as out_fh:
-            out_fh.write('\t'.join([str(x) for x in [
-                msg.topic,
-                time.time(),
-                payload,
-                r.status_code,
-                r.text,
-            ]]) + '\n')
-    else:
-        print(msg.topic, {})
+
+        try:
+            r = send_splunk(payload)
+            status_code = r.status_code
+            text = r.text
+        except Exception as e:
+            status_code = -69 # EX_UNAVAILABLE
+            text = {"exception": str(e)}
+
+    with open(output, 'a') as out_fh:
+        out_fh.write('\t'.join([str(x) for x in [
+            msg.topic,
+            time.time(),
+            payload,
+            status_code,
+            json.dumps(text),
+        ]]) + '\n')
 
 def get_splunk_creds():
     creds = {
