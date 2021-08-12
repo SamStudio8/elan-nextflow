@@ -79,10 +79,12 @@ else
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 fi
 
+SECONDS=0
 bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_DIR/staging/summary/$DATESTAMP/publish.log
 ret=$?
+TIMER=$(python -c "import datetime; print('(publish)', str(datetime.timedelta(seconds=$SECONDS)))")
 MSG='{"text":"*COG-UK publishing pipeline finished...*
-...with exit status '"$ret"'"}'
+...with exit status '"$ret"' in '"$TIMER"'"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 if [ $ret -ne 0 ]; then
     MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
