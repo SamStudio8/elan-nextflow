@@ -1,4 +1,9 @@
-# elan
+<div align="center">
+<p align="center">
+   <img src="/images/inbound-ops-patch.png" alt="Inbound Data Operations Badge" width="250"> 
+</p>
+<h1 align="center">Elan</h1>
+</div>
 
 Elan is the inbound distribution pipeline for CLIMB-COVID.
 Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publishing them to a common location.
