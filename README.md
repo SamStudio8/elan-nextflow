@@ -68,4 +68,9 @@ Note that Elan will only error if `MAJORA_DOMAIN` is unset, all other `MAJORA_*`
 
 ## Invocation
 
-Consult `bin/control/go-full-elan.sh`
+Add the following line to the execution node's `crontab`:
+
+```
+31 5 * * * DATE=`date +\%Y\%m\%d`; /path/to/elan-nextflow/bin/control/go-full-elan.sh $DATE
+```
+
