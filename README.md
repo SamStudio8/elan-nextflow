@@ -5,7 +5,35 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 
 ## Parameters and environment variables
 
-### Command line parameters
+### Controlling Elan
+
+#### go-full-elan.sh
+
+| Name | Description |
+| ---- | ----------- |
+| `DATESTAMP` | YYYYMMDD datestamp to identify today's run |
+| `ELAN_CONFIG` | Path to current Nextflow configuration |
+| `ELAN_SOFTWARE_DIR` | Path to local clone of elan-nextflow |
+| `ELAN_DIR` | Path to CLIMB-COVID staged artifacts root (nicholsz/), passed as `--publish` to elan-nf |
+| `COG_PUBLISHED_DIR` | Path to CLIMB-COVID published artifact root (artifacts/), passed as `--cog_publish` to elan-nf |
+| `NEXTFLOW_BIN` | Path to nextflow binary |
+| `SLACK_MGMT_HOOK` | Slack HTTPS webhook for posting debug messages |
+| `SLACK_REAL_HOOK` | Slack HTTPS webhook for posting inbound-dist messages |
+| `MQTT_HOST` | IP for MQTT broker |
+
+#### cog-publish.sh
+
+Note these variables are checked inside go-full-elan.sh as it is the main entrypoint.
+Additionally, variables defined above may be used in cog-publish.sh without listing them below.
+
+| Name | Description |
+| ---- | ----------- |
+| `COG_PUBLISH_MODE` | Set to `local` or `slurm` to control how the daily consensus is generated |
+
+
+### Running Elan
+
+#### elan-nextflow parameters
 
 | Name | Description |
 | ---- | ----------- |
@@ -17,8 +45,7 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | `--schemegit` | Path to local copy of https://github.com/artic-network/artic-ncov2019 repo |
 
 
-### Environment variables
-#### Elan
+#### elan-nextflow environment variables
 
 | Name | Description |
 | ---- | ----------- |
@@ -31,7 +58,7 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 
 Note that Elan will only error if `MAJORA_DOMAIN` is unset, all other `MAJORA_*` variables are not checked.
 
-#### Nextflow
+#### Nextflow environment variables
 
 | Name | Description |
 | ---- | ----------- |
