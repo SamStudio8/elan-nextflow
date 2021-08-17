@@ -5,6 +5,16 @@ params.publish = "/cephfs/covid/bham/nicholsz/artifacts/elan2"
 params.cog_publish = "/cephfs/covid/bham/artifacts/published"
 params.minlen = 10000
 
+if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
+if( !params.uploads ) error "Missing `uploads` param: path to CLIMB-COVID uploads root"
+if( !params.publish ) error "Missing `publish` param: path to CLIMB-COVID staged artifacts root"
+if( !params.cog_publish ) error "Missing `cog_publish` param: path to CLIMB-COVID published artifacts root"
+if( !params.minlen ) error "Missing `min_len` param: minimum genome size required to pass the save_uploads step [int]"
+if( !params.schemegit ) error "Missing `schemegit` param: path to local copy of https://github.com/artic-network/artic-ncov2019 repo"
+
+if( !System.getenv("ELAN_SLACK_HOOK") ) error '$ELAN_SLACK_HOOK unset'
+
+
 process save_manifest {
     label 'ocarina'
     conda "environments/ocarina.yaml"
