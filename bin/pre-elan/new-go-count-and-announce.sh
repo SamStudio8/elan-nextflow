@@ -31,7 +31,7 @@ chmod 644 $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 echo "[ELAN]" `date` " - Handle messages"
 COUNT_MAJORA=`wc -l latest.tsv | cut -f1 -d' '`
 COUNT_ELAN_NEW=`grep -c '^1' q`
-COUNT_ELAN_OLD=`ocarina --env get summary --md | awk '{sum+=$6} END {print sum}'`
+COUNT_ELAN_OLD=`ocarina --oauth --env get summary --md | awk '{sum+=$6} END {print sum}'`
 COUNT_ELAN_OLDANDNEW=`expr $COUNT_ELAN_NEW + $COUNT_ELAN_OLD`
 SITE_COUNTS_NEW=`grep '^1' q | awk '($14=="SANG" || $14=="PHEC") {print $14 " ("$13")"; next}; {print $14}' | sort | uniq -c | sort -nr`
 
