@@ -11,8 +11,8 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | ---- | ----------- |
 | `--datestamp` | YYYYMMDD datestamp to identify today's run |
 | `--uploads` | Glob path for CLIMB-COVID user uploads |
-| `--publish` | Path to CLIMB-COVID staged artifacts root (nicholsz) |
-| `--cog_publish` | Path to CLIMB-COVID published artifact root (nicholsz) |
+| `--publish` | Path to CLIMB-COVID staged artifacts root (nicholsz/) |
+| `--cog_publish` | Path to CLIMB-COVID published artifact root (artifacts/) |
 | `--minlen` | Minimum genome size required to pass the save_uploads step [int] |
 | `--schemegit` | Path to local copy of https://github.com/artic-network/artic-ncov2019 repo |
 
