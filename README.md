@@ -79,3 +79,8 @@ Add the following line to the execution node's `crontab`:
 31 5 * * * DATE=`date +\%Y\%m\%d`; /path/to/elan-nextflow/bin/control/go-full-elan.sh $DATE
 ```
 
+## Etymology
+
+Elan is named after an aqueduct whose source is in the Elan Valley in Powys, Mid Wales.
+In the late 1800s, the Birmingham Corporation Water Department constructed a series of dams in the valley and an aqueduct stretching 73 miles (117 km) to carry water to Birmingham. The aqueduct served a vital supply of clean water to the West Midlands to improve public health in the region.
+
