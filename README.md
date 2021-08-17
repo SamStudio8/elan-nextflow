@@ -26,6 +26,8 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | `SLACK_REAL_HOOK` | Slack HTTPS webhook for posting inbound-dist messages |
 | `MQTT_HOST` | IP for MQTT broker |
 
+`go-full-elan.sh` will immediately terminate with exit 64 (`EX_USAGE`) if any of the listed parameters are missing from the environment.
+
 #### cog-publish.sh
 
 Note these variables are checked inside go-full-elan.sh as it is the main entrypoint.
