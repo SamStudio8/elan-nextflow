@@ -25,7 +25,7 @@ process save_manifest {
     file 'majora.metadata.tsv' into resolve_ch
 
     """
-    ocarina --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > majora.metadata.tsv
+    ocarina --oauth --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > majora.metadata.tsv
     """
 }
 
@@ -63,7 +63,7 @@ process announce_uploads {
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
 
     """
-    ocarina --env get summary --md > summary.md
+    ocarina --oauth --env get summary --md > summary.md
     message_uploads.sh ${manifest} ${q} ${t} SHORTSTART \$ELAN_SLACK_HOOK summary.md
     touch announce.ok
     """
