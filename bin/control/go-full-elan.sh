@@ -1,13 +1,27 @@
 #!/usr/bin/bash
 source ~/.path
 source ~/.ocarina
+
+DATESTAMP=$1
+while read var; do
+      [ -z "${!var}" ] && { echo 'Global Elan variable '$var' is empty or not set. Environment likely uninitialised. Aborting.'; exit 64; }
+done << EOF
+DATESTAMP
+ELAN_CONFIG
+ELAN_DIR
+ELAN_SOFTWARE_DIR
+NEXTFLOW_BIN
+SLACK_MGMT_HOOK
+SLACK_REAL_HOOK
+MQTT_HOST
+EOF
+
 cd $ELAN_SOFTWARE_DIR
 
 MSG='{"text":"*COG-UK inbound pipeline begins...*
 _HERE WE GO!_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
-DATESTAMP=$1
 echo $DATESTAMP
 
 # OCARINA_FILE only written if elan processed at least one sample
