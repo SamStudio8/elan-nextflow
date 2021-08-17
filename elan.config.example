@@ -33,10 +33,12 @@ executor {
 process {
   withLabel: ocarina {
     env {
-      MAJORA_DOMAIN   = "$MAJORA_DOMAIN"
-      MAJORA_USER     = "$MAJORA_USER"
-      MAJORA_TOKEN    = "$MAJORA_TOKEN"
-      ELAN_SLACK_HOOK = "$ELAN_SLACK_HOOK"
+      MAJORA_DOMAIN        = "$MAJORA_DOMAIN"
+      MAJORA_USER          = "$MAJORA_USER"
+      MAJORA_TOKEN         = "$MAJORA_TOKEN"
+      MAJORA_CLIENT_ID     = "$MAJORA_CLIENT_ID"
+      MAJORA_CLIENT_SECRET = "$MAJORA_CLIENT_SECRET"
+      ELAN_SLACK_HOOK      = "$ELAN_SLACK_HOOK"
     }
   }
 }

@@ -6,14 +6,14 @@ params.cog_publish = "/cephfs/covid/bham/artifacts/published"
 params.minlen = 10000
 
 if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
-if( !params.uploads ) error "Missing `uploads` param: path to CLIMB-COVID uploads root"
+if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID uploads"
 if( !params.publish ) error "Missing `publish` param: path to CLIMB-COVID staged artifacts root"
 if( !params.cog_publish ) error "Missing `cog_publish` param: path to CLIMB-COVID published artifacts root"
 if( !params.minlen ) error "Missing `min_len` param: minimum genome size required to pass the save_uploads step [int]"
 if( !params.schemegit ) error "Missing `schemegit` param: path to local copy of https://github.com/artic-network/artic-ncov2019 repo"
 
 if( !System.getenv("ELAN_SLACK_HOOK") ) error '$ELAN_SLACK_HOOK unset'
-
+if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
 
 process save_manifest {
     label 'ocarina'
