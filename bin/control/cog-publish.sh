@@ -224,7 +224,7 @@ mkdir -p $COG_RESULTS_DIR/phylogenetics/$1
 
 # Announce summary table and failures
 DASH_DATE=`date -d $1 +%Y-%m-%d`
-TABLE=`ocarina -q --env get summary --md --gte-date $DASH_DATE | column -t -s'|'`
+TABLE=`ocarina --oauth -q --env get summary --md --gte-date $DASH_DATE | column -t -s'|'`
 
 
 POST='{"text":"
@@ -243,7 +243,7 @@ _These errors will appear every day, forever, until the data in question has bee
 curl -X POST -H 'Content-type: application/json' --data "$POST" $SLACK_REAL_HOOK
 
 # Final summary
-COUNT_PASS=`ocarina --env get summary --md | awk '{sum+=$8} END {print sum}'`
+COUNT_PASS=`ocarina --oauth --env get summary --md | awk '{sum+=$8} END {print sum}'`
 COUNT_NEW=`wc -l $ELAN_DIR/staging/summary/$1/swell.qc.tsv | cut -f1 -d' '`
 POST='{
     "attachments": [
