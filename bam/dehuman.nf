@@ -63,7 +63,8 @@ process dehumanise_bam {
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
 
     errorStrategy 'ignore'
-    memory "24GB"
+    memory "32GB"
+    time "3h" // sick of big bams clogging dh all day, set a cutoff for now
 
     script:
     if ( run_platform == "ILLUMINA" )
