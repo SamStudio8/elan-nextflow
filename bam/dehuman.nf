@@ -40,7 +40,7 @@ process kraken_bam_reads {
     file "${bam_fasta}.k2o.gz"
     file "${bam_fasta}.k2r"
 
-    cpus 4
+    cpus 7
     """
     kraken2 --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam_fasta}.k2o > ${bam_fasta}.k2o.9606.ls
     gzip ${bam_fasta}.k2o
