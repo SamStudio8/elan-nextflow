@@ -79,7 +79,11 @@ for row in manifest:
                 source_site = central_sample_id[:4] # SANG submits on behalf of some sites
             else:
                 pass # skip and pass through the submission_org
-
+        elif seq_site == "PHEC":
+            if source_site == "PHEC":
+                source_site = central_sample_id[:4] # PHEC is using prefix hackery like SANG
+            else:
+                pass # skip and pass through the submission_org
 
         lp = row.get("library_primers")
         if lp and len(lp) > 0 and lp != "None":
