@@ -239,12 +239,10 @@ process post_index {
 
 process samtools_depth {
     tag { bam }
-    conda "environments/samtools.yaml"
+    conda "environments/samtools113.yaml"
     label 'bear'
 
-    errorStrategy 'retry'
-    maxRetries 3
-    memory { (3 + (2 * task.attempt))+"GB" }
+    memory '5 GB'
 
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from indexed_manifest_ch
@@ -253,9 +251,11 @@ process samtools_depth {
     publishDir path: "${params.publish}/staging/depth", pattern: "${coguk_id}.${run_name}.climb.bam.depth", mode: "copy", overwrite: true
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.climb.bam.depth") into swell_manifest_ch
 
+    // 2021-08-25 Updated to use samtools 1.13 for significant improvement to depth algorithm
+    // -d0 removed as depth limit deprecated in samtools 1.13
+    // https://github.com/COG-UK/dipi-group/issues/129
     """
-    samtools depth -d0 -a ${bam} > ${bam}.depth
-    chmod 644 ${bam}.depth
+    samtools depth -a ${bam} > ${bam}.depth
     """
 }
 
