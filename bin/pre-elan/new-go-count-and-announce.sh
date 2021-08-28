@@ -29,4 +29,4 @@ cp t $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 chmod 644 $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 
 ocarina --quiet --oauth --env get summary --md > summary.$1.md
-$ELAN_SOFTWARE_DIR/bin/message_uploads.sh latest.$1.tsv q.$1.tsv t.$1.txt $1 $2 summary.$1.md
+$ELAN_SOFTWARE_DIR/bin/message_uploads.sh latest.$1.tsv q.$1.tsv t.$1.txt $1 "${!2}" summary.$1.md
