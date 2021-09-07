@@ -25,6 +25,15 @@ echo "[ELAN]" `date` " - Find files"
 find /cephfs/covid/bham/*/upload -type f -name "*fa*" | grep -v '\.fai$' | python /cephfs/covid/software/sam/elan/bin/ocarina_resolve.py latest.$1.tsv > q.$1.tsv 2> t.$1.txt
 set -o pipefail
 
+# Save manifest at the end of the day (SHORT message fires last)
+if [ "$1" = "SHORT" ]; then
+    set +o pipefail
+    grep '^1' q.$1.tsv | awk '{print $8"/"$10"\n"$8"/"$12}' > synclist/sync.$DATESTAMP.ls
+    set -o pipefail
+    SYNCPATH=$(readlink -f synclist/sync.$DATESTAMP.ls)
+    python $ELAN_SOFTWARE_DIR/bin/ipc/mqtt-message.py -t 'COGUK/infrastructure/housekeeping/synclisting/status' --host $MQTT_HOST --attr status finished --attr date $DATESTAMP --attr synclist $SYNCPATH
+fi
+
 cp t $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 chmod 644 $COG_PUBLISHED_DIR/elan/$DATESTAMP.missing.ls
 
