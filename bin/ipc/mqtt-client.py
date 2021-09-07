@@ -36,23 +36,26 @@ def emit(who, payload):
 
 def on_connect(client, userdata, flags, rc):
     control_topic = "COGUK/infrastructure/pipelines/%s/control" % args.who
-    print("subbed to", args.topic)
+    print("[INFO] listener topic:", args.topic)
     client.subscribe(args.topic, qos=2)
-    print("control topic", control_topic)
+    print("[INFO] control topic:", control_topic)
     client.subscribe(control_topic, qos=2)
 
 def on_message(client, userdata, msg):
     payload = json.loads(msg.payload)
     status = action = None
+
+    print("[RECV] %s" % msg.topic)
+
     if msg.topic.endswith("status"):
         status = payload.get("status")
         if not status:
-            print("received status message without status parameter")
+            print("[SKIP] received status message without status parameter")
             return
     elif msg.topic.endswith("control"):
         action = payload.get("action")
         if not action:
-            print("received control message without action parameter")
+            print("[SKIP] received control message without action parameter")
             return
 
     envreq = []
@@ -61,7 +64,7 @@ def on_message(client, userdata, msg):
         upped_payload = [x.upper() for x in payload.keys()]
         for e in envreq:
             if e not in upped_payload:
-                print("cowardly refusing to start command without '%s'. report this to the message sender." % e)
+                print("[SKIP] cowardly refusing to start command without required payload key '%s'. report this to the message sender." % e)
                 return
 
     new_partial_env = {}
@@ -84,16 +87,22 @@ def on_message(client, userdata, msg):
         start_cmd = True
         reason = "manually raised by control message"
 
-    if start_cmd:
-
-        print(reason)
+    if not start_cmd:
+        print("[SKIP] cowardly refusing to start command")
+        print("       * perhaps status was not 'finished'")
+        print("       * perhaps action was not 'raise'")
+        return
+    else:
         try:
-            print("starting command")
+            print("[OKGO] starting command (%s)" % reason)
             extend_payload = {}
             if args.payload_passthrough:
                 for p in args.payload_passthrough:
+                    p = str(p).upper()
                     if p not in env:
-                        print("cannot passthrough environment variable '%s'. make sure to use uppercasing. if you are using the envreq prefix, make sure to use the full prefixed name." % str(p))
+                        print("[WARN] cannot passthrough environment variable '%s'..." % p)
+                        print("       * if you are using --envprefix, make sure you have included the prefix to the variable to --payload-passthrough")
+                        print("       * if you are not using --envprefix, you need to specifically allow variables for passthrough with --envreq")
                     else:
                         extend_payload[p] = env[p]
 
@@ -105,8 +114,8 @@ def on_message(client, userdata, msg):
             payload.update(extend_payload)
             emit(args.who, payload)
 
-            print("[cmd] %s" % args.cmd)
-            print("[env] %s" % str(new_partial_env))
+            print("[OKGO][cmd] %s" % args.cmd)
+            print("[OKGO][env] %s" % str(new_partial_env))
 
             start_time = datetime.now()
 
@@ -138,9 +147,9 @@ def on_message(client, userdata, msg):
             }
             payload.update(extend_payload)
             emit(args.who, payload)
-            print("finished command with return code %s" % str(rc))
+            print("[DONE] finished command with return code %s" % str(rc))
         except Exception as e:
-            print("unable to initialise subprocess")
+            print("[FAIL] unable to initialise subprocess:")
             print(e)
             payload = {
                 "status": "falsestart",
