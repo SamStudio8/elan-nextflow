@@ -206,43 +206,6 @@ LONG='{
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": "Older samples with metadata but missing uploaded sequences on CLIMB, by sequencing centre",
-                        "emoji": true
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text":"
-Please check your upload directories...'"\`\`\`${OLD_SITE_MISSING_FILE}\`\`\`"'"
-                    }
-                },
-                {
-                    "type": "divider"
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text":"
-To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
-```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
-_Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
-_Older is defined as sequenced more than '${RECENT_DAYS_DEF}' days ago._"
-                        }
-                    ]
-                }
-            ],
-            "color": "#f2c744",
-        },
-        {
-            "blocks": [
-                {
-                    "type": "header",
-                    "text": {
-                        "type": "plain_text",
                         "text": "Older uploaded sequences missing metadata by uploading user",
                         "emoji": true
                     }
