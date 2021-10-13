@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--topic', default="COGUK/#")
 parser.add_argument('-c', '--channel', default="#majora-test")
 parser.add_argument('-d', '--drop', nargs='*', default=[])
+parser.add_argument('--host', default="localhost")
 args = parser.parse_args()
 
 print("ignoring", args.drop)
@@ -75,5 +76,5 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message_wrap
 
-client.connect("localhost", 1883, 60)
+client.connect(args.host, 1883, 60)
 client.loop_forever()
