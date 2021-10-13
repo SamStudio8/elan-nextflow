@@ -16,6 +16,8 @@ process extract_bam_reads {
     conda "../environments/samtools.yaml"
     label 'bear'
 
+    errorStrategy 'ignore'
+
     input:
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from manifest_ch
 
@@ -30,6 +32,8 @@ process extract_bam_reads {
 process kraken_bam_reads {
     tag { bam }
     conda "../environments/kraken2.yaml"
+
+    errorStrategy 'ignore'
 
     input:
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from bamfa_manifest_ch
@@ -52,6 +56,10 @@ process dehumanise_bam {
     conda "../environments/dehumanizer.yaml"
     label 'bear'
 
+    errorStrategy 'ignore'
+    memory "32GB"
+    time "2h" // sick of big bams clogging dh all day, set a cutoff for now
+
     input:
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from k2_manifest_ch
 
@@ -61,10 +69,6 @@ process dehumanise_bam {
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file(bam_hum_ls), file("${coguk_id}.${run_name}.climb.public.bam"), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol into ascp_manifest_ch
     file "${coguk_id}.${run_name}.climb.public.bam"
     file "${coguk_id}.${run_name}.dh" into dh_report_ch
-
-    errorStrategy 'ignore'
-    memory "32GB"
-    time "3h" // sick of big bams clogging dh all day, set a cutoff for now
 
     script:
     if ( run_platform == "ILLUMINA" )
