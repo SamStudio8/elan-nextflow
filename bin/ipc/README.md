@@ -2,7 +2,7 @@
 
 ## Housekeeping
 
-    conda create -n my-ipc python=python3.7
+    conda create -n my-ipc python=3.7
     conda activate my-ipc
     pip install paho-mqtt
 
