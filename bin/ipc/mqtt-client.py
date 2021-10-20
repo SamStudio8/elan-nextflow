@@ -14,12 +14,13 @@ parser.add_argument('--envprefix')
 parser.add_argument('--envreq', nargs='+')
 parser.add_argument('--payload-passthrough', nargs='+')
 parser.add_argument("--host", default="localhost")
+parser.add_argument("--mqtt-env", default="COGUK")
 args = parser.parse_args()
 
 def emit(who, payload):
     payload["ts"] = int(datetime.now().strftime("%s"))
     publish.single(
-        "COGUK/infrastructure/pipelines/%s/status" % who,
+        "%s/infrastructure/pipelines/%s/status" % (args.mqtt_env, who),
         payload=json.dumps(payload),
         hostname=args.host,
         transport="tcp",
@@ -35,7 +36,7 @@ def emit(who, payload):
     )
 
 def on_connect(client, userdata, flags, rc):
-    control_topic = "COGUK/infrastructure/pipelines/%s/control" % args.who
+    control_topic = "%s/infrastructure/pipelines/%s/control" % (args.mqtt_env, args.who)
     print("[INFO] listener topic:", args.topic)
     client.subscribe(args.topic, qos=2)
     print("[INFO] control topic:", control_topic)
