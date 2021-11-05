@@ -93,12 +93,13 @@ process samtools_quickcheck {
 
     shell:
     """
-    rv=0
-    samtools quickcheck $bam || rv=\$?
-    echo "\$rv bam ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.bam.quickcheck
-    rv=0
-    samtools view $bam > /dev/null || rv=\$?
-    echo "\$rv bamv ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" >> ${coguk_id}.${run_name}.bam.quickcheck
+    rv1=0
+    samtools quickcheck $bam || rv1=\$?
+    echo "\$rv1 bam ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.bam.quickcheck
+    rv2=0
+    samtools view $bam > /dev/null || rv2=\$?
+    echo "\$rv2 bamv ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" >> ${coguk_id}.${run_name}.bam.quickcheck
+    rv=\$(( rv1 > rv2 ? rv1 : rv2 ))
     """
 }
 process fasta_quickcheck {
