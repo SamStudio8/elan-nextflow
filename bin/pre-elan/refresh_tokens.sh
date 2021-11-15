@@ -1,9 +1,8 @@
 #!/usr/bin/bash
-source ~/.path
-source ~/.ocarina
+source ~/.bootstrap.sh
+source "$EAGLEOWL_CONF/ocarina.env"
 
 eval "$(conda shell.bash hook)"
-
 conda activate samstudio8
 
 ocarina --quiet --env oauth refresh
