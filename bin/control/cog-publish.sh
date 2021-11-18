@@ -153,7 +153,7 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
     echo "[CPUB]" `date` " - Reconciling consensus"
 
     if [ "$COG_PUBLISH_MODE" == "slurm" ]; then
-        until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1 -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+        until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1,ELAN_DIR=$ELAN_DIR -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
@@ -190,10 +190,16 @@ ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_D
 # NOTE(samstudio8 20210107) - As all QC data is shared, just softlink the qc dir root instead of wasting time linking each qc table
 # NOTE(samstudio8 20210128) - No need to do this anymore as we have canonical latest/ dir
 
+# NOTE samstudio8/2021-11-18
+# Start indexing the daily consensus so we can use it with the caffeine cat reconciler
+echo "[CPUB]" `date` " - Indexing latest"
+samtools faidx $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
+
 # Repoint latest
 echo "[CPUB]" `date` " - Linking latest"
 chmod 755 $COG_PUBLISHED_DIR/$1/
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.fasta
+ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta.fai $COG_PUBLISHED_DIR/elan.latest.consensus.fasta.fai
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.tsv
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_DIR/elan.latest.consensus.matched.fasta
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv $COG_PUBLISHED_DIR/majora.latest.metadata.matched.tsv
@@ -208,6 +214,7 @@ ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv $COG_PUBLISHED_DI
 #      above this dir.
 #      I now use a `head` symlink to keep track of the last successful run.
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta $COG_PUBLISHED_DIR/latest/elan.consensus.fasta
+ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta.fai $COG_PUBLISHED_DIR/latest/elan.consensus.fasta.fai
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv $COG_PUBLISHED_DIR/latest/majora.metadata.tsv
 ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_DIR/latest/elan.consensus.matched.fasta
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv $COG_PUBLISHED_DIR/latest/majora.metadata.matched.tsv
