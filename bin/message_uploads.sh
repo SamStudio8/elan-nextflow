@@ -5,6 +5,7 @@ t="$3"
 msg="$4"
 slack="$5"
 summary="$6"
+DATESTAMP="$7"
 
 echo "[ELAN]" `date` " - Handle messages"
 COUNT_MAJORA=`wc -l $latest | cut -f1 -d' '`

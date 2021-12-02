@@ -64,7 +64,7 @@ process announce_uploads {
 
     """
     ocarina --oauth --env get summary --md > summary.md
-    message_uploads.sh ${manifest} ${q} ${t} SHORTSTART \$ELAN_SLACK_HOOK summary.md
+    message_uploads.sh ${manifest} ${q} ${t} SHORTSTART \$ELAN_SLACK_HOOK summary.md ${params.datestamp}
     touch announce.ok
     """
 }
@@ -275,6 +275,8 @@ process rehead_fasta {
     """
 }
 
+
+// Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
 process swell {
     tag { bam }
     conda "environments/swell.yaml"
