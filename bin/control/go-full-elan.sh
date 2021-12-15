@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 source ~/.path
+source ~/.bootstrap.sh
 source ~/.ocarina
 
 DATESTAMP=$1
@@ -16,6 +17,7 @@ SLACK_REAL_HOOK
 MQTT_HOST
 COG_PUBLISHED_DIR
 COG_PUBLISH_MODE
+EAGLEOWL_LOG
 EOF
 
 cd $ELAN_SOFTWARE_DIR
@@ -25,6 +27,12 @@ _HERE WE GO!_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
 
 echo $DATESTAMP
+
+# Centralise .nextflow.log location
+mkdir -p $EAGLEOWL_LOG/elan/$DATESTAMP
+ELAN_STEP1_NFLOG="$EAGLEOWL_LOG/elan/$DATESTAMP/nf.elan.log"
+ELAN_STEP2_NFLOG="$EAGLEOWL_LOG/elan/$DATESTAMP/nf.ocarina.log"
+ELAN_STEP3_LOG="$EAGLEOWL_LOG/elan/$DATESTAMP/publish.log"
 
 # OCARINA_FILE only written if elan processed at least one sample
 OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
@@ -39,9 +47,8 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
         MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
     fi
-    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN run elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;"
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;"
     ret=$?
-    mv .nextflow.log elan.nextflow.log
 
     if [ $ret -ne 0 ]; then
         lines=`tail -n 25 nf.elan.$DATESTAMP.log`
@@ -73,7 +80,7 @@ if [ ! -f "$OCARINA_FILE" ]; then
 fi
 
 if [ ! -f "$OCARINA_OK_FLAG" ]; then
-    $NEXTFLOW_BIN run ocarina.nf -c $ELAN_CONFIG --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
+    $NEXTFLOW_BIN -log $ELAN_STEP2_NFLOG run ocarina.nf -c $ELAN_CONFIG --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
     ret=$?
     lines=`awk -vRS= 'END{print}' nf.ocarina.$DATESTAMP.log`
     MSG='{"text":"*COG-UK QC pipeline finished...*
@@ -81,7 +88,6 @@ if [ ! -f "$OCARINA_OK_FLAG" ]; then
 '"\`\`\`${lines}\`\`\`"'"
 }'
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
-    cat elan.nextflow.log .nextflow.log > inbound.nextflow.log
 
     if [ $ret -ne 0 ]; then
         MSG='{"text":"<!channel> *COG-UK inbound pipeline failed (Ocarina)*"}'
@@ -96,7 +102,7 @@ else
 fi
 
 SECONDS=0
-bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_DIR/staging/summary/$DATESTAMP/publish.log
+bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_STEP3_LOG
 ret=$?
 TIMER=$(python -c "import datetime; print('(publish)', str(datetime.timedelta(seconds=$SECONDS)))")
 MSG='{"text":"*COG-UK publishing pipeline finished...*
@@ -108,7 +114,6 @@ if [ $ret -ne 0 ]; then
     exit $ret
 fi
 
-mv inbound.nextflow.log $ELAN_DIR/staging/summary/$DATESTAMP/nf.elan.$DATESTAMP.log
 
 # Scream into the COGUK/ether
 eval "$(conda shell.bash hook)"
