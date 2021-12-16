@@ -9,6 +9,14 @@ import datetime
 RECENT_DAYS_NO = 14
 RECENT_DAYS_DESC = "two weeks"
 
+def map_foel_user(username):
+    # Map a user directory (eg. private producer name) to a Majora user
+    # We only need the external-dhsc user for now, but if we onboard other
+    # types of organisation we will need to load a mapping of ingest directories
+    # (or regexes) to majora usernames
+    # TODO Will need to handle the case where a user is unmapped
+    return "external-dhsc"
+
 def best_effort_path(exts, dir_path, coguk_id, use_id=False):
     candidates = []
     if not os.path.exists(dir_path):
@@ -24,7 +32,7 @@ def best_effort_path(exts, dir_path, coguk_id, use_id=False):
             if f.endswith(ext):
                 if use_id:
                     if coguk_id in f:
-                        candidates.append(f)          
+                        candidates.append(f)
                         break
                 else:
                     candidates.append(f)
@@ -33,7 +41,7 @@ def best_effort_path(exts, dir_path, coguk_id, use_id=False):
     if len(candidates) == 0:
         sys.stderr.write("[WARN] No %s found for %s in %s\n" % (str(exts), coguk_id, dir_path))
         return None
-    elif len(candidates) > 1:        
+    elif len(candidates) > 1:
         if use_id:
             sys.stderr.write("[WARN] Multiple %s found for %s in %s\n" % (str(exts), str(candidates), dir_path))
             return None
@@ -141,6 +149,13 @@ for line in sys.stdin.readlines():
 
     # Assume base layout for now
     username = fields[4]
+
+    #NOTE samstudio8/2021-10-13
+    # Slowly moving away from our dependency on the file system, if the "username"
+    # from the file path is from the new ingest solution directory, we must explicitly
+    # map the producer name from the subdirectory after the upload/ subdir
+    if username == "foel-ingest":
+        username = map_foel_user(fields[6])
 
     current_sample = None
     if fields[-1].upper() in runs_by_sample:
