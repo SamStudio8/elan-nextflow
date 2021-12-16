@@ -8,7 +8,7 @@ source "$EAGLEOWL_CONF/envs.env"
 
 # conda env and credentials
 eval "$(conda shell.bash hook)"
-conda activate $CONDA_OCARINA
+conda activate $CONDA_PREELAN
 
 # This script is usually run in the eagle-owl scratch dir
 # and can safely be tested anywhere other than the scratch dir
