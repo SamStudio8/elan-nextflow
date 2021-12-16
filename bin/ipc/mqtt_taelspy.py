@@ -4,6 +4,7 @@ import time
 import argparse
 import os
 import requests
+import toml
 
 def on_connect(client, userdata, flags, rc):
     print("subbed to ", topic)
@@ -25,7 +26,7 @@ def on_message(client, userdata, msg):
         payload = make_payload(msg.topic, payload, payload["ts"] if payload.get("ts") else None)
 
         try:
-            r = send_splunk(payload)
+            r = send_splunk(payload, profile)
             status_code = r.status_code
             text = r.text
         except Exception as e:
@@ -41,13 +42,24 @@ def on_message(client, userdata, msg):
             json.dumps(text),
         ]]) + '\n')
 
-def get_splunk_creds():
-    creds = {
-        "splunk_auth": os.getenv("SPLUNK_AUTH"),
-        "splunk_endpoint": os.getenv("SPLUNK_ENDPOINT"),
-    }
-    if None in creds.values():
-        raise Exception("Splunk credentials could not be loaded")
+def get_splunk_creds(profile):
+    splunk_toml = os.getenv("SPLUNK_TOML")
+    if not splunk_toml:
+        raise Exception("Splunk credentials could not be loaded: SPLUNK_TOML unset")
+    if not os.path.exists(splunk_toml):
+        raise Exception("Splunk credentials could not be loaded: SPLUNK_TOML set but does not exist")
+
+    try:
+        config = toml.load(splunk_toml)
+    except Exception as e:
+        sys.stderr.write("Splunk credentials could not be loaded: SPLUNK_TOML set but encountered an error on open\n")
+        raise e
+
+    creds = config.get("profile", {}).get(profile, {})
+    for k in ["splunk_auth", "splunk_endpoint"]:
+        if k not in creds:
+            raise Exception("Splunk credentials could not be loaded: SPUNK_TOML set and valid but required keys appear unset")
+
     return creds
 
 def make_payload(topic, event, ts=None):
@@ -59,12 +71,12 @@ def make_payload(topic, event, ts=None):
     }
     return splunk_payload
 
-def send_splunk(payload):
+def send_splunk(payload, profile):
 
     if len(payload) == 0:
         raise Exception("Payload cannot be empty")
 
-    creds = get_splunk_creds()
+    creds = get_splunk_creds(profile)
     splunk_url = creds["splunk_endpoint"]
     splunk_auth = creds["splunk_auth"]
 
@@ -79,10 +91,12 @@ if __name__ == "__main__":
     parser.add_argument('--allow', help="new-line delimited list of topics to allow")
     parser.add_argument("--host", default="localhost")
     parser.add_argument("-o", required=True)
+    parser.add_argument("--profile", required=True)
     args = parser.parse_args()
 
     output = args.o
     topic = args.topic
+    profile = args.profile
     allow_set = set([x.strip() for x in open(args.allow).readlines()])
     client = mqtt.Client()
     client.on_connect = on_connect
