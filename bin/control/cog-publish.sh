@@ -99,9 +99,9 @@ if [ ! -f "$LINKS_OK_FLAG" ]; then
     do
         base=`basename $bam`
         set +e
-        unlink $COG_PUBLISHED_DIR/latest/alignment/$bam
+        unlink $COG_PUBLISHED_DIR/latest/alignment/$base
         ret=$?
-        unlink $COG_PUBLISHED_DIR/latest/alignment/$bam.bai
+        unlink $COG_PUBLISHED_DIR/latest/alignment/$base.bai
         set -e
 
         if [ $ret -eq 0 ]; then
