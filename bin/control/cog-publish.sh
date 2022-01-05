@@ -28,12 +28,16 @@ if [ ! -f "$LINKS_OK_FLAG" ]; then
     cp elan.kill.latest $ELAN_DIR/staging/summary/$1/
 
 
-    # Files to add
+    # Files to add (there may be none in the strange case where we are rerunning after a successful day - so protect the grep from failure)
+    set +e
     grep 'consensus' elan.pass.latest > elan.pass.latest.consensus.ls
+    set -e
     cut -f3 elan.pass.latest.consensus.ls > pass.fasta.ls
     wc -l pass.fasta.ls
 
+    set +e
     grep 'alignment' elan.pass.latest > elan.pass.latest.alignment.ls
+    set -e
     cut -f3 elan.pass.latest.alignment.ls > pass.bam.ls
     wc -l pass.bam.ls
 
