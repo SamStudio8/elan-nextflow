@@ -52,7 +52,7 @@ if not name:
     sys.exit(1)
 if not seq:
     sys.exit(2)
-if any(upper(base) not in iupac_chars for base in seq):
+if any(base.upper() not in iupac_chars for base in seq):
     sys.exit(65)
 if len(seq) < min_len:
     sys.exit(3)
