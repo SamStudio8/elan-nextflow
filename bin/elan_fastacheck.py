@@ -32,6 +32,8 @@ def readfq(fp): # this is a generator function
             if last: # reach EOF before reading enough quality
                 yield name, seq, None # yield a fasta record instead
                 break
+                
+IUPAC_chars = ["A","C","G","T","U","R","Y","K","M","S","W","B","D","H","V","N","-"]
 
 if len(sys.argv) != 3:
     sys.exit(1)
@@ -50,6 +52,8 @@ if not name:
     sys.exit(1)
 if not seq:
     sys.exit(2)
+if any(base not in IUPAC_chars for base in seq):
+    sys.exit(65)
 if len(seq) < min_len:
     sys.exit(3)
 fasta_fh.close()
