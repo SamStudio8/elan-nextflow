@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys
 
 # thanks heng
@@ -32,7 +32,7 @@ def readfq(fp): # this is a generator function
             if last: # reach EOF before reading enough quality
                 yield name, seq, None # yield a fasta record instead
                 break
-                
+
 iupac_chars = set("ACGTRYKMSWBDHVN")
 
 if len(sys.argv) != 3:
