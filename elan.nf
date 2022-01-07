@@ -105,6 +105,7 @@ process samtools_quickcheck {
 process fasta_quickcheck {
     tag { fasta }
     label 'bear'
+    conda "environments/ocarina.yaml"
 
     validExitStatus 0,1,2,3,4,5,6,7,8
 
