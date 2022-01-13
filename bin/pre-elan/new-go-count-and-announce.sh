@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 source ~/.bootstrap.sh
-source "$EAGLEOWL_CONF/ocarina.env"
+source "$EAGLEOWL_CONF/service_elan.env"
 source "$EAGLEOWL_CONF/paths.env"
 source "$EAGLEOWL_CONF/mqtt.env"
 source "$EAGLEOWL_CONF/slack.env" # Needed for !$2 to resolve to an actual slack hook
