@@ -1,7 +1,14 @@
 #!/usr/bin/bash
 
+source ~/.bootstrap.sh
+source "$EAGLEOWL_CONF/envs.env"
+source "$EAGLEOWL_CONF/paths.env"
+source "$EAGLEOWL_CONF/slack.env"
+source "$EAGLEOWL_CONF/service_elan.env"
+
+# Activate env
 eval "$(conda shell.bash hook)"
-conda activate samstudio8
+conda activate $CONDA_OCARINA
 
 set -euo pipefail
 
@@ -12,8 +19,6 @@ LAST_DIR_NAME=`readlink $COG_PUBLISHED_DIR/head`
 LAST_DIR_DATE=`basename $LAST_DIR_NAME`
 LAST_DATE=`date -d $LAST_DIR_DATE '+%Y-%m-%d'`
 echo "[CPUB] LAST_DATE=$LAST_DATE"
-
-source ~/.ocarina
 
 LINKS_OK_FLAG="$ELAN_DIR/staging/summary/$1/publish.links.ok"
 
