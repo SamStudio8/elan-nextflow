@@ -2,6 +2,7 @@
 source ~/.path
 source ~/.bootstrap.sh
 source ~/.ocarina
+source $EAGLEOWL_CONF/service_elan.env
 
 DATESTAMP=$1
 while read var; do
