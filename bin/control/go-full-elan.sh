@@ -1,8 +1,10 @@
 #!/usr/bin/bash
-source ~/.path
 source ~/.bootstrap.sh
-source ~/.ocarina
-source $EAGLEOWL_CONF/service_elan.env
+source "$EAGLEOWL_CONF/elan.env"
+source "$EAGLEOWL_CONF/paths.env"
+source "$EAGLEOWL_CONF/slack.env"
+source "$EAGLEOWL_CONF/mqtt.env"
+source "$EAGLEOWL_CONF/service_elan.env"
 
 DATESTAMP=$1
 while read var; do
@@ -19,6 +21,7 @@ MQTT_HOST
 COG_PUBLISHED_DIR
 COG_PUBLISH_MODE
 EAGLEOWL_LOG
+MAJORA_DOMAIN
 EOF
 
 cd $ELAN_SOFTWARE_DIR
