@@ -1,7 +1,7 @@
 #!/usr/bin/bash
-source ~/.path
-source ~/.ocarina
-cd $ELAN_SOFTWARE_DIR
+source ~/.bootstrap.sh
+source "$EAGLEOWL_CONF/paths.env"
+source "$EAGLEOWL_CONF/slack.env"
 
 DATESTAMP=$1
 
