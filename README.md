@@ -20,7 +20,7 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | `ELAN_CONFIG` | Path to current Nextflow configuration |
 | `ELAN_SOFTWARE_DIR` | Path to local clone of elan-nextflow |
 | `ELAN_DIR` | Path to CLIMB-COVID staged artifacts root (nicholsz/), passed as `--publish` to elan-nf |
-| `COG_PUBLISHED_DIR` | Path to CLIMB-COVID published artifact root (artifacts/), passed as `--cog_publish` to elan-nf |
+| `COG_PUBLISHED_DIR` | Path to CLIMB-COVID published artifact root (artifacts/) for cog-publish |
 | `NEXTFLOW_BIN` | Path to nextflow binary |
 | `SLACK_MGMT_HOOK` | Slack HTTPS webhook for posting debug messages |
 | `SLACK_REAL_HOOK` | Slack HTTPS webhook for posting inbound-dist messages |
