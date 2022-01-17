@@ -1,14 +1,31 @@
 #!/usr/bin/bash
-source ~/.bootstrap.sh
+# go-full-elan is composed of three steps
+# 	* elan-nextflow (nextflow)  processes daily uploads for QC and kicks out anything very terrible
+#	* elan-ocarina  (nextflow)  updates Majora en masse for all files from step 1
+#	* cog-publish   (bash)      publishes QC pass files to users
+#
+# go-full-elan takes the following inputs
+# 	$1    DATESTAMP    elan datestamp, usually today (format YYYYMMDD)
+
+while read var; do
+      [ -z "${!var}" ] && { echo 'Global Eagle Owl variable '$var' is empty or not set. Environment likely uninitialised. Aborting.'; exit 64; }
+done << EOF
+EAGLEOWL_CONF
+EAGLEOWL_SCRATCH
+EAGLEOWL_LOG
+EOF
+
+# Init the Elan environment from the Eagle Owl config dir
 source "$EAGLEOWL_CONF/elan.env"
 source "$EAGLEOWL_CONF/paths.env"
+source "$EAGLEOWL_CONF/envs.env"
 source "$EAGLEOWL_CONF/slack.env"
 source "$EAGLEOWL_CONF/mqtt.env"
 source "$EAGLEOWL_CONF/service_elan.env"
 
 DATESTAMP=$1
 while read var; do
-      [ -z "${!var}" ] && { echo 'Global Elan variable '$var' is empty or not set. Environment likely uninitialised. Aborting.'; exit 64; }
+      [ -z "${!var}" ] && { echo 'Global Elan variable '$var' is empty or not set. Environment has not been initialised from Eagle Owl. Aborting.'; exit 64; }
 done << EOF
 DATESTAMP
 ELAN_CONFIG
@@ -121,5 +138,5 @@ fi
 
 # Scream into the COGUK/ether
 eval "$(conda shell.bash hook)"
-conda activate sam-ipc
-python $ELAN_SOFTWARE_DIR/bin/ipc/mqtt-message.py -t 'COGUK/infrastructure/pipelines/elan/status' --host $MQTT_HOST --attr status finished --attr date $DATESTAMP
+conda activate $CONDA_IPC
+mqtt-message.py -t 'COGUK/infrastructure/pipelines/elan/status' --host $MQTT_HOST --attr status finished --attr date $DATESTAMP
