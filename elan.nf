@@ -14,7 +14,7 @@ if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora creden
 
 process save_manifest {
     label 'ocarina'
-    conda "environments/ocarina.yaml"
+    conda "$baseDir/environments/ocarina.yaml"
 
     errorStrategy 'retry'
     maxRetries 1
@@ -49,7 +49,7 @@ process announce_uploads {
     // https://github.com/COG-UK/dipi-group/issues/89
 
     label 'ocarina'
-    conda "environments/ocarina.yaml"
+    conda "$baseDir/environments/ocarina.yaml"
 
     validExitStatus 0,1,2,3 // Don't care if this fails, it's just notifying
     //errorStrategy 'retry'
@@ -78,7 +78,7 @@ start_ch
 
 process samtools_quickcheck {
     tag { bam }
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
     validExitStatus 0,1,2,3,4,5,6,7,8
@@ -156,7 +156,7 @@ process save_uploads {
 process rehead_bam {
     tag { bam }
     label 'bear'
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
 
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
@@ -174,7 +174,7 @@ process rehead_bam {
 
 process samtools_filter {
     tag { bam }
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
     input:
@@ -193,7 +193,7 @@ process samtools_filter {
 process samtools_index {
     tag { bam }
     label 'bear'
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
 
     errorStrategy 'ignore'
 
@@ -239,7 +239,7 @@ process post_index {
 
 process samtools_depth {
     tag { bam }
-    conda "environments/samtools113.yaml"
+    conda "$baseDir/environments/samtools113.yaml"
     label 'bear'
 
     memory '5 GB'
@@ -278,7 +278,7 @@ process rehead_fasta {
 // Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
 process swell {
     tag { bam }
-    conda "environments/swell.yaml"
+    conda "$baseDir/environments/swell.yaml"
     label 'bear'
 
     errorStrategy 'ignore'
