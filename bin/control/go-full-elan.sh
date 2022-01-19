@@ -39,11 +39,6 @@ EOF
 
 cd $ELAN_SOFTWARE_DIR
 
-
-MSG='{"text":"*COG-UK inbound pipeline begins...*
-_HERE WE GO!_"}'
-curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
-
 echo $DATESTAMP
 
 # Centralise .nextflow.log location
@@ -51,6 +46,10 @@ mkdir -p $ELAN_LOG_DIR/$DATESTAMP
 ELAN_STEP1_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.log"
 ELAN_STEP2_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.log"
 ELAN_STEP3_LOG="$ELAN_LOG_DIR/$DATESTAMP/publish.log"
+
+MSG='{"text":"*COG-UK inbound pipeline begins...*
+_HERE WE GO! Follow the adventure at `'$ELAN_LOG_DIR'/'$DATESTAMP'`_"}'
+curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 
 ELAN_STEP1_STDOUTERR="$PWD/nf.elan.$DATESTAMP.log"
 
@@ -64,7 +63,7 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
     RESUME_FLAG=""
     if [ -f "$ELAN_STEP1_STDOUTERR" ]; then
         RESUME_FLAG="-resume"
-	MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log ('$ELAN_STEP1_STDOUTERR') to force a full restart."}'
+	MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log (`rm '$ELAN_STEP1_STDOUTERR'`) to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
     fi
     /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
