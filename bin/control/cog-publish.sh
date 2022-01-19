@@ -208,14 +208,6 @@ samtools faidx $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
 echo "[CPUB]" `date` " - Linking latest"
 bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish-link.sh $1
 
-# Init phylo directory
-mkdir -p $COG_RESULTS_DIR/phylogenetics/$1
-#mkdir $COG_PUBLISHED_DIR/$1/phylogenetics
-#sudo setfacl -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
-#sudo setfacl -d -Rm g::rx $COG_PUBLISHED_DIR/$1/phylogenetics
-#sudo setfacl -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
-#sudo setfacl -d -Rm g:phylogenetics:rwx $COG_PUBLISHED_DIR/$1/phylogenetics
-
 # Announce summary table and failures
 DASH_DATE=`date -d $1 +%Y-%m-%d`
 TABLE=`ocarina --oauth -q --env get summary --md --gte-date $DASH_DATE | column -t -s'|'`
