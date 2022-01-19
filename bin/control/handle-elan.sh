@@ -6,10 +6,10 @@
 DATESTAMP=$1
 
 RAISE=0
-if grep --quiet 'Batch job submission failed' nf.elan.$DATESTAMP.log; then
+if grep --quiet 'Batch job submission failed' $ELAN_LOG_DIR/nf.elan.$DATESTAMP.log; then
     MSG='{"text":"*COG-UK inbound pipeline* Automatically re-raising Elan after a BLURM error (Batch job submission failed)"}'
     RAISE=1
-elif grep --quiet 'terminated for an unknown reason' nf.elan.$DATESTAMP.log; then
+elif grep --quiet 'terminated for an unknown reason' $ELAN_LOG_DIR/nf.elan.$DATESTAMP.log; then
     MSG='{"text":"*COG-UK inbound pipeline* Automatically re-raising Elan after a BLURM error (Terminated for an unknown reason)"}'
     RAISE=1
 else

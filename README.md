@@ -19,6 +19,7 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | `DATESTAMP` | YYYYMMDD datestamp to identify today's run |
 | `ELAN_CONFIG` | Path to current Nextflow configuration |
 | `ELAN_SOFTWARE_DIR` | Path to local clone of elan-nextflow |
+| `ELAN_RUN_DIR` | Path to dir to run Elan from (scratch) |
 | `ELAN_DIR` | Path to CLIMB-COVID staged artifacts root (nicholsz/), passed as `--publish` to elan-nf |
 | `COG_PUBLISHED_DIR` | Path to CLIMB-COVID published artifact root (artifacts/) for cog-publish |
 | `NEXTFLOW_BIN` | Path to nextflow binary |

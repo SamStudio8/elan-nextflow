@@ -25,6 +25,7 @@ DATESTAMP
 ELAN_CONFIG
 ELAN_DIR
 ELAN_SOFTWARE_DIR
+ELAN_RUN_DIR
 NEXTFLOW_BIN
 ELAN_SLACK_MGMT_HOOK
 ELAN_SLACK_INBOUND_HOOK
@@ -37,6 +38,19 @@ NXF_WORK
 NXF_CONDA_CACHEDIR
 EOF
 
+if ! command -v conda &> /dev/null
+then
+    echo "conda not in PATH"
+    exit 78 # EX_CONFIG
+fi
+
+if ! command -v 'mqtt-message.py' &> /dev/null
+then
+    echo "mqtt-message.py (tael) not in PATH"
+    exit 78 # EX_CONFIG
+fi
+
+cd $ELAN_RUN_DIR
 echo $DATESTAMP
 
 # Centralise .nextflow.log location
@@ -49,8 +63,8 @@ MSG='{"text":"*COG-UK inbound pipeline begins...*
 _HERE WE GO! Follow the adventure at `'$ELAN_LOG_DIR'/'$DATESTAMP'`_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 
-ELAN_STEP1_STDOUTERR="$ELAN_LOG_DIR/nf.elan.$DATESTAMP.log"
-ELAN_STEP2_STDOUTERR="$ELAN_LOG_DIR/nf.ocarina.$DATESTAMP.log"
+ELAN_STEP1_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.$DATESTAMP.log"
+ELAN_STEP2_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.$DATESTAMP.log"
 
 # OCARINA_FILE only written if elan processed at least one sample
 OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
