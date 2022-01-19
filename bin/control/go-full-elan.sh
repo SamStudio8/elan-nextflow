@@ -50,6 +50,12 @@ then
     exit 78 # EX_CONFIG
 fi
 
+if ! command -v 'ocarina_resolve.py' &> /dev/null
+then
+    echo "ocarina_resolve.py (elan bin dir) not in PATH"
+    exit 78 # EX_CONFIG
+fi
+
 cd $ELAN_RUN_DIR
 echo $DATESTAMP
 
