@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
 
-params.uploads = "/cephfs/covid/bham/*/upload/"
 params.minlen = 10000
 
 if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
