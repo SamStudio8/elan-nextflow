@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 
-// params.manifest = "/cephfs/covid/bham/nicholsz/artifacts/elan2/staging/summary/null/ocarina.files.ls"
+if( !params.manifest ) error "Missing `manifest` param: today's ocarina manifest from elan [path]"
+
+if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
 
 Channel
     .fromPath(params.manifest)
@@ -11,7 +13,7 @@ Channel
 process play_ocarina {
     tag { bam }
     label 'ocarina'
-    conda "environments/ocarina.yaml"
+    conda "$baseDir/environments/ocarina.yaml"
 
     errorStrategy { sleep(Math.pow(2, task.attempt) * 300 as long); return 'retry' }
     maxRetries 1
