@@ -1,9 +1,11 @@
 #!/usr/bin/env nextflow
 
 params.minlen = 10000
+params.uploads_usern = 7 // <0>,cephfs,covid,bham,<user>
 
 if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
 if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID uploads"
+if( !params.uploads_usern ) error "Missing `uploads_usern` param: index of username directory in uploads glob, root counts as zero [int]"
 if( !params.publish ) error "Missing `publish` param: path to CLIMB-COVID staged artifacts root"
 if( !params.minlen ) error "Missing `min_len` param: minimum genome size required to pass the save_uploads step [int]"
 
@@ -39,7 +41,7 @@ process resolve_uploads {
     tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
     """
-    find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py ${manifest} > files.ls 2> files.err
+    find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py --metadata ${manifest} --user-field ${params.uploads_usern} > files.ls 2> files.err
     """
 }
 
