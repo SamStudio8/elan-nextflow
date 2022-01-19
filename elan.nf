@@ -78,8 +78,6 @@ process samtools_quickcheck {
     conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
-    validExitStatus 0,1,2,3,4,5,6,7,8
-
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from manifest_ch
 
@@ -101,8 +99,6 @@ process samtools_quickcheck {
 process fasta_quickcheck {
     tag { fasta }
     label 'bear'
-
-    validExitStatus 0,1,2,3,4,5,6,7,8
 
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus from validbam_manifest_ch
