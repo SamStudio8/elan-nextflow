@@ -37,8 +37,6 @@ NXF_WORK
 NXF_CONDA_CACHEDIR
 EOF
 
-cd $ELAN_SOFTWARE_DIR
-
 echo $DATESTAMP
 
 # Centralise .nextflow.log location
@@ -51,7 +49,8 @@ MSG='{"text":"*COG-UK inbound pipeline begins...*
 _HERE WE GO! Follow the adventure at `'$ELAN_LOG_DIR'/'$DATESTAMP'`_"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 
-ELAN_STEP1_STDOUTERR="$PWD/nf.elan.$DATESTAMP.log"
+ELAN_STEP1_STDOUTERR="$ELAN_LOG_DIR/nf.elan.$DATESTAMP.log"
+ELAN_STEP2_STDOUTERR="$ELAN_LOG_DIR/nf.ocarina.$DATESTAMP.log"
 
 # OCARINA_FILE only written if elan processed at least one sample
 OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
@@ -66,7 +65,7 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
 	MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log (`rm '$ELAN_STEP1_STDOUTERR'`) to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
     fi
-    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run $ELAN_SOFTWARE_DIR/elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
     ret=$?
 
     if [ $ret -ne 0 ]; then
@@ -101,9 +100,9 @@ if [ ! -f "$OCARINA_FILE" ]; then
 fi
 
 if [ ! -f "$OCARINA_OK_FLAG" ]; then
-    $NEXTFLOW_BIN -log $ELAN_STEP2_NFLOG run ocarina.nf -c $ELAN_CONFIG --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
+    $NEXTFLOW_BIN -log $ELAN_STEP2_NFLOG run $ELAN_SOFTWARE_DIR/ocarina.nf -c $ELAN_CONFIG --manifest $OCARINA_FILE > $ELAN_STEP2_STDOUTERR 2>&1;
     ret=$?
-    lines=`awk -vRS= 'END{print}' nf.ocarina.$DATESTAMP.log`
+    lines=`awk -vRS= 'END{print}' $ELAN_STEP2_STDOUTERR`
     MSG='{"text":"*COG-UK QC pipeline finished...*
 ...with exit status '"$ret"'
 '"\`\`\`${lines}\`\`\`"'"
