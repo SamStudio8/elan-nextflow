@@ -49,7 +49,6 @@ Additionally, variables defined above may be used in cog-publish.sh without list
 | `--publish` | Path to CLIMB-COVID staged artifacts root (nicholsz/) |
 | `--cog_publish` | Path to CLIMB-COVID published artifact root (artifacts/) |
 | `--minlen` | Minimum genome size required to pass the save_uploads step [int] |
-| `--schemegit` | Path to local copy of https://github.com/artic-network/artic-ncov2019 repo |
 
 
 #### elan-nextflow environment variables
