@@ -22,6 +22,7 @@ while read var; do
       [ -z "${!var}" ] && { echo 'Global Elan variable '$var' is empty or not set. Environment has not been initialised from Eagle Owl. Aborting.'; exit 64; }
 done << EOF
 DATESTAMP
+UPLOADS_DIR_GLOB
 ELAN_CONFIG
 ELAN_DIR
 ELAN_SOFTWARE_DIR
@@ -66,7 +67,9 @@ ELAN_STEP2_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.log"
 ELAN_STEP3_LOG="$ELAN_LOG_DIR/$DATESTAMP/publish.log"
 
 MSG='{"text":"*COG-UK inbound pipeline begins...*
-_HERE WE GO! Follow the adventure at `'$ELAN_LOG_DIR'/'$DATESTAMP'`_"}'
+*Publish dir* `'$ELAN_DIR'`
+*Uploads dir* `'$UPLOADS_DIR_GLOB'`
+*Log dir* `'$ELAN_LOG_DIR'/'$DATESTAMP'`"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 
 ELAN_STEP1_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.$DATESTAMP.log"
@@ -85,7 +88,7 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
 	MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log (`rm '$ELAN_STEP1_STDOUTERR'`) to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
     fi
-    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run $ELAN_SOFTWARE_DIR/elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run $ELAN_SOFTWARE_DIR/elan.nf -c $ELAN_CONFIG --publish $ELAN_DIR --uploads $UPLOADS_DIR_GLOB --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
     ret=$?
 
     if [ $ret -ne 0 ]; then
@@ -107,7 +110,7 @@ _Have a nice day!_"}'
         touch $ELAN_OK_FLAG
     fi
 else
-	MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Elan as the OK flag already exists for today. If elan-nextflow ran correctly (which it looks like it did), do not delete the OK flag!"}'
+	MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Elan as the OK flag (`'$ELAN_OK_FLAG'`) already exists for today. If elan-nextflow ran correctly (which it looks like it did), do not delete the OK flag!"}'
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 fi
 
