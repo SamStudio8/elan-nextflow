@@ -47,7 +47,6 @@ Additionally, variables defined above may be used in cog-publish.sh without list
 | `--datestamp` | YYYYMMDD datestamp to identify today's run |
 | `--uploads` | Glob path for CLIMB-COVID user uploads |
 | `--publish` | Path to CLIMB-COVID staged artifacts root (nicholsz/) |
-| `--cog_publish` | Path to CLIMB-COVID published artifact root (artifacts/) |
 | `--minlen` | Minimum genome size required to pass the save_uploads step [int] |
 
 
