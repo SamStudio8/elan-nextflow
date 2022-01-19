@@ -50,9 +50,7 @@ process announce_uploads {
     label 'ocarina'
     conda "$baseDir/environments/ocarina.yaml"
 
-    validExitStatus 0,1,2,3 // Don't care if this fails, it's just notifying
-    //errorStrategy 'retry'
-    //maxRetries 1
+    errorStrategy 'ignore'
 
     input:
     tuple file(manifest), file(q), file(t) from announce_ch
