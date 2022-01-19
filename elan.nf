@@ -284,7 +284,7 @@ process swell {
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_ready_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true
+    publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc"), env(rv) into postswell_manifest_ch
     file "${coguk_id}.${run_name}.qc" into report_ch
     file "${coguk_id}.${run_name}.swell.quickcheck" into quickcheck_swell_ch
