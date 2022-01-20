@@ -68,7 +68,8 @@ Note that Elan will only error if `MAJORA_DOMAIN` is unset, all other `MAJORA_*`
 
 | Name | Description |
 | ---- | ----------- |
-| `NXF_WORK` | Path to NXF working dir |
+| `NXF_WORK` | Path to NXF working dir (basename must be `nxf_work` on CLIMB-COVID) |
+| `NXF_CONDA_CACHEDIR` | Path to conda cache dir (basename must be `.conda` on CLIMB-COVID) |
 | `NXF_DEBUG` | One of: 1,2,3. See https://www.nextflow.io/docs/latest/config.html |
 
 
