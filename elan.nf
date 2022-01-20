@@ -116,7 +116,8 @@ process fasta_quickcheck {
     """
 }
 
-process save_uploads {
+// 2022-01-20 Renamed to screen_uploads as we no longer store the publish/uploaded/ dir as it wastes space
+process screen_uploads {
     tag { fasta }
     label 'bear'
 
@@ -128,11 +129,10 @@ process save_uploads {
 
     errorStrategy 'ignore'
 
-    publishDir path: "${params.publish}/uploaded/alignment", pattern: "${coguk_id}.${run_name}.uploaded.bam", mode: "copy", overwrite: true
-    publishDir path: "${params.publish}/uploaded/fasta", pattern: "${coguk_id}.${run_name}.uploaded.fasta", mode: "copy", overwrite: true
     file "${coguk_id}.${run_name}.uploaded.bam"
     file "${coguk_id}.${run_name}.uploaded.fasta"
 
+    // bit pointless now but whatever
     script:
     if (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
         """
