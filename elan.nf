@@ -39,7 +39,6 @@ process resolve_uploads {
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true, saveAs: { filename -> "manifest.tsv" }
     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "missing.txt" }
-
     file 'files.ls' into start_ch
     tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
@@ -178,7 +177,7 @@ process samtools_filter {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from reheaded_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/staging/alignment", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file("${coguk_id}.${run_name}.climb.bam") into sorted_manifest_ch
 
     """
@@ -197,7 +196,7 @@ process samtools_index {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from sorted_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/staging/alignment", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into post_index_manifest_ch
 
     file "${coguk_id}.${run_name}.index.quickcheck" into quickcheck_index_ch
@@ -329,7 +328,7 @@ process ocarina_ls {
     file "${coguk_id}.${run_name}.ocarina" into ocarina_report_ch
     
     """
-    echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\tfasta/${fasta}\talignment/${bam}\tqc/${qc}\t${sourcesite}\t${seqsite}\t${platform}" > ${coguk_id}.${run_name}.ocarina
+    echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\tfasta/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sourcesite}\t${seqsite}\t${platform}" > ${coguk_id}.${run_name}.ocarina
     """
 }
 

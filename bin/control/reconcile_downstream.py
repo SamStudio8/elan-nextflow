@@ -42,15 +42,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--imeta", required=True)
 parser.add_argument("--ometa", required=False) # reconcile_downstream does not pass ometa by default
-parser.add_argument("--pubdir", required=True)
 parser.add_argument("--ifasta", required=True)
 parser.add_argument("--ofasta", required=False) # reconcile_downstream uses stdout for FASTA by default
-parser.add_argument("--kill-ls", required=True) # required as you'll almost certainly mess it up without it, COG-UK PAG converted internally to COGUK PAG
-parser.add_argument("--pass-ls", required=True) # required as you won't get any new sequences without it, COG-UK PAG concerted internally to COGUK PAG
+parser.add_argument("--kill-pagfiles", required=True) # required as you'll almost certainly mess it up without it, COG-UK PAG converted internally to COGUK PAG
+parser.add_argument("--pass-pagfiles", required=True) # required as you won't get any new sequences without it, COG-UK PAG converted internally to COGUK PAG
 args = parser.parse_args()
 
 METADATA_FP = args.imeta
-PUBLISHED_DIR = args.pubdir
 if args.ometa:
     NEW_METADATA_FP = args.ometa
 else:
@@ -84,8 +82,8 @@ if len(PUBLISHED_FASTA_PAG_TO_HEADER) != len(PUBLISHED_FASTA.references):
 # Previously we relied on unlinking and hitting a file that no longer exists, this is faster and more explicit
 # This is required because the metadata file has no idea if a sequence has been suppressed and will blindly copy it from the latest FASTA if we don't tell it otherwise
 suppressed_pags = set([])
-if args.kill_ls:
-    with open(args.kill_ls) as suppressed_fh:
+if args.kill_pagfiles:
+    with open(args.kill_pagfiles) as suppressed_fh:
         for line in suppressed_fh:
             fields = line.replace("COG-UK", "COGUK").strip().split()
             suppressed_pags.add(fields[0])
@@ -94,12 +92,15 @@ if args.kill_ls:
 # We can use this to determine whether a latest.fasta cache miss is really a new valid sequence
 # or whether it was previously suppressed, failed QC or is just outright invalid
 # This will save us hitting the file system for files that don't exist at all (pretty bad case for a full ceph MDS)
-passed_pags = set([])
-if args.pass_ls:
-    with open(args.pass_ls) as passed_fh:
+passed_pags = {}
+if args.pass_pagfiles:
+    with open(args.pass_pagfiles) as passed_fh:
         for line in passed_fh:
-            fields = line.replace("COG-UK", "COGUK").strip().split()
-            passed_pags.add(fields[0])
+            # NOTE If the order of ocarina pagfiles changes this will need updating...
+            pag, file_type, file_path, *_ = line.replace("COG-UK", "COGUK").strip().split('\t')
+            if pag not in passed_pags:
+                passed_pags[pag] = {"consensus": None, "alignment": None}
+            passed_pags[pag][file_type] = file_path
 
 # Open the metadata file
 metadata_fh = csv.DictReader(open(METADATA_FP), delimiter="\t")
@@ -128,9 +129,6 @@ for row in metadata_fh:
     # Attempt to fetch the key from the published FASTA
     # It won't be here if the FASTA is new so we'll still need to hit the file system in those cases
     c_header = PUBLISHED_FASTA_PAG_TO_HEADER.get(c_pag)
-
-    # Build the file name to the artifact from the central_sample_id and run_name in case we need it later
-    c_fn = "%s/%s.%s.climb.fasta" % (PUBLISHED_DIR, row["central_sample_id"], row["run_name"])
 
     if c_pag in seen_pags:
         # Cover the special case where users have managed to upload a sample on multiple libraries for the same run...
@@ -161,10 +159,16 @@ for row in metadata_fh:
         # expected to be added today and short circuit checking the FS entirely
         # ceph will be very grateful
         if c_pag not in passed_pags:
-            sys.stderr.write("[SKIP] %s\n" % c_pag)
+            #sys.stderr.write("[SKIP] %s\n" % c_pag) # uncomment for big pointless log
+            n_skip += 1
             continue
 
         # Elsewise this file really is new and we'll go and open it
+        c_fn = passed_pags[c_pag].get("consensus")
+        if not c_fn:
+            sys.stderr.write("[WARN] %s does not have consensus entry in --pass-pagfiles which should be impossible\n" % c_pag)
+            continue
+
         try:
             # NOTE(samstudio8, 20210106) - Use a try here to open the file straight away,
             # this allows us to skip a `stat` on the file system from os.path.exists
@@ -172,7 +176,7 @@ for row in metadata_fh:
             n_miss += 1
             c_fh = open(c_fn)
         except FileNotFoundError:
-            # Skip to the next record in the hope it actually exists, this is a dud
+            sys.stderr.write("[WARN] %s had consensus entry at %s that could not be opened which should be impossible\n" % (c_pag, c_fn))
             continue
 
         for name, seq, qual in readfq(c_fh):
