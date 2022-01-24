@@ -8,6 +8,7 @@ if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID u
 if( !params.uploads_usern ) error "Missing `uploads_usern` param: index of username directory in uploads glob, root counts as zero [int]"
 if( !params.publish ) error "Missing `publish` param: path to CLIMB-COVID staged artifacts root"
 if( !params.minlen ) error "Missing `min_len` param: minimum genome size required to pass the save_uploads step [int]"
+if( !params.artifacts_root ) error "Missing `artifacts_root` param: path to new CLIMB-COVID published artifacts root"
 
 if( !System.getenv("ELAN_SLACK_HOOK") ) error '$ELAN_SLACK_HOOK unset'
 if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
@@ -36,7 +37,9 @@ process resolve_uploads {
     output:
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
-    publishDir path: "${params.publish}/staging/summary/", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "${params.datestamp}.missing.ls" }
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true, saveAs: { filename -> "manifest.tsv" }
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "missing.txt" }
+
     file 'files.ls' into start_ch
     tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
@@ -259,6 +262,7 @@ process rehead_fasta {
 
     output:
     publishDir path : "${params.publish}/staging/fasta/", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
+    publishDir path : "${params.artifacts_root}/fasta/${params.datestamp}", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file("${coguk_id}.${run_name}.climb.fasta"), file(bam), file(depth) into swell_ready_manifest_ch
 
     """
@@ -316,6 +320,7 @@ process post_swell {
         """
 }
 
+// NOTE The entries here need to match the publishDir directives above to make sure Majora knows where the files are
 process ocarina_ls {
     input:
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) from ocarina_file_manifest_ch

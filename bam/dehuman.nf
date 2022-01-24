@@ -33,6 +33,8 @@ process kraken_bam_reads {
     tag { bam }
     conda "../environments/kraken2.yaml"
 
+    maxForks 4 // prevent head node clogging up by manually reducing max number of parallel k2s
+
     errorStrategy 'ignore'
 
     input:
@@ -44,7 +46,8 @@ process kraken_bam_reads {
     file "${bam_fasta}.k2o.gz"
     file "${bam_fasta}.k2r"
 
-    cpus 7
+    cpus 4
+
     """
     kraken2 --db ${params.k2db} --threads ${task.cpus} --output ${bam_fasta}.k2o --report ${bam_fasta}.k2r ${bam_fasta} && awk '\$3 == 9606 {print \$2}' ${bam_fasta}.k2o > ${bam_fasta}.k2o.9606.ls
     gzip ${bam_fasta}.k2o
