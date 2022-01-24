@@ -20,7 +20,8 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | `ELAN_CONFIG` | Path to current Nextflow configuration |
 | `ELAN_SOFTWARE_DIR` | Path to local clone of elan-nextflow |
 | `ELAN_DIR` | Path to CLIMB-COVID staged artifacts root (nicholsz/), passed as `--publish` to elan-nf |
-| `COG_PUBLISHED_DIR` | Path to CLIMB-COVID published artifact root (artifacts/), passed as `--cog_publish` to elan-nf |
+| `COG_PUBLISHED_DIR` | Path to deprecated CLIMB-COVID published artifact root (/bham/artifacts/), passed as `--cog_publish` to elan-nf |
+| `ARTIFACTS_ROOT` | Path to new CLIMB-COVID published artifact root (/artifacts/), passed as `--artifacts_root` to elan-nf |
 | `NEXTFLOW_BIN` | Path to nextflow binary |
 | `SLACK_MGMT_HOOK` | Slack HTTPS webhook for posting debug messages |
 | `SLACK_REAL_HOOK` | Slack HTTPS webhook for posting inbound-dist messages |
@@ -47,7 +48,8 @@ Additionally, variables defined above may be used in cog-publish.sh without list
 | `--datestamp` | YYYYMMDD datestamp to identify today's run |
 | `--uploads` | Glob path for CLIMB-COVID user uploads |
 | `--publish` | Path to CLIMB-COVID staged artifacts root (nicholsz/) |
-| `--cog_publish` | Path to CLIMB-COVID published artifact root (artifacts/) |
+| `--cog_publish` | Path to deprecated CLIMB-COVID published artifact root (/bham/artifacts/) |
+| `--artifacts_root` | Path to new CLIMB-COVID published artifact root (/artifacts/) |
 | `--minlen` | Minimum genome size required to pass the save_uploads step [int] |
 | `--schemegit` | Path to local copy of https://github.com/artic-network/artic-ncov2019 repo |
 
