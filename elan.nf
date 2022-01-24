@@ -1,14 +1,13 @@
 #!/usr/bin/env nextflow
 
-params.uploads = "/cephfs/covid/bham/*/upload/"
 params.minlen = 10000
+params.uploads_usern = 7 // <0>,cephfs,covid,bham,<user>
 
 if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
 if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID uploads"
+if( !params.uploads_usern ) error "Missing `uploads_usern` param: index of username directory in uploads glob, root counts as zero [int]"
 if( !params.publish ) error "Missing `publish` param: path to CLIMB-COVID staged artifacts root"
-if( !params.cog_publish ) error "Missing `cog_publish` param: path to CLIMB-COVID published artifacts root"
 if( !params.minlen ) error "Missing `min_len` param: minimum genome size required to pass the save_uploads step [int]"
-if( !params.schemegit ) error "Missing `schemegit` param: path to local copy of https://github.com/artic-network/artic-ncov2019 repo"
 if( !params.artifacts_root ) error "Missing `artifacts_root` param: path to new CLIMB-COVID published artifacts root"
 
 if( !System.getenv("ELAN_SLACK_HOOK") ) error '$ELAN_SLACK_HOOK unset'
@@ -16,7 +15,7 @@ if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora creden
 
 process save_manifest {
     label 'ocarina'
-    conda "environments/ocarina.yaml"
+    conda "$baseDir/environments/ocarina.yaml"
 
     errorStrategy 'retry'
     maxRetries 1
@@ -38,14 +37,14 @@ process resolve_uploads {
     output:
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true
     publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
-    publishDir path: "${params.cog_publish}/elan", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "${params.datestamp}.missing.ls" }
-    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true, saveAs: { filename -> "${params.datestamp}.manifest.ls" }
-    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "${params.datestamp}.missing.ls" }
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true, saveAs: { filename -> "manifest.tsv" }
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "missing.txt" }
+
     file 'files.ls' into start_ch
     tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
     """
-    find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py ${manifest} > files.ls 2> files.err
+    find ${params.uploads} -type f -name "*fa*" | grep -v '\\.fai\$' | ocarina_resolve.py --metadata ${manifest} --user-field ${params.uploads_usern} > files.ls 2> files.err
     """
 }
 
@@ -53,11 +52,9 @@ process announce_uploads {
     // https://github.com/COG-UK/dipi-group/issues/89
 
     label 'ocarina'
-    conda "environments/ocarina.yaml"
+    conda "$baseDir/environments/ocarina.yaml"
 
-    validExitStatus 0,1,2,3 // Don't care if this fails, it's just notifying
-    //errorStrategy 'retry'
-    //maxRetries 1
+    errorStrategy 'ignore'
 
     input:
     tuple file(manifest), file(q), file(t) from announce_ch
@@ -82,10 +79,8 @@ start_ch
 
 process samtools_quickcheck {
     tag { bam }
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
     label 'bear'
-
-    validExitStatus 0,1,2,3,4,5,6,7,8
 
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from manifest_ch
@@ -108,8 +103,6 @@ process samtools_quickcheck {
 process fasta_quickcheck {
     tag { fasta }
     label 'bear'
-
-    validExitStatus 0,1,2,3,4,5,6,7,8
 
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus from validbam_manifest_ch
@@ -160,7 +153,7 @@ process screen_uploads {
 process rehead_bam {
     tag { bam }
     label 'bear'
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
 
     input:
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) from validbak_manifest_ch
@@ -178,7 +171,7 @@ process rehead_bam {
 
 process samtools_filter {
     tag { bam }
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
     input:
@@ -190,14 +183,13 @@ process samtools_filter {
 
     """
     samtools view -h -F4 ${bam} -o ${coguk_id}.${run_name}.climb.bam
-    chmod 644 ${coguk_id}.${run_name}.climb.bam
     """
 }
 
 process samtools_index {
     tag { bam }
     label 'bear'
-    conda "environments/samtools.yaml"
+    conda "$baseDir/environments/samtools.yaml"
 
     errorStrategy 'ignore'
 
@@ -243,7 +235,7 @@ process post_index {
 
 process samtools_depth {
     tag { bam }
-    conda "environments/samtools113.yaml"
+    conda "$baseDir/environments/samtools113.yaml"
     label 'bear'
 
     memory '5 GB'
@@ -275,7 +267,6 @@ process rehead_fasta {
 
     """
     elan_rehead.py ${fasta} 'COG-UK/${coguk_id}/${seqsite}:${run_name}|${coguk_id}|${adm0}|${adm1}|${sourcesite}|${cor_date}|${seqsite}|${seq_date}' > ${coguk_id}.${run_name}.climb.fasta
-    chmod 644 ${coguk_id}.${run_name}.climb.fasta
     """
 }
 
@@ -283,7 +274,7 @@ process rehead_fasta {
 // Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
 process swell {
     tag { bam }
-    conda "environments/swell.yaml"
+    conda "$baseDir/environments/swell.yaml"
     label 'bear'
 
     errorStrategy 'ignore'
@@ -292,40 +283,19 @@ process swell {
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_ready_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true
+    publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc"), env(rv) into postswell_manifest_ch
     file "${coguk_id}.${run_name}.qc" into report_ch
     file "${coguk_id}.${run_name}.swell.quickcheck" into quickcheck_swell_ch
 
+    // 2022-01-19 Removed dep on artic scheme git, no longer calculating tile depths. TomB will be building tqc -- the next generation QC system. Breaking out smaller subsystems from Majora is the future!
+    // Note that messing with the output here will require a correcting commit to ocarina.nf to ensure the swell output matches the crude readline
     script:
-    if ( tiles == "1" )
-        """
-        rv=0
-        swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V1/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v1" -x "tileset_reported" "ARTIC-v1" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
-        echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
-        chmod 644 ${coguk_id}.${run_name}.qc
-        """
-    else if( tiles == "2" )
-        """
-        rv=0
-        swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V2/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v2" -x "tileset_reported" "ARTIC-v2" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
-        echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
-        chmod 644 ${coguk_id}.${run_name}.qc
-        """
-    else if( tiles == "3" )
-        """
-        rv=0
-        swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V3/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v3" -x "tileset_reported" "ARTIC-v3" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
-        echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
-        chmod 644 ${coguk_id}.${run_name}.qc
-        """
-    else
-        """
-        rv=0
-        swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --bed "${params.schemegit}/primer_schemes/nCoV-2019/V2/nCoV-2019.scheme.bed" --fasta "${fasta}" -x "tileset_counted" "ARTIC-v2" -x "tileset_reported" "unknown" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
-        echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
-        chmod 644 ${coguk_id}.${run_name}.qc
-        """
+    """
+    rv=0
+    swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${tiles}" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
+    echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
+    """
 }
 process post_swell {
     tag { bam }
