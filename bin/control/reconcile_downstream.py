@@ -188,12 +188,17 @@ for row in metadata_fh:
         continue
 
     # Write the FASTA to stdout, update the valid_rn
-    # For legacy reasons we modify the header slightly to include the current
-    # valid row number for downstream tools to map the FASTA to a metadata row
-    # We can actually do whatever we like to the header here, as all of the
-    # metadata is in scope, so knock yourself out if you want to pipe delimit all
-    # sorts of fun stuff
-    NEW_FASTA_FP.write(">%s|%d\n" % (c_pag, valid_rn))
+    # NOTE 2022-01-25
+    #   For legacy reasons we modify the header slightly to include the current
+    #   valid row number for downstream tools to map the FASTA to a metadata row
+    #   but we've stopped doing that after coming it's no longer needed downstream.
+    #
+    #   We can actually add whatever we like to the header here, as all of the
+    #   metadata is in scope, so knock yourself out if you want to delimit all
+    #   sorts of fun stuff - but do it in a comment as downstream now relies on
+    #   indexing the FASTA by the PAG name (ie. leave a single space between the
+    #   c_pag and the delimited metadata)
+    NEW_FASTA_FP.write(">%s\n" % c_pag)
     NEW_FASTA_FP.write(c_seq)
     NEW_FASTA_FP.write('\n')
 

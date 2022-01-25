@@ -7,7 +7,7 @@ if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora creden
 Channel
     .fromPath(params.manifest)
     .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'dir', 'fasta', 'bam', 'qc', 'sourcesite', 'seqsite', 'platform'], sep:'\t')
-    .map { row-> tuple(row.coguk_id, row.run_name, row.username, row.pipeuuid, [row.dir, row.fasta].join('/'), row.bam, [row.dir, row.qc].join('/'), row.sourcesite, row.seqsite, row.platform) }
+    .map { row-> tuple(row.coguk_id, row.run_name, row.username, row.pipeuuid, row.fasta, row.bam, [row.dir, row.qc].join('/'), row.sourcesite, row.seqsite, row.platform) }
     .set { manifest_ch }
 
 process play_ocarina {
