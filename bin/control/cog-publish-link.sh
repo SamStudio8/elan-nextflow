@@ -32,3 +32,8 @@ ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_D
 ln -fn -s $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv $COG_PUBLISHED_DIR/latest/majora.metadata.matched.tsv
 ln -fn -s $COG_PUBLISHED_DIR/$1/summary $COG_PUBLISHED_DIR/latest/summary
 ln -fn -s $COG_PUBLISHED_DIR/$1/ $COG_PUBLISHED_DIR/head
+
+# NOTE samstudio8 2022-01-25
+#   ARTIFACTS_ROOT is the future, first map the elan status information to latest
+#   Eventually this will be the home of the daily consensus data too
+ln -fn -s $ARTIFACTS_ROOT/elan/$1 $ARTIFACTS_ROOT/elan/latest

@@ -97,7 +97,7 @@ if args.pass_pagfiles:
     with open(args.pass_pagfiles) as passed_fh:
         for line in passed_fh:
             # NOTE If the order of ocarina pagfiles changes this will need updating...
-            pag, file_type, file_path, *_ = line.replace("COG-UK", "COGUK").strip().split('\t')
+            pag, file_type, file_path, file_hash, file_size, pag_suppressed, pag_basic_qc, *_ = line.replace("COG-UK", "COGUK").strip().split('\t')
             if pag not in passed_pags:
                 passed_pags[pag] = {"consensus": None, "alignment": None}
             passed_pags[pag][file_type] = file_path
