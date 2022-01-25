@@ -268,7 +268,6 @@ process rehead_fasta {
     tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(depth) from swell_manifest_ch
 
     output:
-    publishDir path : "${params.publish}/staging/fasta/", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
     publishDir path : "${params.artifacts_root}/fasta/${params.datestamp}", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
     tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file("${coguk_id}.${run_name}.climb.fasta"), file(bam), file(depth) into swell_ready_manifest_ch
 
@@ -357,7 +356,7 @@ process ocarina_ls {
     file "${coguk_id}.${run_name}.ocarina" into ocarina_report_ch
     
     """
-    echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\tfasta/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sourcesite}\t${seqsite}\t${platform}" > ${coguk_id}.${run_name}.ocarina
+    echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\t${params.artifacts_root}/fasta/${params.datestamp}/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sourcesite}\t${seqsite}\t${platform}" > ${coguk_id}.${run_name}.ocarina
     """
 }
 
