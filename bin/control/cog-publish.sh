@@ -33,6 +33,19 @@ if [ ! -f "$LINKS_OK_FLAG" ]; then
     cp elan.kill.latest $ELAN_DIR/staging/summary/$1/
 
 
+    # NOTE 2022-01-25
+    #   This is the intermediate future of presenting artifacts to users,
+    #   we are taking away the assumption they will be stored in a particular
+    #   place and providing a lookup for users to be able to find them. Long term
+    #   I would like to see all these artifacts stored in our S3 gateway instead.
+    # Make big super lookup table
+    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --output-header > majora.pag_lookup.tsv
+    # append all suppressed files to lookup table
+    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --suppressed-after 1970-01-01 >> majora.pag_lookup.tsv
+    # and unpack the pag for a slightly more end-user friendly lookup table
+    python $ELAN_SOFTWARE_DIR/bin/control/cog-publish-unpag.py --tsv majora.pag_lookup.tsv > $ARTIFACTS_ROOT/elan/$1/majora.pag_lookup.tsv
+
+
     # Files to add (there may be none in the strange case where we are rerunning after a successful day - so protect the grep from failure)
     set +e
     grep 'consensus' elan.pass.latest > elan.pass.latest.consensus.ls
