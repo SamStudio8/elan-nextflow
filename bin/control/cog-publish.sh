@@ -15,23 +15,21 @@ set -euo pipefail
 echo $1
 
 # Get last successful pipe date based on latest symlink
-LAST_DIR_NAME=`readlink $COG_PUBLISHED_DIR/head`
+LAST_DIR_NAME=`readlink $ARTIFACTS_ROOT/elan/head`
 LAST_DIR_DATE=`basename $LAST_DIR_NAME`
 LAST_DATE=`date -d $LAST_DIR_DATE '+%Y-%m-%d'`
 echo "[CPUB] LAST_DATE=$LAST_DATE"
 
-LINKS_OK_FLAG="$ELAN_DIR/staging/summary/$1/publish.links.ok"
+PAGS_OK_FLAG="$ARTIFACTS_ROOT/elan/$1/publish.pags.ok"
 
-if [ ! -f "$LINKS_OK_FLAG" ]; then
+if [ ! -f "$PAGS_OK_FLAG" ]; then
+    # Get files that pass QC since last pipe for reconcile
+    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > latest_elan.pass_pag_lookup.tsv
+    cp latest_elan.pass_pag_lookup.tsv $ARTIFACTS_ROOT/elan/$1/
 
-    # Get files that pass QC since last pipe
-    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.pass.latest
-    cp elan.pass.latest $ELAN_DIR/staging/summary/$1/
-
-    # Get files that were suppressed and withdrawn since last pipe
-    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > elan.kill.latest
-    cp elan.kill.latest $ELAN_DIR/staging/summary/$1/
-
+    # Get files that were suppressed and withdrawn since last pipe for reconcile
+    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > latest_elan.kill_pag_lookup.tsv
+    cp latest_elan.kill_pag_lookup.tsv $ARTIFACTS_ROOT/elan/$1/
 
     # NOTE 2022-01-25
     #   This is the intermediate future of presenting artifacts to users,
@@ -74,13 +72,13 @@ fi
 # NOTE samstudio8/2021-01-30
 #      `until` will resubmit the reconcile job until it exits 0
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
-RECONCILE_OK_FLAG="$ELAN_DIR/staging/summary/$1/publish.reconcile.ok"
+RECONCILE_OK_FLAG="$ARTIFACTS_ROOT/elan/$1/publish.reconcile.ok"
 if [ ! -f "$RECONCILE_OK_FLAG" ]; then
 
     echo "[CPUB]" `date` " - Reconciling consensus"
 
     if [ "$COG_PUBLISH_MODE" == "slurm" ]; then
-        until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,COG_PUBLISHED_DIR=$COG_PUBLISHED_DIR,DATESTAMP=$1,ELAN_DIR=$ELAN_DIR -o $COG_PUBLISHED_DIR/$1/summary/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
+        until sbatch --export=ELAN_SOFTWARE_DIR=$ELAN_SOFTWARE_DIR,DATESTAMP=$1,ELAN_DIR=$ELAN_DIR,ARTIFACTS_ROOT=$ARTIFACTS_ROOT -o $ARTIFACTS_ROOT/elan/$1/epubrcn-slurm-%j.out --wait $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
@@ -90,7 +88,7 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
         done
     else
         export DATESTAMP=$1
-        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob 2> $ELAN_DIR/staging/summary/$DATESTAMP/reconcile.log
+        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob 2> $ARTIFACTS_ROOT/elan/$DATESTAMP/reconcile.log
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
@@ -104,23 +102,10 @@ else
     echo "[CPUB] Skipping reconcile, delete $RECONCILE_OK_FLAG to repeat"
 fi
 
-chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.matched.tsv
-chmod 644 $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta
-
-# NOTE samstudio8/2021-01-28
-#      I've scrapped the consensus merging (cat) step as we're basically double
-#      handling data to generate the FASTA. This symlinks the matched FASTA to
-#      replace the "unmatched" FASTA. The files will be the same going forward.
-ln -fn -s $COG_PUBLISHED_DIR/$1/elan.$1.consensus.matched.fasta $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
-
-# Make QC tables available
-# NOTE(samstudio8 20210107) - As all QC data is shared, just softlink the qc dir root instead of wasting time linking each qc table
-# NOTE(samstudio8 20210128) - No need to do this anymore as we have canonical latest/ dir
-
 # NOTE samstudio8/2021-11-18
 # Start indexing the daily consensus so we can use it with the caffeine cat reconciler
 echo "[CPUB]" `date` " - Indexing latest"
-samtools faidx $COG_PUBLISHED_DIR/$1/elan.$1.consensus.fasta
+samtools faidx $ARTIFACTS_ROOT/elan/$1/elan.consensus.fasta
 
 # Repoint latest
 echo "[CPUB]" `date` " - Linking latest"
@@ -141,14 +126,14 @@ _Due to the many different extraction and sequencing techniques, as well as loca
 *COG-UK inbound pipeline failure summary* '"\`\`\`${BAD_EGGS}\`\`\`"'
 
 _These sequences have failed fatally and cannot be processed by Elan._
-_Please refer to '"\`$COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.bad.ls\`"' to identify the specific sequences for your organisation._
+_Please refer to '"\`$ARTIFACTS_ROOT/elan/$1/elan.quickcheck.bad.ls\`"' to identify the specific sequences for your organisation._
 _These errors will appear every day, forever, until the data in question has been corrected or removed._
 "}'
 curl -X POST -H 'Content-type: application/json' --data "$POST" $SLACK_REAL_HOOK
 
 # Final summary
 COUNT_PASS=`ocarina --oauth --env get summary --md | awk '{sum+=$8} END {print sum}'`
-COUNT_NEW=`wc -l $ELAN_DIR/staging/summary/$1/swell.qc.tsv | cut -f1 -d' '`
+COUNT_NEW=`wc -l $ARTIFACTS_ROOT/elan/$1/swell.qc.tsv | cut -f1 -d' '`
 POST='{
     "attachments": [
         {
@@ -168,7 +153,7 @@ POST='{
                         "text": "
 *'$COUNT_NEW'* new sequences matched to Majora metadata today
 *'$COUNT_PASS'* sequences passed basic quality control to date
-Artifacts successfully published by elan-nextflow to `'$COG_PUBLISHED_DIR'/latest`"
+Artifacts successfully published by elan-nextflow to `'$ARTIFACTS_ROOT'/elan/latest`"
                     },
                     "accessory": {
                         "type": "image",

@@ -6,7 +6,6 @@ params.minlen = 10000
 if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
 if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID uploads"
 if( !params.publish ) error "Missing `publish` param: path to CLIMB-COVID staged artifacts root"
-if( !params.cog_publish ) error "Missing `cog_publish` param: path to CLIMB-COVID published artifacts root"
 if( !params.minlen ) error "Missing `min_len` param: minimum genome size required to pass the save_uploads step [int]"
 if( !params.schemegit ) error "Missing `schemegit` param: path to local copy of https://github.com/artic-network/artic-ncov2019 repo"
 if( !params.artifacts_root ) error "Missing `artifacts_root` param: path to new CLIMB-COVID published artifacts root"
@@ -22,7 +21,7 @@ process save_manifest {
     maxRetries 1
 
     output:
-    publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
     file 'majora.metadata.tsv' into resolve_ch
 
     """
@@ -60,7 +59,7 @@ process announce_uploads {
     tuple file(manifest), file(q), file(t) from announce_ch
 
     output:
-    publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
 
     """
     ocarina --oauth --env get summary --md > summary.md
@@ -358,14 +357,14 @@ process ocarina_ls {
 }
 
 ocarina_report_ch
-    .collectFile(name: "ocarina.files.ls", storeDir: "${params.publish}/staging/summary/${params.datestamp}")
+    .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/")
 
 report_ch
-    .collectFile(name: "swell.qc.tsv", storeDir: "${params.publish}/staging/summary/${params.datestamp}", keepHeader: true)
+    .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true)
 
 quickcheck_fasta_ch
     .mix( quickcheck_bam_ch )
     .mix( quickcheck_swell_ch )
     .mix( quickcheck_index_ch )
-    .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.publish}/staging/summary/${params.datestamp}")
+    .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/")
 

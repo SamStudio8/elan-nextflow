@@ -18,7 +18,7 @@ conda activate epub_rcn
 pip install pysam==0.16.*
 set -u
 echo $DATESTAMP
-python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py --imeta $COG_PUBLISHED_DIR/$DATESTAMP/majora.$DATESTAMP.metadata.tsv --ometa $COG_PUBLISHED_DIR/$DATESTAMP/majora.$DATESTAMP.metadata.matched.tsv --ifasta $COG_PUBLISHED_DIR/latest/elan.consensus.fasta --ofasta $COG_PUBLISHED_DIR/$DATESTAMP/elan.$DATESTAMP.consensus.matched.fasta --pass-pagfiles $ELAN_DIR/staging/summary/$DATESTAMP/elan.pass.latest --kill-pagfiles $ELAN_DIR/staging/summary/$DATESTAMP/elan.kill.latest
+python $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.py --imeta $ARTIFACTS_ROOT/elan/$DATESTAMP/majora.metadata.tsv --ometa $ARTIFACTS_ROOT/elan/$DATESTAMP/majora.metadata.matched.tsv --ifasta $ARTIFACTS_ROOT/elan/head/elan.consensus.fasta --ofasta $ARTIFACTS_ROOT/elan/$DATESTAMP/elan.consensus.fasta --pass-pagfiles $ARTIFACTS_ROOT/elan/$DATESTAMP/latest_elan.pass_pag_lookup.tsv --kill-pagfiles $ARTIFACTS_ROOT/elan/$DATESTAMP/latest_elan.kill_pag_lookup.tsv
 
 conda deactivate
 conda env remove -q -y -n epub_rcn
