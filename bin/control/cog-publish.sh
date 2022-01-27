@@ -23,6 +23,7 @@ echo "[CPUB] LAST_DATE=$LAST_DATE"
 PAGS_OK_FLAG="$ARTIFACTS_ROOT/elan/$1/publish.pags.ok"
 
 if [ ! -f "$PAGS_OK_FLAG" ]; then
+
     # Get files that pass QC since last pipe for reconcile
     ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > latest_elan.pass_pag_lookup.tsv
     cp latest_elan.pass_pag_lookup.tsv $ARTIFACTS_ROOT/elan/$1/
@@ -42,6 +43,7 @@ if [ ! -f "$PAGS_OK_FLAG" ]; then
     ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --suppressed-after 1970-01-01 >> majora.pag_lookup.tsv
     # and unpack the pag for a slightly more end-user friendly lookup table
     python $ELAN_SOFTWARE_DIR/bin/control/cog-publish-unpag.py --tsv majora.pag_lookup.tsv > $ARTIFACTS_ROOT/elan/$1/majora.pag_lookup.tsv
+
     touch $PAGS_OK_FLAG
 else
     echo "[CPUB] Skipping PAG table, delete $PAGS_OK_FLAG to repeat"
