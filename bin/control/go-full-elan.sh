@@ -145,8 +145,6 @@ else
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 fi
 
-exit 1
-
 SECONDS=0
 bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_STEP3_LOG
 ret=$?
