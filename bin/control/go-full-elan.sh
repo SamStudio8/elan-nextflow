@@ -62,8 +62,9 @@ cd $ELAN_RUN_DIR
 echo $DATESTAMP
 
 # Centralise .nextflow.log location
-mkdir -p $EAGLEOWL_LOG/elan/$DATESTAMP
-ELAN_DAY_LOG_DIR="$EAGLEOWL_LOG/elan/$DATESTAMP"
+ELAN_DAY_LOG_DIR="$ELAN_LOG_DIR/elan/$DATESTAMP"
+mkdir -p $ELAN_DAY_LOG_DIR
+
 export ELAN_STEP1_NFLOG="$ELAN_DAY_LOG_DIR/nf.elan.log" # export for handle-elan
 ELAN_STEP2_NFLOG="$ELAN_DAY_LOG_DIR/nf.ocarina.log"
 ELAN_STEP3_LOG="$ELAN_DAY_LOG_DIR/publish.log"
