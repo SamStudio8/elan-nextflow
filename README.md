@@ -19,6 +19,7 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | `DATESTAMP` | YYYYMMDD datestamp to identify today's run |
 | `ELAN_CONFIG` | Path to current Nextflow configuration |
 | `ELAN_SOFTWARE_DIR` | Path to local clone of elan-nextflow |
+| `ELAN_RUN_DIR` | Path to dir to run Elan from (scratch) |
 | `ELAN_DIR` | Path to CLIMB-COVID staged artifacts root (nicholsz/), passed as `--publish` to elan-nf |
 | `COG_PUBLISHED_DIR` | Path to deprecated CLIMB-COVID published artifact root (/bham/artifacts/), passed as `--cog_publish` to elan-nf |
 | `ARTIFACTS_ROOT` | Path to new CLIMB-COVID published artifact root (/artifacts/), passed as `--artifacts_root` to elan-nf |
@@ -48,10 +49,8 @@ Additionally, variables defined above may be used in cog-publish.sh without list
 | `--datestamp` | YYYYMMDD datestamp to identify today's run |
 | `--uploads` | Glob path for CLIMB-COVID user uploads |
 | `--publish` | Path to CLIMB-COVID staged artifacts root (nicholsz/) |
-| `--cog_publish` | Path to deprecated CLIMB-COVID published artifact root (/bham/artifacts/) |
 | `--artifacts_root` | Path to new CLIMB-COVID published artifact root (/artifacts/) |
 | `--minlen` | Minimum genome size required to pass the save_uploads step [int] |
-| `--schemegit` | Path to local copy of https://github.com/artic-network/artic-ncov2019 repo |
 
 
 #### elan-nextflow environment variables
@@ -71,7 +70,8 @@ Note that Elan will only error if `MAJORA_DOMAIN` is unset, all other `MAJORA_*`
 
 | Name | Description |
 | ---- | ----------- |
-| `NXF_WORK` | Path to NXF working dir |
+| `NXF_WORK` | Path to NXF working dir (basename must be `nxf_work` on CLIMB-COVID) |
+| `NXF_CONDA_CACHEDIR` | Path to conda cache dir (basename must be `.conda` on CLIMB-COVID) |
 | `NXF_DEBUG` | One of: 1,2,3. See https://www.nextflow.io/docs/latest/config.html |
 
 
