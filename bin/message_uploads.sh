@@ -92,7 +92,7 @@ Please check your upload directories...'"\`\`\`${NEW_SITE_MISSING_FILE}\`\`\`"'"
                             "type": "mrkdwn",
                             "text":"
 To inspect the barcodes with metadata but missing an uploaded sequence from your site, execute:
-```grep ORPHAN-COGX '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
+```grep ORPHAN-COGX '$ARTIFACTS_ROOT'/elan/latest/elan.missing.ls | grep '"'"'\\[BIRM\\]'"'"'```
 _Replace BIRM with your site code from the table above. Ensure to maintain the brackets and quotes._
 _Recent is defined as sequenced in the past '${RECENT_DAYS_DEF}' days._"
                         }
@@ -147,7 +147,7 @@ LONG='{
                             "type": "mrkdwn",
                             "text":"
 To inspect the uploaded sequences that are missing metadata from your site, execute:
-```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
+```grep ORPHAN-FILE '$ARTIFACTS_ROOT'/elan/latest/elan.missing.ls | grep climb-covid19-nichollss```
 _Replace climb-covid19-nichollss with the username of the uploader from the table above._
 _Recent is defined as uploaded in the past '${RECENT_DAYS_DEF}' days._"
                         }
