@@ -21,7 +21,7 @@ process save_manifest {
     maxRetries 1
 
     output:
-    publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
     file 'majora.metadata.tsv' into resolve_ch
 
     """
@@ -35,10 +35,8 @@ process resolve_uploads {
     file manifest from resolve_ch
 
     output:
-    publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true
-    publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true
-    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.ls", mode: "copy", overwrite: true, saveAs: { filename -> "manifest.tsv" }
-    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "missing.txt" }
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "files.ls", mode: "copy", overwrite: true, saveAs: { filename -> "elan.manifest.ls" }
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "elan.missing.ls" }
     file 'files.ls' into start_ch
     tuple file(manifest), file('files.ls'), file('files.err') into announce_ch
     file 'files.err'
@@ -59,7 +57,7 @@ process announce_uploads {
     tuple file(manifest), file(q), file(t) from announce_ch
 
     output:
-    publishDir path: "${params.publish}/staging/summary/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
 
     """
     ocarina --oauth --env get summary --md > summary.md
@@ -332,14 +330,14 @@ process ocarina_ls {
 }
 
 ocarina_report_ch
-    .collectFile(name: "ocarina.files.ls", storeDir: "${params.publish}/staging/summary/${params.datestamp}")
+    .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/")
 
 report_ch
-    .collectFile(name: "swell.qc.tsv", storeDir: "${params.publish}/staging/summary/${params.datestamp}", keepHeader: true)
+    .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true)
 
 quickcheck_fasta_ch
     .mix( quickcheck_bam_ch )
     .mix( quickcheck_swell_ch )
     .mix( quickcheck_index_ch )
-    .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.publish}/staging/summary/${params.datestamp}")
+    .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/")
 
