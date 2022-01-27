@@ -21,6 +21,14 @@ echo $1
 # Get last successful pipe date based on latest symlink
 LAST_DIR_NAME=`readlink $ARTIFACTS_ROOT/elan/head`
 LAST_DIR_DATE=`basename $LAST_DIR_NAME`
+
+if [ "$LAST_DIR_DATE" = "$1" ]; then
+    MSG='{"text":"<!channel>*COG-UK inbound pipeline* Cowardly refusing to publish, as the `LAST_DIR_DATE` is set to the same date you are trying to publish (`'$LAST_DIR_DATE'`). My guess is you are trying to re-publish the data set for today after it has already been released. I cannot let you do this as bad things will happen (https://github.com/COG-UK/dipi-group/issues/179). If you really need to re-publish the data set for today, use the cog-publish-link script to push the artifacts head back to yesterday, remove all `publish.*.ok` files and run this command again."}'
+curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
+    exit 78;
+fi
+
+
 LAST_DATE=`date -d $LAST_DIR_DATE '+%Y-%m-%d'`
 echo "[CPUB] LAST_DATE=$LAST_DATE"
 
