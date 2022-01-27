@@ -13,6 +13,7 @@ conda activate $CONDA_OCARINA
 set -euo pipefail
 
 echo $1
+ELAN_DAY_LOG_DIR="$EAGLEOWL_LOG/elan/$1"
 
 # Get last successful pipe date based on latest symlink
 LAST_DIR_NAME=`readlink $ARTIFACTS_ROOT/elan/head`
@@ -20,7 +21,7 @@ LAST_DIR_DATE=`basename $LAST_DIR_NAME`
 LAST_DATE=`date -d $LAST_DIR_DATE '+%Y-%m-%d'`
 echo "[CPUB] LAST_DATE=$LAST_DATE"
 
-PAGS_OK_FLAG="$ARTIFACTS_ROOT/elan/$1/publish.pags.ok"
+PAGS_OK_FLAG="$ELAN_DAY_LOG_DIR/publish.pags.ok"
 
 if [ ! -f "$PAGS_OK_FLAG" ]; then
 
@@ -74,7 +75,7 @@ fi
 # NOTE samstudio8/2021-01-30
 #      `until` will resubmit the reconcile job until it exits 0
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
-RECONCILE_OK_FLAG="$ARTIFACTS_ROOT/elan/$1/publish.reconcile.ok"
+RECONCILE_OK_FLAG="$ELAN_DAY_LOG_DIR/publish.reconcile.ok"
 if [ ! -f "$RECONCILE_OK_FLAG" ]; then
 
     echo "[CPUB]" `date` " - Reconciling consensus"
@@ -90,7 +91,7 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
         done
     else
         export DATESTAMP=$1
-        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob 2> $ARTIFACTS_ROOT/elan/$DATESTAMP/reconcile.log
+        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob 2> $ELAN_DAY_LOG_DIR/reconcile.log
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
