@@ -70,8 +70,9 @@ ELAN_STEP2_NFLOG="$ELAN_DAY_LOG_DIR/nf.ocarina.log"
 ELAN_STEP3_LOG="$ELAN_DAY_LOG_DIR/publish.log"
 
 MSG='{"text":"*COG-UK inbound pipeline begins...*
-*Publish dir* `'$ELAN_DIR'`
 *Uploads dir* `'$UPLOADS_DIR_GLOB'`
+*Artifacts dir* `'$ARTIFACTS_ROOT'`
+*Publish dir* `'$ELAN_DIR'`
 *Log dir* `'$ELAN_LOG_DIR'/'$DATESTAMP'`"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 
