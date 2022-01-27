@@ -44,113 +44,20 @@ if [ ! -f "$LINKS_OK_FLAG" ]; then
     ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --suppressed-after 1970-01-01 >> majora.pag_lookup.tsv
     # and unpack the pag for a slightly more end-user friendly lookup table
     python $ELAN_SOFTWARE_DIR/bin/control/cog-publish-unpag.py --tsv majora.pag_lookup.tsv > $ARTIFACTS_ROOT/elan/$1/majora.pag_lookup.tsv
-
-
-    # Files to add (there may be none in the strange case where we are rerunning after a successful day - so protect the grep from failure)
-    set +e
-    grep 'consensus' elan.pass.latest > elan.pass.latest.consensus.ls
-    set -e
-    cut -f3 elan.pass.latest.consensus.ls > pass.fasta.ls
-    wc -l pass.fasta.ls
-
-    set +e
-    grep 'alignment' elan.pass.latest > elan.pass.latest.alignment.ls
-    set -e
-    cut -f3 elan.pass.latest.alignment.ls > pass.bam.ls
-    wc -l pass.bam.ls
-
-
-    # Files to kill (there may be none - so protect the grep from failure)
-    set +e
-    grep 'consensus' elan.kill.latest > elan.kill.latest.consensus.ls
-    set -e
-    cut -f3 elan.kill.latest.consensus.ls > kill.fasta.ls
-    wc -l kill.fasta.ls
-
-    set +e
-    grep 'alignment' elan.kill.latest > elan.kill.latest.alignment.ls
-    set -e
-    cut -f3 elan.kill.latest.alignment.ls > kill.bam.ls
-    wc -l kill.bam.ls
-
-    # mkdirs
-    mkdir -p $COG_PUBLISHED_DIR/$1/
-    mkdir -p $COG_PUBLISHED_DIR/$1/summary
-    chmod 700 $COG_PUBLISHED_DIR/$1/ # Initially prevent users accessing this directory until complete
-    chmod 755 $COG_PUBLISHED_DIR/$1/summary
-
-    # Linky
-    # Use -f force in case a late publishing pipeline from the previous day leaves
-    # some PAGs published today (after midnight)
-    echo "[CPUB]" `date` " - Linking new FASTA"
-    for fas in `cat pass.fasta.ls`;
-    do
-        ln -sf $fas $COG_PUBLISHED_DIR/latest/fasta/
-    done
-
-    echo "[CPUB]" `date` " - Linking new BAM"
-    for bam in `cat pass.bam.ls`;
-    do
-        ln -sf $bam $COG_PUBLISHED_DIR/latest/alignment/
-        ln -sf $bam.bai $COG_PUBLISHED_DIR/latest/alignment/
-    done
-
-
-    # Unlinky
-    # Ignore unlinking errors as yesterday's unlinks may still be included
-    echo "[CPUB]" `date` " - Unlinking suppressed FASTA"
-    for fas in `cat kill.fasta.ls`;
-    do
-        base=`basename $fas`
-        set +e
-        unlink $COG_PUBLISHED_DIR/latest/fasta/$base
-        ret=$?
-        set -e
-
-        if [ $ret -eq 0 ]; then
-            echo "[KILL][FAS] $base"
-        fi
-    done
-
-    echo "[CPUB]" `date` " - Unlinking suppressed BAM"
-    for bam in `cat kill.bam.ls`;
-    do
-        base=`basename $bam`
-        set +e
-        unlink $COG_PUBLISHED_DIR/latest/alignment/$base
-        ret=$?
-        unlink $COG_PUBLISHED_DIR/latest/alignment/$base.bai
-        set -e
-
-        if [ $ret -eq 0 ]; then
-            echo "[KILL][BAM] $base"
-        fi
-    done
-
-    touch $LINKS_OK_FLAG
+    touch $PAGS_OK_FLAG
 else
-    echo "[CPUB] Skipping linking, delete $LINKS_OK_FLAG to repeat"
+    echo "[CPUB] Skipping PAG table, delete $PAGS_OK_FLAG to repeat"
 fi
-
-# Make metadata available
-echo "[CPUB]" `date` " - Make metadata available"
-cp $ELAN_DIR/staging/summary/$1/majora.metadata.tsv $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
-chmod 644 $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
-ls -lah $COG_PUBLISHED_DIR/$1/majora.$1.metadata.tsv
-
-# Make other summary information available
-echo "[CPUB]" `date` " - Make summary available"
-cp $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls $COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.all.ls
 
 echo "[CPUB]" `date` " - Parse quickcheck file"
 set +e
 # Guard against grep returning 1 in the case of no failed files
-grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls > $COG_PUBLISHED_DIR/$1/summary/elan.quickcheck.bad.ls
+grep -v '^0' $ARTIFACTS_ROOT/elan/$1/elan.quickcheck.ls > $ARTIFACTS_ROOT/elan/$1/elan.quickcheck.bad.ls
 ret=$?
 set -e
 BAD_EGGS=''
 if [ $ret -eq 0 ]; then
-    BAD_EGGS=`grep -v '^0' $ELAN_DIR/staging/summary/$1/elan.quickcheck.ls | cut -f2,3 -d' ' | sort | uniq -c | column -t -o$'\t' | sed 's,bam,bam failed samtools quickcheck,' | sed 's,fasta,fasta was truncated or contained non IUPAC characters,' | sed 's,swell,bam was aligned to wrong reference or had no alignments,' | column -t -s$'\t' | sort -nr`
+    BAD_EGGS=`grep -v '^0' $ARTIFACTS_ROOT/elan/$1/elan.quickcheck.ls | cut -f2,3 -d' ' | sort | uniq -c | column -t -o$'\t' | sed 's,bam,bam failed samtools quickcheck,' | sed 's,fasta,fasta was truncated or contained non IUPAC characters,' | sed 's,swell,bam was aligned to wrong reference or had no alignments,' | column -t -s$'\t' | sort -nr`
 elif [ $ret -eq 1 ]; then
     # No bad eggs
     BAD_EGGS=''
@@ -158,8 +65,6 @@ elif [ $ret -gt 1 ]; then
     # POSIX says grep will exit >1 if there is a true error
     exit $ret
 fi
-
-chmod 644 $COG_PUBLISHED_DIR/$1/summary/*
 
 # An easier to use consensus and metadata table (samstudio8/majora/27)
 # NOTE samstudio8/2021-01-28
