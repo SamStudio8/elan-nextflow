@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.minlen = 10000
-params.uploads_usern = 7 // <0>,cephfs,covid,bham,<user>
+params.uploads_usern = 4 // <0>,cephfs,covid,bham,<user>
 
 if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
 if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID uploads"

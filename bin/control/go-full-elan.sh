@@ -63,7 +63,7 @@ echo $DATESTAMP
 
 # Centralise .nextflow.log location
 mkdir -p $ELAN_LOG_DIR/$DATESTAMP
-ELAN_STEP1_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.log"
+export ELAN_STEP1_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.log" # export for handle-elan
 ELAN_STEP2_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.log"
 ELAN_STEP3_LOG="$ELAN_LOG_DIR/$DATESTAMP/publish.log"
 
@@ -141,7 +141,7 @@ if [ ! -f "$OCARINA_OK_FLAG" ]; then
         touch $OCARINA_OK_FLAG
     fi
 else
-    MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Ocarina as the OK flag already exists for today"}'
+    MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Ocarina as the OK flag (`'$OCARINA_OK_FLAG'`) already exists for today. You can safely re-run elan-ocarina by deleting the OK flag, but it will re-emit all requests to Majora!"}'
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 fi
 

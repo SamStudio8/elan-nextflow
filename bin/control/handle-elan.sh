@@ -1,15 +1,18 @@
 #!/usr/bin/bash
-#source ~/.bootstrap.sh
-#source "$EAGLEOWL_CONF/paths.env"
-#source "$EAGLEOWL_CONF/slack.env"
 
 DATESTAMP=$1
+while read var; do
+      [ -z "${!var}" ] && { echo 'Global Elan variable '$var' is empty or not set. Environment has not been initialised from Eagle Owl, or you are trying to call handle-elan manually which is a bad idea. Aborting.'; exit 64; }
+done << EOF
+DATESTAMP
+ELAN_STEP1_STDOUTERR
+EOF
 
 RAISE=0
-if grep --quiet 'Batch job submission failed' $ELAN_LOG_DIR/nf.elan.$DATESTAMP.log; then
+if grep --quiet 'Batch job submission failed' $ELAN_STEP1_STDOUTERR; then
     MSG='{"text":"*COG-UK inbound pipeline* Automatically re-raising Elan after a BLURM error (Batch job submission failed)"}'
     RAISE=1
-elif grep --quiet 'terminated for an unknown reason' $ELAN_LOG_DIR/nf.elan.$DATESTAMP.log; then
+elif grep --quiet 'terminated for an unknown reason' $ELAN_STEP1_STDOUTERR; then
     MSG='{"text":"*COG-UK inbound pipeline* Automatically re-raising Elan after a BLURM error (Terminated for an unknown reason)"}'
     RAISE=1
 else
