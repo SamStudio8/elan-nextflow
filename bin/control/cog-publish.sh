@@ -1,10 +1,13 @@
 #!/usr/bin/bash
+while read var; do
+      [ -z "${!var}" ] && { echo 'Global Eagle Owl variable '$var' is empty or not set. Environment likely uninitialised. Aborting.'; exit 64; }
+done << EOF
+EAGLEOWL_CONF
+EOF
 
-source ~/.bootstrap.sh
-source "$EAGLEOWL_CONF/envs.env"
-source "$EAGLEOWL_CONF/paths.env"
-source "$EAGLEOWL_CONF/slack.env"
-source "$EAGLEOWL_CONF/service_elan.env"
+# Init the Elan environment from the Eagle Owl config dir
+source "$EAGLEOWL_CONF/elan/dev.env"
+#source "$EAGLEOWL_CONF/elan/prod.env"
 
 # Activate env
 eval "$(conda shell.bash hook)"
@@ -83,7 +86,7 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (SLURM) - Last exit $ret"
             MSG='{"text":"*COG-UK inbound pipeline* Restarting publish reconcile"}'
-            curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
+            curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
             sleep 60
         done
     else
@@ -93,7 +96,7 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
             MSG='{"text":"*COG-UK inbound pipeline* Restarting publish reconcile"}'
-            curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
+            curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
             sleep 60
         done
     fi
