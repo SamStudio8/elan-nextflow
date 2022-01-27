@@ -101,7 +101,7 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
         lines=`awk -vRS= 'END{print}' $ELAN_STEP1_STDOUTERR`
     fi
 
-    MSG='{"text":"*COG-UK inbound pipeline finished...*
+    MSG='{"text":"*COG-UK Elan-Inbound pipeline finished...*
 ...with exit status '"$ret"'
 '"\`\`\`${lines}\`\`\`"'
 _Have a nice day!_"}'
@@ -130,7 +130,7 @@ if [ ! -f "$OCARINA_OK_FLAG" ]; then
     $NEXTFLOW_BIN -log $ELAN_STEP2_NFLOG run $ELAN_SOFTWARE_DIR/ocarina.nf -c $ELAN_CONFIG --manifest $OCARINA_FILE > $ELAN_STEP2_STDOUTERR 2>&1;
     ret=$?
     lines=`awk -vRS= 'END{print}' $ELAN_STEP2_STDOUTERR`
-    MSG='{"text":"*COG-UK QC pipeline finished...*
+    MSG='{"text":"*COG-UK Elan-Ocarina pipeline finished...*
 ...with exit status '"$ret"'
 '"\`\`\`${lines}\`\`\`"'"
 }'
@@ -152,7 +152,7 @@ SECONDS=0
 bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_STEP3_LOG
 ret=$?
 TIMER=$(python -c "import datetime; print('(publish)', str(datetime.timedelta(seconds=$SECONDS)))")
-MSG='{"text":"*COG-UK publishing pipeline finished...*
+MSG='{"text":"*COG-UK Elan-Publish pipeline finished...*
 ...with exit status '"$ret"' in '"$TIMER"'"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 if [ $ret -ne 0 ]; then
