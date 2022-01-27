@@ -15,9 +15,8 @@ process play_ocarina {
     label 'ocarina'
     conda "$baseDir/environments/ocarina.yaml"
 
-    // 20220104 Set error strategy to ignore errors while sam is awol
-    maxRetries 1
-    errorStrategy { sleep(Math.pow(2, task.attempt) * 500 as long); task.attempt <= maxRetries ? 'retry' : 'ignore' }
+    maxRetries 2
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 500 as long); task.attempt <= maxRetries ? 'retry' : 'terminate' }
 
     input:
     tuple coguk_id, run_name, username, pipeuuid, fasta, bam, qc, sourcesite, seqsite, platform from manifest_ch
