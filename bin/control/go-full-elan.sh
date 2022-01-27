@@ -62,10 +62,11 @@ cd $ELAN_RUN_DIR
 echo $DATESTAMP
 
 # Centralise .nextflow.log location
-mkdir -p $ELAN_LOG_DIR/$DATESTAMP
-export ELAN_STEP1_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.log" # export for handle-elan
-ELAN_STEP2_NFLOG="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.log"
-ELAN_STEP3_LOG="$ELAN_LOG_DIR/$DATESTAMP/publish.log"
+mkdir -p $EAGLEOWL_LOG/elan/$DATESTAMP
+ELAN_DAY_LOG_DIR="$EAGLEOWL_LOG/elan/$DATESTAMP"
+export ELAN_STEP1_NFLOG="$ELAN_DAY_LOG_DIR/nf.elan.log" # export for handle-elan
+ELAN_STEP2_NFLOG="$ELAN_DAY_LOG_DIR/nf.ocarina.log"
+ELAN_STEP3_LOG="$ELAN_DAY_LOG_DIR/publish.log"
 
 MSG='{"text":"*COG-UK inbound pipeline begins...*
 *Publish dir* `'$ELAN_DIR'`
@@ -77,9 +78,9 @@ ELAN_STEP1_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.$DATESTAMP.log"
 ELAN_STEP2_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.$DATESTAMP.log"
 
 # OCARINA_FILE only written if elan processed at least one sample
-OCARINA_FILE="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.files.ls"
-ELAN_OK_FLAG="$ELAN_DIR/staging/summary/$DATESTAMP/elan.ok.flag"
-OCARINA_OK_FLAG="$ELAN_DIR/staging/summary/$DATESTAMP/ocarina.ok.flag"
+OCARINA_FILE="$ARTIFACTS_ROOT/elan/$DATESTAMP/ocarina.files.ls"
+ELAN_OK_FLAG="$ELAN_DAY_LOG_DIR/elan.ok.flag"
+OCARINA_OK_FLAG="$ELAN_DAY_LOG_DIR/ocarina.ok.flag"
 
 if [ ! -f "$ELAN_OK_FLAG" ]; then
     # If a log already exists, then the pipeline needs to be resumed
