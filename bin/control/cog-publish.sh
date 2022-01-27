@@ -3,6 +3,7 @@ while read var; do
       [ -z "${!var}" ] && { echo 'Global Eagle Owl variable '$var' is empty or not set. Environment likely uninitialised. Aborting.'; exit 64; }
 done << EOF
 EAGLEOWL_CONF
+ELAN_DAY_LOG_DIR
 EOF
 
 # Init the Elan environment from the Eagle Owl config dir
@@ -23,7 +24,7 @@ LAST_DIR_DATE=`basename $LAST_DIR_NAME`
 LAST_DATE=`date -d $LAST_DIR_DATE '+%Y-%m-%d'`
 echo "[CPUB] LAST_DATE=$LAST_DATE"
 
-PAGS_OK_FLAG="$ARTIFACTS_ROOT/elan/$1/publish.pags.ok"
+PAGS_OK_FLAG="$ELAN_DAY_LOG_DIR/publish.pags.ok"
 
 if [ ! -f "$PAGS_OK_FLAG" ]; then
 
@@ -77,7 +78,7 @@ fi
 # NOTE samstudio8/2021-01-30
 #      `until` will resubmit the reconcile job until it exits 0
 #      Hopefully pizza night will not be ruined by NODE_FAIL bullshit again
-RECONCILE_OK_FLAG="$ARTIFACTS_ROOT/elan/$1/publish.reconcile.ok"
+RECONCILE_OK_FLAG="$ELAN_DAY_LOG_DIR/publish.reconcile.ok"
 if [ ! -f "$RECONCILE_OK_FLAG" ]; then
 
     echo "[CPUB]" `date` " - Reconciling consensus"
@@ -93,7 +94,7 @@ if [ ! -f "$RECONCILE_OK_FLAG" ]; then
         done
     else
         export DATESTAMP=$1
-        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob 2> $ARTIFACTS_ROOT/elan/$DATESTAMP/reconcile.log
+        until bash $ELAN_SOFTWARE_DIR/bin/control/reconcile_downstream.sjob 2> $ELAN_DAY_LOG_DIR/reconcile.log
         do
             ret=$?
             echo "[CPUB]" `date` " - Reconciling consensus (LOCAL) - Last exit $ret"
