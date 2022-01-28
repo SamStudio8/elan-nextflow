@@ -16,6 +16,7 @@ workflow {
         Channel
             .fromPath(params.manifest)
             .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'dir', 'fasta', 'bam', 'qc', 'sourcesite', 'seqsite', 'platform'], sep:'\t')
+            .map{ it << ["qc": [it["dir"], it["qc"]].join('/')] }
             .set{manifest_ch}
 
         play_ocarina(manifest_ch)
