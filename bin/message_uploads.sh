@@ -185,7 +185,7 @@ Local sites should ensure they have uploaded the biosample-only metadata for sam
                             "type": "mrkdwn",
                             "text":"
 To inspect the sequences uploaded from Sanger that are missing metadata from your site, execute:
-```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-jacksond | grep BIRM```
+```grep ORPHAN-FILE '$ARTIFACTS_ROOT'/elan/latest/elan.missing.ls | grep climb-covid19-jacksond | grep BIRM```
 _Replace BIRM with your barcode prefix from the table above, without changing the username._
 _Sanger sequences are assumed to be uploaded by climb-covid19-jacksond. If that changes, contact Sam._"
                         }
@@ -230,7 +230,7 @@ These users have orphaned sample sequences that are still missing metadata.
                             "type": "mrkdwn",
                             "text":"
 To inspect the uploaded sequences that are missing metadata from your site, execute:
-```grep ORPHAN-FILE '$COG_PUBLISHED_DIR'/elan/'$DATESTAMP'.missing.ls | grep climb-covid19-nichollss```
+```grep ORPHAN-FILE '$ARTIFACTS_ROOT'/elan/latest/elan.missing.ls | grep climb-covid19-nichollss```
 _Replace climb-covid19-nichollss with the username of the uploader from the table above._
 _Older is defined as uploaded more than '${RECENT_DAYS_DEF}' days ago._"
                         }

@@ -17,6 +17,7 @@ conda activate $CONDA_OCARINA
 set -euo pipefail
 
 echo $1
+ELAN_DAY_LOG_DIR="$EAGLEOWL_LOG/elan/$1"
 
 # Get last successful pipe date based on latest symlink
 LAST_DIR_NAME=`readlink $ARTIFACTS_ROOT/elan/head`
@@ -167,7 +168,7 @@ POST='{
                         "text": "
 *'$COUNT_NEW'* new sequences matched to Majora metadata today
 *'$COUNT_PASS'* sequences passed basic quality control to date
-Artifacts successfully published by elan-nextflow to `'$ARTIFACTS_ROOT'/elan/latest`"
+Artifacts successfully published by elan-nextflow to `'$ARTIFACTS_ROOT'/elan/latest/`"
                     },
                     "accessory": {
                         "type": "image",
