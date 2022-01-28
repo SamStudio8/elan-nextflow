@@ -139,7 +139,7 @@ fi
 
 
 if [ ! -f "$OCARINA_OK_FLAG" ]; then
-    $NEXTFLOW_BIN -log $ELAN_STEP2_NFLOG run $ELAN_SOFTWARE_DIR -c $ELAN_CONFIG --ocarina --manifest $OCARINA_FILE > $ELAN_STEP2_STDOUTERR 2>&1;
+    $NEXTFLOW_BIN -log $ELAN_STEP2_NFLOG run $ELAN_SOFTWARE_DIR -c $ELAN_CONFIG --mode ocarina --manifest $OCARINA_FILE > $ELAN_STEP2_STDOUTERR 2>&1;
     ret=$?
     lines=`awk -vRS= 'END{print}' $ELAN_STEP2_STDOUTERR`
     MSG='{"text":"*COG-UK Elan-Ocarina pipeline finished...*
