@@ -4,6 +4,7 @@ source "$EAGLEOWL_CONF/elan.env"
 source "$EAGLEOWL_CONF/paths.env"
 source "$EAGLEOWL_CONF/slack.env"
 source "$EAGLEOWL_CONF/mqtt.env"
+source "$EAGLEOWL_CONF/envs.env"
 source "$EAGLEOWL_CONF/service_elan.env"
 
 DATESTAMP=$1
@@ -23,6 +24,8 @@ COG_PUBLISH_MODE
 EAGLEOWL_LOG
 MAJORA_DOMAIN
 ARTIFACTS_ROOT
+CONDA_OCARINA
+CONDA_IPC
 EOF
 
 cd $ELAN_SOFTWARE_DIR
@@ -35,7 +38,7 @@ echo $DATESTAMP
 
 # Centralise .nextflow.log location
 mkdir -p $EAGLEOWL_LOG/elan/$DATESTAMP
-ELAN_DAY_LOG_DIR="$EAGLEOWL_LOG/elan/$DATESTAMP"
+export ELAN_DAY_LOG_DIR="$EAGLEOWL_LOG/elan/$DATESTAMP"
 ELAN_STEP1_NFLOG="$ELAN_DAY_LOG_DIR/nf.elan.log"
 ELAN_STEP2_NFLOG="$ELAN_DAY_LOG_DIR/nf.ocarina.log"
 ELAN_STEP3_LOG="$ELAN_DAY_LOG_DIR/publish.log"
@@ -84,6 +87,18 @@ if [ ! -f "$OCARINA_FILE" ]; then
     curl -X POST -H 'Content-type: application/json' --data '{"text":"\n*COG-UK inbound pipeline empty*\nNo new valid files today, try again tomorrow."}' $SLACK_REAL_HOOK
     exit 0
 fi
+
+
+# NOTE samstudio8 2022-01-28
+# Added crappy shim to stop Ocarina blowing up until we can patch Majora properly
+# See https://github.com/COG-UK/dipi-group/issues/183
+$ELAN_SOFTWARE_DIR/bin/control/d183_fix_mag.sh $DATESTAMP
+if [ ! -f "$ELAN_DAY_LOG_DIR/publish.d183mag.ok" ]; then
+    MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...* Could not create daily BAM and FASTA directory MAG in Majora. This is most likely due to a unfortunately timed OAuth rotation, try running Elan again."}'
+    curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
+    exit 70
+fi
+
 
 if [ ! -f "$OCARINA_OK_FLAG" ]; then
     $NEXTFLOW_BIN -log $ELAN_STEP2_NFLOG run ocarina.nf -c $ELAN_CONFIG --manifest $OCARINA_FILE > nf.ocarina.$DATESTAMP.log 2>&1;
