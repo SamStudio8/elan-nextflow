@@ -16,21 +16,10 @@ workflow {
         Channel
             .fromPath(params.manifest)
             .splitCsv(header:['coguk_id', 'run_name', 'username', 'pipeuuid', 'dir', 'fasta', 'bam', 'qc', 'sourcesite', 'seqsite', 'platform'], sep:'\t')
-            // .map { row-> tuple(row.coguk_id, row.run_name, row.username, row.pipeuuid, row.fasta, row.bam, [row.dir, row.qc].join('/'), row.sourcesite, row.seqsite, row.platform) }
-            .set { manifest_ch }
+            .set{manifest_ch}
 
-        play_ocarina(
-            manifest_ch.row.coguk_id, 
-            manifest_ch.row.run_name,
-            manifest_ch.row.username,
-            manifest_ch.row.pipeuuid,
-            manifest_ch.row.fasta,
-            manifest_ch.row.bam,
-            [manifest_ch.row.dir, manifest_ch.row.qc].join('/'),
-            manifest_ch.row.sourcesite,
-            manifest_ch.row.seqsite,
-            manifest_ch.row.platform
-        )
+        play_ocarina(manifest_ch)
+
     } else if (params.mode == "ena_bam") {
 
     } else {
