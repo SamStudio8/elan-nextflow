@@ -36,6 +36,8 @@ COG_PUBLISH_MODE
 ELAN_LOG_DIR
 MAJORA_DOMAIN
 ARTIFACTS_ROOT
+CONDA_OCARINA
+CONDA_IPC
 NXF_WORK
 NXF_CONDA_CACHEDIR
 EOF
@@ -124,6 +126,16 @@ if [ ! -f "$OCARINA_FILE" ]; then
     exit 0
 fi
 
+
+# NOTE samstudio8 2022-01-28
+# Added crappy shim to stop Ocarina blowing up until we can patch Majora properly
+# See https://github.com/COG-UK/dipi-group/issues/183
+$ELAN_SOFTWARE_DIR/bin/control/d183_fix_mag.sh $DATESTAMP
+if [ ! -f "$ELAN_DAY_LOG_DIR/publish.d183mag.ok" ]; then
+    MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...* Could not create daily BAM and FASTA directory MAG in Majora. This is most likely due to a unfortunately timed OAuth rotation, try running Elan again."}'
+    curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
+    exit 70
+fi
 
 
 if [ ! -f "$OCARINA_OK_FLAG" ]; then
