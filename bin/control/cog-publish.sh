@@ -156,7 +156,7 @@ POST='{
                         "text": "
 *'$COUNT_NEW'* new sequences matched to Majora metadata today
 *'$COUNT_PASS'* sequences passed basic quality control to date
-Artifacts successfully published by elan-nextflow to `'$ARTIFACTS_ROOT'/elan/latest`"
+Artifacts successfully published by elan-nextflow to `'$ARTIFACTS_ROOT'/elan/latest/`"
                     },
                     "accessory": {
                         "type": "image",
