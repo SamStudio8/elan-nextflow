@@ -4,12 +4,12 @@ nextflow.enable.dsl=2
 
 include {play_ocarina} from "./modules/ocarina.nf"
 
-if (!params.inbound && !params.ocarina && !params.ena_bam) error "A workflow must be chosen: {inbound,ocarina,ena_bam}"
+if (!params.mode) error "A workflow must be chosen: --mode {inbound,ocarina,ena_bam}"
 
 workflow {
-    if (params.inbound){
+    if (params.mode == "inbound"){
 
-    } else if (params.ocarina){
+    } else if (params.mode == "ocarina"){
         if( !params.manifest ) error "Missing `manifest` param: today's ocarina manifest from elan [path]"
         if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
         
@@ -31,7 +31,9 @@ workflow {
             manifest_ch.row.seqsite,
             manifest_ch.row.platform
         )
-    } else if (params.ena_bam) {
+    } else if (params.mode == "ena_bam") {
 
+    } else {
+        error "Invalid mode selected"
     }
 }
