@@ -2,8 +2,6 @@
 
 nextflow.enable.dsl=2
 
-include {ocarina} from "./workflows/ocarina.nf"
-
 include {play_ocarina} from "./modules/ocarina.nf"
 
 if (!params.inbound && !params.ocarina && !params.ena_bam) error "A workflow must be chosen: {inbound,ocarina,ena_bam}"
