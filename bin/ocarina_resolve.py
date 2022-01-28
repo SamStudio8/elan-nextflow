@@ -1,13 +1,20 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import sys
 import csv
 import os
 import uuid
 import re
 import datetime
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--metadata", required=True)
+parser.add_argument("--user-field", type=int, default=4) # <0>/cephfs/covid/bham/<user>
+args = parser.parse_args()
 
 RECENT_DAYS_NO = 14
 RECENT_DAYS_DESC = "two weeks"
+USERNAME_FIELD_N = args.user_field
 
 def map_foel_user(username):
     # Map a user directory (eg. private producer name) to a Majora user
@@ -51,11 +58,13 @@ def best_effort_path(exts, dir_path, coguk_id, use_id=False):
         return candidates[0]
 
 # Read all the samples into struct
-manifest = csv.DictReader(open(sys.argv[1]), delimiter='\t')
+manifest = csv.DictReader(open(args.metadata), delimiter='\t')
 runs_by_sample = {}
 new_count = 0
 tot_count = 0
 invalid_count = 0
+
+
 
 
 countries = {"UK-ENG": "England", "UK-WLS": "Wales", "UK-NIR": "Northern_Ireland", "UK-SCT": "Scotland", "": "UNKNOWN"}
@@ -143,12 +152,12 @@ sys.stderr.write("[NOTE] Detected %d total consensus sequences, %d currently unp
 sys.stderr.write("[NOTE][META][BAD-LINES]|%d\n" % invalid_count)
 sys.stderr.write("[NOTE][META][RECENT-DAYS]|%d\n" % RECENT_DAYS_NO)
 
+
 orphaned_dirs = {}
 for line in sys.stdin.readlines():
     fields = line.strip().split(os.path.sep)
 
-    # Assume base layout for now
-    username = fields[4]
+    username = fields[USERNAME_FIELD_N]
 
     #NOTE samstudio8/2021-10-13
     # Slowly moving away from our dependency on the file system, if the "username"
