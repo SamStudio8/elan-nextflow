@@ -17,7 +17,6 @@ conda activate $CONDA_OCARINA
 set -euo pipefail
 
 echo $1
-ELAN_DAY_LOG_DIR="$EAGLEOWL_LOG/elan/$1"
 
 # Get last successful pipe date based on latest symlink
 LAST_DIR_NAME=`readlink $ARTIFACTS_ROOT/elan/head`
