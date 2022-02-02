@@ -330,14 +330,14 @@ process ocarina_ls {
 }
 
 ocarina_report_ch
-    .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/")
+    .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
 
 report_ch
-    .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true)
+    .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true, sort: false)
 
 quickcheck_fasta_ch
     .mix( quickcheck_bam_ch )
     .mix( quickcheck_swell_ch )
     .mix( quickcheck_index_ch )
-    .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/")
+    .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
 
