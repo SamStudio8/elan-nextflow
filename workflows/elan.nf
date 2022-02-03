@@ -26,7 +26,7 @@ workflow inbound {
             .filter { row -> row.fasta.size() > 0 }
             .filter { row -> row.bam.size() > 0 }
             // .map { row-> tuple( file([row.dir, row.fasta].join('/')), file([row.dir, row.bam].join('/'))) }
-            .map{ it << ["fasta": file([it["dir"], it["fasta"]].join('/')), "bam": file([it["dir"], it["bam"]].join('/'))] }
+            .map{ it << ["fasta": file([it["dir"], it["fasta"]].join('/')), "bam": file([it["dir"], it["bam"]].join('/')), "sample_site": it["sourcesite"], "sequencing_site": it["sitecode"]] }
             .set { manifest_ch }
         
         samtools_quickcheck(manifest_ch)
