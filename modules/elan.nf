@@ -72,10 +72,10 @@ process samtools_quickcheck {
     """
     rv1=0
     samtools quickcheck ${row.bam} || rv1=\$?
-    echo "\$rv1 bam ${row.sitecode} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" > ${row.coguk_id}.${row.run_name}.bam.quickcheck
+    echo "\$rv1 bam ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" > ${row.coguk_id}.${row.run_name}.bam.quickcheck
     rv2=0
     samtools view ${row.bam} > /dev/null || rv2=\$?
-    echo "\$rv2 bamv ${row.sitecode} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" >> ${row.coguk_id}.${row.run_name}.bam.quickcheck
+    echo "\$rv2 bamv ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" >> ${row.coguk_id}.${row.run_name}.bam.quickcheck
     rv=\$(( rv1 > rv2 ? rv1 : rv2 ))
     """
 }
@@ -85,8 +85,8 @@ process samtools_quickcheck {
 //     label 'bear'
 
 //     input:
-//     // tuple adm0, adm1, cor_date, 
-//     seq_date, sourcesite
+//     // tuple adm0, adm1_mapped, cor_date, 
+//     seq_date, sample_site
 //     seqsite
 //     // tiles, platform, pipeuuid, username
 //     dir
@@ -96,7 +96,7 @@ process samtools_quickcheck {
 //     // file(bam), bstatus from validbam_manifest_ch
 
 //     output:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, 
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, 
 //     env(rv) optional true
 //     file "${coguk_id}.${run_name}.fasta.quickcheck"
 
@@ -114,7 +114,7 @@ process samtools_quickcheck {
 //     label 'bear'
 
 //     input:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, 
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, 
 //     coguk_id
 //     file(fasta)
 //     file(bam)
@@ -122,7 +122,7 @@ process samtools_quickcheck {
 //     fstatus
     
 //     output:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id,
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id,
 //     file("${coguk_id}.${run_name}.uploaded.fasta")
 //     file("${coguk_id}.${run_name}.uploaded.bam")
 
@@ -149,14 +149,14 @@ process samtools_quickcheck {
 //     conda "$baseDir/environments/samtools.yaml"
 
 //     input:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir,
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir,
 //     run_name
 //     coguk_id
 //     // file(fasta)
 //     file(bam)
 
 //     output:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta),
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta),
 //     file("${coguk_id}.${run_name}.inbound.bam")
 
 //     script:
@@ -173,7 +173,7 @@ process samtools_quickcheck {
 //     label 'bear'
 
 //     input:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir,
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir,
 //     run_name
 //     coguk_id
 //     // file(fasta)
@@ -181,7 +181,7 @@ process samtools_quickcheck {
 
 //     output:
 //     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta)
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta)
 //     file("${coguk_id}.${run_name}.climb.bam")
 
 //     """
@@ -197,7 +197,7 @@ process samtools_quickcheck {
 //     errorStrategy 'ignore'
 
 //     input:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite,
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site,
 //     seqsite
 //     // tiles, platform, pipeuuid, username,
 //     dir
@@ -208,7 +208,7 @@ process samtools_quickcheck {
 
 //     output:
 //     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into post_index_manifest_ch
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into post_index_manifest_ch
 
 //     file "${coguk_id}.${run_name}.index.quickcheck"
 //     file "${bam.baseName}.bam.bai" optional true
@@ -224,13 +224,13 @@ process samtools_quickcheck {
 //     tag { bam }
 
 //     input:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, 
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, 
 //     run_name
 //     coguk_id
 //     // , file(fasta), file(bam), idx_status from post_index_manifest_ch
 
 //     // output:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into indexed_manifest_ch
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into indexed_manifest_ch
 
 //     errorStrategy 'ignore'
 
@@ -254,12 +254,12 @@ process samtools_quickcheck {
 //     memory '5 GB'
 
 //     input:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta),
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta),
 //     file(bam)
 
 //     output:
 //     publishDir path: "${params.publish}/staging/depth", pattern: "${coguk_id}.${run_name}.climb.bam.depth", mode: "copy", overwrite: true
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam),
+//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam),
 //     file("${coguk_id}.${run_name}.climb.bam.depth")
 
 //     // 2021-08-25 Updated to use samtools 1.13 for significant improvement to depth algorithm
@@ -275,10 +275,10 @@ process samtools_quickcheck {
 //     label 'bear'
 //     input:
 //     // tuple adm0, 
-//     adm1
+//     adm1_mapped
 //     cor_date
 //     seq_date
-//     sourcesite
+//     sample_site
 //     seqsite
 //     // tiles, platform, pipeuuid, username, dir, 
 //     run_name
@@ -287,12 +287,12 @@ process samtools_quickcheck {
 
 //     output:
 //     publishDir path : "${params.artifacts_root}/fasta/${params.datestamp}", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
-//     // tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id,
+//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id,
 //     file("${coguk_id}.${run_name}.climb.fasta")
 //     // , file(bam), file(depth) into swell_ready_manifest_ch
 
 //     """
-//     elan_rehead.py ${fasta} 'COG-UK/${coguk_id}/${seqsite}:${run_name}|${coguk_id}|${adm0}|${adm1}|${sourcesite}|${cor_date}|${seqsite}|${seq_date}' > ${coguk_id}.${run_name}.climb.fasta
+//     elan_rehead.py ${fasta} 'COG-UK/${coguk_id}/${seqsite}:${run_name}|${coguk_id}|${adm0}|${adm1_mapped}|${sample_site}|${cor_date}|${seqsite}|${seq_date}' > ${coguk_id}.${run_name}.climb.fasta
 //     """
 // }
 
@@ -306,7 +306,7 @@ process samtools_quickcheck {
 //     errorStrategy 'ignore'
 
 //     input:
-//     tuple sourcesite, 
+//     tuple sample_site, 
 //     seqsite
 //     tiles
 //     platform
@@ -320,7 +320,7 @@ process samtools_quickcheck {
 
 //     output:
 //     publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
-//     // tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc"), env(rv) into postswell_manifest_ch
+//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc"), env(rv) into postswell_manifest_ch
 //     file "${coguk_id}.${run_name}.qc"
 //     file "${coguk_id}.${run_name}.swell.quickcheck"
 
@@ -329,7 +329,7 @@ process samtools_quickcheck {
 //     script:
 //     """
 //     rv=0
-//     swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${tiles}" -x "source_site" "${sourcesite}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
+//     swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${tiles}" -x "source_site" "${sample_site}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
 //     echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
 //     """
 // }
@@ -337,13 +337,13 @@ process samtools_quickcheck {
 //     tag { bam }
 
 //     input:
-//     // tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir
+//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir
 //     run_name
 //     coguk_id
 //     // file(fasta), file(bam), file(qc), wstatus from postswell_manifest_ch
 
 //     // output:
-//     // tuple sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) into ocarina_file_manifest_ch
+//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) into ocarina_file_manifest_ch
 
 //     errorStrategy 'ignore'
 
@@ -362,7 +362,7 @@ process samtools_quickcheck {
 // // NOTE The entries here need to match the publishDir directives above to make sure Majora knows where the files are
 // process ocarina_ls {
 //     input:
-//     // tuple sourcesite, seqsite, tiles, platform,
+//     // tuple sample_site, seqsite, tiles, platform,
 //     pipeuuid
 //     username
 //     // dir,
@@ -376,6 +376,6 @@ process samtools_quickcheck {
 //     file "${coguk_id}.${run_name}.ocarina"
     
 //     """
-//     echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\t${params.artifacts_root}/fasta/${params.datestamp}/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sourcesite}\t${seqsite}\t${platform}" > ${coguk_id}.${run_name}.ocarina
+//     echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\t${params.artifacts_root}/fasta/${params.datestamp}/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sample_site}\t${seqsite}\t${platform}" > ${coguk_id}.${run_name}.ocarina
 //     """
 // }
