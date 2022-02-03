@@ -124,6 +124,7 @@ for row in metadata_fh:
 
     # Construct the PAG name (should probably be passed in from Majora somehow rather than manually constructed)
     # NOTE Reminder: for accidental historical reasons the PAG name contains COG-UK but the FASTA headers use COGUK as standard
+    # NOTE This will fuck things up if you change the name of an organisation, which is why we do not do that
     c_pag = "COGUK/%s/%s:%s" % (row["central_sample_id"], row["sequencing_org_code"], row["run_name"])
 
     # Attempt to fetch the key from the published FASTA
