@@ -33,28 +33,27 @@ process resolve_uploads {
     """
 }
 
-// process announce_uploads {
-//     // https://github.com/COG-UK/dipi-group/issues/89
+process announce_uploads {
+    // https://github.com/COG-UK/dipi-group/issues/89
 
-//     label 'ocarina'
-//     conda "$baseDir/environments/ocarina.yaml"
+    label 'ocarina'
+    conda "$baseDir/environments/ocarina.yaml"
 
-//     errorStrategy 'ignore'
+    errorStrategy 'ignore'
 
-//     input:
-//     file(manifest)
-//     file(q)
-//     file(t)
+    input:
+    file(manifest)
+    file(files_ls)
+    file(files_err)
 
-//     output:
-//     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
 
-//     """
-//     ocarina --oauth --env get summary --md > summary.md
-//     message_uploads.sh ${manifest} ${q} ${t} SHORTSTART \$ELAN_SLACK_HOOK summary.md ${params.datestamp}
-//     touch announce.ok
-//     """
-// }
+    """
+    ocarina --oauth --env get summary --md > summary.md
+    message_uploads.sh ${manifest} ${files_ls} ${files_err} SHORTSTART \$ELAN_SLACK_HOOK summary.md ${params.datestamp}
+    touch announce.ok
+    """
+}
 
 // process samtools_quickcheck {
 //     tag { bam }
