@@ -56,7 +56,7 @@ process announce_uploads {
 }
 
 process samtools_quickcheck {
-    tag { bam }
+    tag { row.bam }
     conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
