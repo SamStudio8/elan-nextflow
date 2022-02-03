@@ -71,11 +71,11 @@ process samtools_quickcheck {
     shell:
     """
     rv1=0
-    samtools quickcheck $bam || rv1=\$?
-    echo "\$rv1 bam ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.bam.quickcheck
+    samtools quickcheck ${row.bam} || rv1=\$?
+    echo "\$rv1 bam ${row.seqsite} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" > ${row.coguk_id}.${row.run_name}.bam.quickcheck
     rv2=0
-    samtools view $bam > /dev/null || rv2=\$?
-    echo "\$rv2 bamv ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" >> ${coguk_id}.${run_name}.bam.quickcheck
+    samtools view ${row.bam} > /dev/null || rv2=\$?
+    echo "\$rv2 bamv ${row.seqsite} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" >> ${row.coguk_id}.${row.run_name}.bam.quickcheck
     rv=\$(( rv1 > rv2 ? rv1 : rv2 ))
     """
 }
