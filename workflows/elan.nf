@@ -20,7 +20,7 @@ workflow inbound {
         resolve_uploads(save_manifest.out)
         announce_uploads(save_manifest.out, resolve_uploads.out)
 
-        save_manifest.out
+        resolve_uploads.out.elan_files_manifest
             .splitCsv(header:['is_new', 'coguk_id', 'run_name', 'username', 'pipeuuid', 'autorunname', 'platform', 'dir', 'clabel', 'fasta', 'alabel', 'bam', 'sourcecode', 'sitecode', 'pag', 'tiles', 'adm0', 'adm1_mapped', 'cor_date', 'seq_date'], sep:'\t')
             .filter { row -> row.is_new == "1" }
             .filter { row -> row.fasta.size() > 0 }

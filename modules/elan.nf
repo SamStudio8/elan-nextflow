@@ -21,8 +21,8 @@ process resolve_uploads {
     file manifest
 
     output:
-    file 'files.ls' 
-    file 'files.err'
+    path 'files.ls', emit: elan_files_manifest
+    path 'files.err', emit: elan_files_unmatched
     
     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "files.ls", mode: "copy", overwrite: true, saveAs: { filename -> "elan.manifest.ls" }
     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "files.err", mode: "copy", overwrite: true, saveAs: { filename -> "elan.missing.ls" }
