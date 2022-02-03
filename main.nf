@@ -8,7 +8,16 @@ if (!params.mode) error "A workflow must be chosen: --mode {inbound,ocarina,ena_
 
 workflow {
     if (params.mode == "inbound"){
+        if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
+        if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID uploads"
+        if( !params.uploads_usern ) error "Missing `uploads_usern` param: index of username directory in uploads glob, root counts as zero [int]"
+        if( !params.publish ) error "Missing `publish` param: path to CLIMB-COVID staged artifacts root"
+        if( !params.minlen ) error "Missing `min_len` param: minimum genome size required to pass the save_uploads step [int]"
+        if( !params.artifacts_root ) error "Missing `artifacts_root` param: path to new CLIMB-COVID published artifacts root"
 
+        if( !System.getenv("ELAN_SLACK_HOOK") ) error '$ELAN_SLACK_HOOK unset'
+        if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
+        
     } else if (params.mode == "ocarina"){
         if( !params.manifest ) error "Missing `manifest` param: today's ocarina manifest from elan [path]"
         if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
