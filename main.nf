@@ -17,6 +17,8 @@ workflow {
 
         if( !System.getenv("ELAN_SLACK_HOOK") ) error '$ELAN_SLACK_HOOK unset'
         if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
+
+	inbound()
         
     } else if (params.mode == "ocarina"){
         if( !params.manifest ) error "Missing `manifest` param: today's ocarina manifest from elan [path]"
