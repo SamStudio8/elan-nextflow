@@ -19,6 +19,8 @@
 //     .mix( quickcheck_index_ch )
 //     .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
 
+nextflow.enable.dsl=2
+
 include {save_manifest,resolve_uploads} from "./modules/elan.nf"
 
 workflow inbound {
