@@ -55,39 +55,31 @@ process announce_uploads {
     """
 }
 
-// process samtools_quickcheck {
-//     tag { bam }
-//     conda "$baseDir/environments/samtools.yaml"
-//     label 'bear'
+process samtools_quickcheck {
+    tag { bam }
+    conda "$baseDir/environments/samtools.yaml"
+    label 'bear'
 
-//     input:
-//     // adm0
-//     // adm1
-//     // cor_date, seq_date, sourcesite, 
-//     seqsite
-//     // tiles, platform, pipeuuid, username,
-//     dir
-//     run_name
-//     coguk_id
-//     // file(fasta)
-//     file(bam)
+    input:
+    val row
     
-//     output:
-//     // tuple adm0, adm1, cor_date, seq_date, sourcesite, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam),
-//     env(rv) optional true
-//     file "${coguk_id}.${run_name}.bam.quickcheck"
+    output:
+    val row, emit: row
+    env(rv) optional true, emit: bam_rv
+    file "${coguk_id}.${run_name}.bam.quickcheck", emit: bam_quickcheck
 
-//     shell:
-//     """
-//     rv1=0
-//     samtools quickcheck $bam || rv1=\$?
-//     echo "\$rv1 bam ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.bam.quickcheck
-//     rv2=0
-//     samtools view $bam > /dev/null || rv2=\$?
-//     echo "\$rv2 bamv ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" >> ${coguk_id}.${run_name}.bam.quickcheck
-//     rv=\$(( rv1 > rv2 ? rv1 : rv2 ))
-//     """
-// }
+    shell:
+    """
+    rv1=0
+    samtools quickcheck $bam || rv1=\$?
+    echo "\$rv1 bam ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.bam.quickcheck
+    rv2=0
+    samtools view $bam > /dev/null || rv2=\$?
+    echo "\$rv2 bamv ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" >> ${coguk_id}.${run_name}.bam.quickcheck
+    rv=\$(( rv1 > rv2 ? rv1 : rv2 ))
+    """
+}
+
 // process fasta_quickcheck {
 //     tag { fasta }
 //     label 'bear'
