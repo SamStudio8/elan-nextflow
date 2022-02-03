@@ -65,8 +65,8 @@ process samtools_quickcheck {
     
     output:
     val row, emit: row
-    env(rv) optional true, emit: bam_rv
-    file "${coguk_id}.${run_name}.bam.quickcheck", emit: bam_quickcheck
+    env(rv), emit: bam_rv
+    path "${coguk_id}.${run_name}.bam.quickcheck", emit: bam_quickcheck
 
     shell:
     """
