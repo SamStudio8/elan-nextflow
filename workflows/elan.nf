@@ -21,7 +21,7 @@
 
 nextflow.enable.dsl=2
 
-include {save_manifest,resolve_uploads} from "./modules/elan.nf"
+include {save_manifest; resolve_uploads} from "./modules/elan.nf"
 
 workflow inbound {
     main:
