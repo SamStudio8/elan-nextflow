@@ -3,6 +3,7 @@
 nextflow.enable.dsl=2
 
 include {play_ocarina} from "./modules/ocarina.nf"
+include {inbound} from "./workflows/elan.nf"
 
 if (!params.mode) error "A workflow must be chosen: --mode {inbound,ocarina,ena_bam}"
 
