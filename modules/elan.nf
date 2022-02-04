@@ -56,12 +56,12 @@ process announce_uploads {
 }
 
 process samtools_quickcheck {
-    tag { row.bam }
+    tag { bam }
     conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
     input:
-    val row
+    tuple val(row), path(fasta), path (bam)
     
     output:
     val row, emit: row
@@ -71,11 +71,11 @@ process samtools_quickcheck {
     shell:
     """
     rv1=0
-    samtools quickcheck ${row.bam} || rv1=\$?
-    echo "\$rv1 bam ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" > ${row.coguk_id}.${row.run_name}.bam.quickcheck
+    samtools quickcheck ${bam} || rv1=\$?
+    echo "\$rv1 bam ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${bam}" > ${row.coguk_id}.${row.run_name}.bam.quickcheck
     rv2=0
-    samtools view ${row.bam} > /dev/null || rv2=\$?
-    echo "\$rv2 bamv ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${row.bam}" >> ${row.coguk_id}.${row.run_name}.bam.quickcheck
+    samtools view ${bam} > /dev/null || rv2=\$?
+    echo "\$rv2 bamv ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${bam}" >> ${row.coguk_id}.${row.run_name}.bam.quickcheck
     rv=\$(( rv1 > rv2 ? rv1 : rv2 ))
     """
 }

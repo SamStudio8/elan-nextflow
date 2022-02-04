@@ -21,12 +21,38 @@ workflow inbound {
         announce_uploads(save_manifest.out, resolve_uploads.out)
 
         resolve_uploads.out.elan_files_manifest
-            .splitCsv(header:['is_new', 'coguk_id', 'run_name', 'username', 'pipeuuid', 'autorunname', 'platform', 'dir', 'clabel', 'fasta', 'alabel', 'bam', 'sourcecode', 'sitecode', 'pag', 'tiles', 'adm0', 'adm1_mapped', 'cor_date', 'seq_date'], sep:'\t')
-            .filter { row -> row.is_new == "1" }
-            .filter { row -> row.fasta.size() > 0 }
-            .filter { row -> row.bam.size() > 0 }
-            // .map { row-> tuple( file([row.dir, row.fasta].join('/')), file([row.dir, row.bam].join('/'))) }
-            .map{ it << ["fasta": file([it["dir"], it["fasta"]].join('/')), "bam": file([it["dir"], it["bam"]].join('/')), "sample_site": it["sourcesite"], "sequencing_site": it["sitecode"]] }
+            .splitCsv(header:[
+                'is_new',
+                'coguk_id',
+                'run_name',
+                'username',
+                'pipeuuid',
+                'autorunname',
+                'platform',
+                'dir',
+                'clabel',
+                'fasta',
+                'alabel',
+                'bam',
+                'sourcecode',
+                'sitecode',
+                'pag',
+                'tiles',
+                'adm0',
+                'adm1_mapped',
+                'cor_date',
+                'seq_date'
+            ], sep:'\t')
+            .filter { row -> row.is_new == "1" }     // only process files marked as new in the manifest
+            .filter { row -> row.fasta.size() > 0 }  // with a fasta file name defined
+            .filter { row -> row.bam.size() > 0 }    // with a bam file name defined
+            .map { it << [
+                "fasta": [it["dir"], it["fasta"]].join('/'), // construct the fasta path
+                "bam": [it["dir"], it["bam"]].join('/'),     // construct the bam path
+                "sample_site": it["sourcesite"],             // map sourcesite and sitecode
+                "sequencing_site": it["sitecode"]]           // to less garbage names
+            }
+            .map { row-> tuple(row, row.fasta, row.bam) }    // create a tuple of metadata_row, fasta and bam
             .set { manifest_ch }
         
         samtools_quickcheck(manifest_ch)
