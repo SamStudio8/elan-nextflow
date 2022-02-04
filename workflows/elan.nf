@@ -62,5 +62,5 @@ workflow inbound {
         samtools_filter(manifest_ch, rehead_bam.out.inbound_bam)
         samtools_index(manifest_ch, samtools_filter.out.filtered_bam)
         post_index(manifest_ch, samtools_index.out.idx_status)
-
+        samtools_depth(manifest_ch, samtools_filter.out.filtered_bam)
 }
