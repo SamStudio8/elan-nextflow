@@ -181,7 +181,7 @@ process samtools_index {
 
     output:
     path "${row.coguk_id}.${row.run_name}.index.quickcheck", emit: bam_index_quickcheck
-    path "${filtered_bam.baseName}.bam.bai" optional true, emit: bam_bai
+    path "${filtered_bam.baseName}.bam.bai", emit: bam_bai optional true
     env(rv), emit: idx_status
 
     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${filtered_bam.baseName}.bam.bai", mode: "copy", overwrite: true
