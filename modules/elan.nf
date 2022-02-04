@@ -130,7 +130,7 @@ process screen_uploads {
 }
 
 process rehead_bam {
-    tag { bam }
+    tag { copied_bam }
     label 'bear'
     conda "$baseDir/environments/samtools.yaml"
 
@@ -150,7 +150,7 @@ process rehead_bam {
 }
 
 process samtools_filter {
-    tag { bam }
+    tag { inbound_bam }
     conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
@@ -161,37 +161,37 @@ process samtools_filter {
     output:
     path "${row.coguk_id}.${row.run_name}.climb.bam", emit: filtered_bam
 
-    publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
+    publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${row.coguk_id}.${row.run_name}.climb.bam", mode: "copy", overwrite: true
 
     """
     samtools view -h -F4 ${inbound_bam} -o ${row.coguk_id}.${row.run_name}.climb.bam
     """
 }
 
-// process samtools_index {
-//     tag { bam }
-//     label 'bear'
-//     conda "$baseDir/environments/samtools.yaml"
+process samtools_index {
+    tag { filtered_bam }
+    label 'bear'
+    conda "$baseDir/environments/samtools.yaml"
 
-//     errorStrategy 'ignore'
+    errorStrategy 'ignore'
 
-//     input:
-    
+    input:
+    tuple val(row), path(fasta), path(bam)
+    path filtered_bam
 
-//     output:
-//     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), env(rv) into post_index_manifest_ch
+    output:
+    path "${row.coguk_id}.${row.run_name}.index.quickcheck", emit: bam_index_quickcheck
+    path "${filtered_bam.baseName}.bam.bai" optional true, emit: bam_bai
 
-//     file "${coguk_id}.${run_name}.index.quickcheck"
-//     file "${bam.baseName}.bam.bai" optional true
+    publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${filtered_bam.baseName}.bam.bai", mode: "copy", overwrite: true
 
-//     script:
-//     """
-//     rv=0
-//     samtools index ${bam} ${bam.baseName}.bam.bai || rv=\$?
-//     echo "\$rv bam_index ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.index.quickcheck
-//     """
-// }
+    script: //bam.bai specified so that it is created within working dir rather than another, separate working dir
+    """
+    rv=0
+    samtools index ${filtered_bam} ${filtered_bam.baseName}.bam.bai || rv=\$?
+    echo "\$rv bam_index ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${filtered_bam}" > ${row.coguk_id}.${row.run_name}.index.quickcheck
+    """
+}
 
 // process post_index {
 //     tag { bam }
