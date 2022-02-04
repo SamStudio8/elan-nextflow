@@ -12,7 +12,7 @@
 
 nextflow.enable.dsl=2
 
-include {save_manifest; resolve_uploads; announce_uploads; samtools_quickcheck; fasta_quickcheck; screen_uploads; rehead_bam} from "../modules/elan.nf"
+include {save_manifest; resolve_uploads; announce_uploads; samtools_quickcheck; fasta_quickcheck; screen_uploads; rehead_bam; samtools_filter} from "../modules/elan.nf"
 
 workflow inbound {
     main:
@@ -59,5 +59,6 @@ workflow inbound {
         fasta_quickcheck(manifest_ch)
         screen_uploads(manifest_ch, samtools_quickcheck.out.bam_rv, fasta_quickcheck.out.fasta_rv)
         rehead_bam(manifest_ch, screen_uploads.out.copied_bam)
+        samtools_filter(manifest_ch, rehead_bam.out.inbound_bam)
         
 }

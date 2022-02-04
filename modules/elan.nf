@@ -139,7 +139,7 @@ process rehead_bam {
     path copied_bam
 
     output:
-    file("${row.coguk_id}.${row.run_name}.inbound.bam"), emit: inbound_bam
+    path "${row.coguk_id}.${row.run_name}.inbound.bam", emit: inbound_bam
 
     script:
     """
@@ -149,27 +149,23 @@ process rehead_bam {
     """
 }
 
-// process samtools_filter {
-//     tag { bam }
-//     conda "$baseDir/environments/samtools.yaml"
-//     label 'bear'
+process samtools_filter {
+    tag { bam }
+    conda "$baseDir/environments/samtools.yaml"
+    label 'bear'
 
-//     input:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir,
-//     run_name
-//     coguk_id
-//     // file(fasta)
-//     file(bam)
+    input:
+    tuple val(row), path(fasta), path(bam)
+    path inbound_bam
 
-//     output:
-//     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta)
-//     file("${coguk_id}.${run_name}.climb.bam")
+    output:
+    publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
+    path "${row.coguk_id}.${row.run_name}.climb.bam"
 
-//     """
-//     samtools view -h -F4 ${bam} -o ${coguk_id}.${run_name}.climb.bam
-//     """
-// }
+    """
+    samtools view -h -F4 ${inbound_bam} -o ${row.coguk_id}.${row.run_name}.climb.bam
+    """
+}
 
 // process samtools_index {
 //     tag { bam }
