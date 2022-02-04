@@ -159,8 +159,9 @@ process samtools_filter {
     path inbound_bam
 
     output:
+    path "${row.coguk_id}.${row.run_name}.climb.bam", emit: filtered_bam
+
     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${coguk_id}.${run_name}.climb.bam", mode: "copy", overwrite: true
-    path "${row.coguk_id}.${row.run_name}.climb.bam"
 
     """
     samtools view -h -F4 ${inbound_bam} -o ${row.coguk_id}.${row.run_name}.climb.bam
@@ -175,14 +176,7 @@ process samtools_filter {
 //     errorStrategy 'ignore'
 
 //     input:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site,
-//     seqsite
-//     // tiles, platform, pipeuuid, username,
-//     dir
-//     run_name
-//     coguk_id
-//     // file(fasta)
-//     file(bam)
+    
 
 //     output:
 //     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${bam.baseName}.bam.bai", mode: "copy", overwrite: true
@@ -198,6 +192,7 @@ process samtools_filter {
 //     echo "\$rv bam_index ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.index.quickcheck
 //     """
 // }
+
 // process post_index {
 //     tag { bam }
 
