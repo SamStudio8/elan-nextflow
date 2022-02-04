@@ -258,85 +258,71 @@ process rehead_fasta {
 }
 
 
-// // Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
-// process swell {
-//     tag { bam }
-//     conda "$baseDir/environments/swell.yaml"
-//     label 'bear'
+// Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
+process swell {
+    tag { filtered_bam }
+    conda "$baseDir/environments/swell.yaml"
+    label 'bear'
 
-//     errorStrategy 'ignore'
+    errorStrategy 'ignore'
 
-//     input:
-//     tuple sample_site, 
-//     sequencing_site
-//     tiles
-//     platform
-//     // pipeuuid, username
-//     dir
-//     run_name
-//     coguk_id
-//     file(fasta)
-//     file(bam)
-//     file(depth)
+    input:
+    tuple val(row), path(fasta), path(bam)
+    path filtered_bam
+    path rehead_fasta
+    path depth
 
-//     output:
-//     publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
-//     // tuple sample_site, sequencing_site, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc"), env(rv) into postswell_manifest_ch
-//     file "${coguk_id}.${run_name}.qc"
-//     file "${coguk_id}.${run_name}.swell.quickcheck"
+    output:
+    path "${row.coguk_id}.${row.run_name}.qc", emit: swell_metrics
+    path "${row.coguk_id}.${row.run_name}.swell.quickcheck", emit: swell_quickcheck
+    env(rv), emit: wstatus
 
-//     // 2022-01-19 Removed dep on artic scheme git, no longer calculating tile depths. TomB will be building tqc -- the next generation QC system. Breaking out smaller subsystems from Majora is the future!
-//     // Note that messing with the output here will require a correcting commit to ocarina.nf to ensure the swell output matches the crude readline
-//     script:
-//     """
-//     rv=0
-//     swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${tiles}" -x "source_site" "${sample_site}" -x "seq_site" "${sequencing_site}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
-//     echo "\$rv swell ${sequencing_site} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
-//     """
-// }
-// process post_swell {
-//     tag { bam }
+    publishDir path: "${params.publish}/staging/qc", pattern: "${row.coguk_id}.${row.run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
 
-//     input:
-//     // tuple sample_site, sequencing_site, tiles, platform, pipeuuid, username, dir
-//     run_name
-//     coguk_id
-//     // file(fasta), file(bam), file(qc), wstatus from postswell_manifest_ch
+    // 2022-01-19 Removed dep on artic scheme git, no longer calculating tile depths. TomB will be building tqc -- the next generation QC system. Breaking out smaller subsystems from Majora is the future!
+    // Note that messing with the output here will require a correcting commit to ocarina.nf to ensure the swell output matches the crude readline
+    script:
+    """
+    rv=0
+    swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${rehead_fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${row.tiles}" -x "source_site" "${row.sample_site}" -x "seq_site" "${row.sequencing_site}" -x "platform" "${row.platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${row.coguk_id}.${row.run_name}.qc || rv=\$?
+    echo "\$rv swell ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${filtered_bam}" > ${row.coguk_id}.${row.run_name}.swell.quickcheck
+    """
+}
 
-//     // output:
-//     // tuple sample_site, sequencing_site, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) into ocarina_file_manifest_ch
+process post_swell {
+    tag { filtered_bam }
 
-//     errorStrategy 'ignore'
+    input:
+    tuple val(row), path(fasta), path(bam)
+    val(wstatus)
 
-//     script:
-//     if (wstatus.toInteger() == 0)
-//         """
-//         echo 'swell is good'
-//         """
-//     else
-//         """
-//         echo "Cowardly refusing to process ${coguk_id} ${run_name} any further as it has a bad-looking BAM"
-//         exit 1
-//         """
-// }
+    errorStrategy 'ignore'
 
-// // NOTE The entries here need to match the publishDir directives above to make sure Majora knows where the files are
-// process ocarina_ls {
-//     input:
-//     // tuple sample_site, sequencing_site, tiles, platform,
-//     pipeuuid
-//     username
-//     // dir,
-//     run_name
-//     coguk_id
-//     file(fasta)
-//     file(bam)
-//     file(qc)
+    script:
+    if (wstatus.toInteger() == 0)
+        """
+        echo 'swell is good'
+        """
+    else
+        """
+        echo "Cowardly refusing to process ${row.coguk_id} ${row.run_name} any further as it has a bad-looking BAM"
+        exit 1
+        """
+}
 
-//     output:
-//     file "${coguk_id}.${run_name}.ocarina"
+// NOTE The entries here need to match the publishDir directives above to make sure Majora knows where the files are
+process ocarina_ls {
     
-//     """
-//     echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\t${params.artifacts_root}/fasta/${params.datestamp}/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sample_site}\t${sequencing_site}\t${platform}" > ${coguk_id}.${run_name}.ocarina
-//     """
-// }
+    input:
+    tuple val(row), path(fasta), path(bam)
+    path rehead_fasta
+    path filtered_bam
+    path swell_metrics
+
+    output:
+    path "${row.coguk_id}.${row.run_name}.ocarina"
+    
+    """
+    echo "${row.coguk_id}\t${row.run_name}\t${row.username}\t${row.pipeuuid}\t${params.publish}/staging/\t${params.artifacts_root}/fasta/${params.datestamp}/${rehead_fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${filtered_bam}\tqc/${swell_metrics}\t${row.sample_site}\t${row.sequencing_site}\t${row.platform}" > ${row.coguk_id}.${row.run_name}.ocarina
+    """
+}

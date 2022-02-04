@@ -1,18 +1,6 @@
-// ocarina_report_ch
-//     .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
-
-// report_ch
-//     .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true, sort: false)
-
-// quickcheck_fasta_ch
-//     .mix( quickcheck_bam_ch )
-//     .mix( quickcheck_swell_ch )
-//     .mix( quickcheck_index_ch )
-//     .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
-
 nextflow.enable.dsl=2
 
-include {save_manifest; resolve_uploads; announce_uploads; samtools_quickcheck; fasta_quickcheck; screen_uploads; rehead_bam; samtools_filter; samtools_index; post_index; samtools_depth} from "../modules/elan.nf"
+include {save_manifest; resolve_uploads; announce_uploads; samtools_quickcheck; fasta_quickcheck; screen_uploads; rehead_bam; samtools_filter; samtools_index; post_index; samtools_depth; rehead_fasta, swell; post_swell; ocarina_ls} from "../modules/elan.nf"
 
 workflow inbound {
     main:
@@ -63,4 +51,20 @@ workflow inbound {
         samtools_index(manifest_ch, samtools_filter.out.filtered_bam)
         post_index(manifest_ch, samtools_index.out.idx_status)
         samtools_depth(manifest_ch, samtools_filter.out.filtered_bam)
+        rehead_fasta(manifest_ch, screen_uploads.out.copied_fasta)
+        swell(manifest_ch, samtools_filter.out.filtered_bam, rehead_fasta.out.rehead_fasta, samtools_depth.out.bam_depth)
+        post_swell(manifest_ch, swell.out.wstatus)
+        ocarina_ls(manifest_ch, rehead_fasta.out.rehead_fasta, samtools_filter.out.filtered_bam, swell.out.swell_metrics)
+
+        ocarina_ls.out
+            .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
+
+        swell.out.swell_metrics
+            .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true, sort: false)
+
+        Channel
+            .mix( samtools_quickcheck.out.bam_quickcheck )
+            .mix( swell.out.swell_quickcheck )
+            .mix( samtools_index.out.bam_index_quickcheck )
+            .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)        
 }
