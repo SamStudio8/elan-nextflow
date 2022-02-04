@@ -107,8 +107,8 @@ process screen_uploads {
     tuple val(row), path(fasta), path(bam)
     
     output:
-    path "${coguk_id}.${run_name}.uploaded.fasta", emit: copied_fasta
-    path "${coguk_id}.${run_name}.uploaded.bam", emit: copied_bam
+    path "${row.coguk_id}.${row.run_name}.uploaded.fasta", emit: copied_fasta
+    path "${row.coguk_id}.${row.run_name}.uploaded.bam", emit: copied_bam
 
     errorStrategy 'ignore'
 
@@ -116,12 +116,12 @@ process screen_uploads {
     script:
     if (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
         """
-        cp ${bam} ${coguk_id}.${run_name}.uploaded.bam
-        cp ${fasta} ${coguk_id}.${run_name}.uploaded.fasta
+        cp ${bam} ${row.coguk_id}.${row.run_name}.uploaded.bam
+        cp ${fasta} ${row.coguk_id}.${row.run_name}.uploaded.fasta
         """
     else
         """
-        echo "Cowardly refusing to process ${coguk_id} ${run_name} any further as it has a bad-looking FASTA and/or BAM"
+        echo "Cowardly refusing to process ${row.coguk_id} ${row.run_name} any further as it has a bad-looking FASTA and/or BAM"
         exit 1
         """
 
