@@ -182,6 +182,7 @@ process samtools_index {
     output:
     path "${row.coguk_id}.${row.run_name}.index.quickcheck", emit: bam_index_quickcheck
     path "${filtered_bam.baseName}.bam.bai" optional true, emit: bam_bai
+    env(rv), emit: idx_status
 
     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${filtered_bam.baseName}.bam.bai", mode: "copy", overwrite: true
 
@@ -193,56 +194,51 @@ process samtools_index {
     """
 }
 
-// process post_index {
-//     tag { bam }
+process post_index {
+    tag { bam }
 
-//     input:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, 
-//     run_name
-//     coguk_id
-//     // , file(fasta), file(bam), idx_status from post_index_manifest_ch
+    input:
+    tuple val(row), path(fasta), path(bam)
+    val(idx_status)
 
-//     // output:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam) into indexed_manifest_ch
+    errorStrategy 'ignore'
 
-//     errorStrategy 'ignore'
+    script:
+    if (idx_status.toInteger() == 0)
+        """
+        echo 'index is good'
+        """
+    else
+        """
+        echo "Cowardly refusing to process ${row.coguk_id} ${row.run_name} any further as it has a bad-looking BAM"
+        exit 1
+        """
+}
 
-//     script:
-//     if (idx_status.toInteger() == 0)
-//         """
-//         echo 'index is good'
-//         """
-//     else
-//         """
-//         echo "Cowardly refusing to process ${coguk_id} ${run_name} any further as it has a bad-looking BAM"
-//         exit 1
-//         """
-// }
+process samtools_depth {
+    tag { filtered_bam }
+    conda "$baseDir/environments/samtools113.yaml"
+    label 'bear'
 
-// process samtools_depth {
-//     tag { bam }
-//     conda "$baseDir/environments/samtools113.yaml"
-//     label 'bear'
+    memory '5 GB'
 
-//     memory '5 GB'
+    input:
+    tuple val(row), path(fasta), path(bam)
+    path filtered_bam
 
-//     input:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta),
-//     file(bam)
+    output:
+    path "${row.coguk_id}.${row.run_name}.climb.bam.depth", emit: bam_depth
 
-//     output:
-//     publishDir path: "${params.publish}/staging/depth", pattern: "${coguk_id}.${run_name}.climb.bam.depth", mode: "copy", overwrite: true
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam),
-//     file("${coguk_id}.${run_name}.climb.bam.depth")
+    publishDir path: "${params.publish}/staging/depth", pattern: "${row.coguk_id}.${row.run_name}.climb.bam.depth", mode: "copy", overwrite: true
 
-//     // 2021-08-25 Updated to use samtools 1.13 for significant improvement to depth algorithm
-//     // -d0 removed as depth limit deprecated in samtools 1.13
-//     // https://github.com/COG-UK/dipi-group/issues/129
+    // 2021-08-25 Updated to use samtools 1.13 for significant improvement to depth algorithm
+    // -d0 removed as depth limit deprecated in samtools 1.13
+    // https://github.com/COG-UK/dipi-group/issues/129
     
-//     """
-//     samtools depth -a ${bam} > ${bam}.depth
-//     """
-// }
+    """
+    samtools depth -a ${filtered_bam} > ${filtered_bam}.depth
+    """
+}
 
 // process rehead_fasta {
 //     label 'bear'
