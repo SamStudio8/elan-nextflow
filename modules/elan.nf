@@ -268,7 +268,7 @@ process rehead_fasta {
 
 //     input:
 //     tuple sample_site, 
-//     seqsite
+//     sequencing_site
 //     tiles
 //     platform
 //     // pipeuuid, username
@@ -281,7 +281,7 @@ process rehead_fasta {
 
 //     output:
 //     publishDir path: "${params.publish}/staging/qc", pattern: "${coguk_id}.${run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
-//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc"), env(rv) into postswell_manifest_ch
+//     // tuple sample_site, sequencing_site, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file("${coguk_id}.${run_name}.qc"), env(rv) into postswell_manifest_ch
 //     file "${coguk_id}.${run_name}.qc"
 //     file "${coguk_id}.${run_name}.swell.quickcheck"
 
@@ -290,21 +290,21 @@ process rehead_fasta {
 //     script:
 //     """
 //     rv=0
-//     swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${tiles}" -x "source_site" "${sample_site}" -x "seq_site" "${seqsite}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
-//     echo "\$rv swell ${seqsite} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
+//     swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${tiles}" -x "source_site" "${sample_site}" -x "seq_site" "${sequencing_site}" -x "platform" "${platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${coguk_id}.${run_name}.qc || rv=\$?
+//     echo "\$rv swell ${sequencing_site} ${coguk_id} ${run_name} ${dir}/${bam}" > ${coguk_id}.${run_name}.swell.quickcheck
 //     """
 // }
 // process post_swell {
 //     tag { bam }
 
 //     input:
-//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir
+//     // tuple sample_site, sequencing_site, tiles, platform, pipeuuid, username, dir
 //     run_name
 //     coguk_id
 //     // file(fasta), file(bam), file(qc), wstatus from postswell_manifest_ch
 
 //     // output:
-//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) into ocarina_file_manifest_ch
+//     // tuple sample_site, sequencing_site, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), file(qc) into ocarina_file_manifest_ch
 
 //     errorStrategy 'ignore'
 
@@ -323,7 +323,7 @@ process rehead_fasta {
 // // NOTE The entries here need to match the publishDir directives above to make sure Majora knows where the files are
 // process ocarina_ls {
 //     input:
-//     // tuple sample_site, seqsite, tiles, platform,
+//     // tuple sample_site, sequencing_site, tiles, platform,
 //     pipeuuid
 //     username
 //     // dir,
@@ -337,6 +337,6 @@ process rehead_fasta {
 //     file "${coguk_id}.${run_name}.ocarina"
     
 //     """
-//     echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\t${params.artifacts_root}/fasta/${params.datestamp}/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sample_site}\t${seqsite}\t${platform}" > ${coguk_id}.${run_name}.ocarina
+//     echo "${coguk_id}\t${run_name}\t${username}\t${pipeuuid}\t${params.publish}/staging/\t${params.artifacts_root}/fasta/${params.datestamp}/${fasta}\t${params.artifacts_root}/bam/${params.datestamp}/${bam}\tqc/${qc}\t${sample_site}\t${sequencing_site}\t${platform}" > ${coguk_id}.${run_name}.ocarina
 //     """
 // }
