@@ -136,7 +136,7 @@ process rehead_bam {
 
     input:
     tuple val(row), path(fasta), path(bam)
-    copied_bam
+    path copied_bam
 
     output:
     file("${row.coguk_id}.${row.run_name}.inbound.bam"), emit: inbound_bam
