@@ -61,10 +61,9 @@ process samtools_quickcheck {
     label 'bear'
 
     input:
-    tuple val(row), path(fasta), path (bam)
+    tuple val(row), path(fasta), path(bam)
     
     output:
-    val row, emit: row
     env(rv), emit: bam_rv
     path "${row.coguk_id}.${row.run_name}.bam.quickcheck", emit: bam_quickcheck
 
@@ -80,33 +79,24 @@ process samtools_quickcheck {
     """
 }
 
-// process fasta_quickcheck {
-//     tag { fasta }
-//     label 'bear'
+process fasta_quickcheck {
+    tag { fasta }
+    label 'bear'
 
-//     input:
-//     // tuple adm0, adm1_mapped, cor_date, 
-//     seq_date, sample_site
-//     seqsite
-//     // tiles, platform, pipeuuid, username
-//     dir
-//     run_name
-//     coguk_id
-//     file(fasta)
-//     // file(bam), bstatus from validbam_manifest_ch
+    input:
+    tuple val(row), path(fasta), path(bam)
 
-//     output:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta), file(bam), bstatus, 
-//     env(rv) optional true
-//     file "${coguk_id}.${run_name}.fasta.quickcheck"
+    output:
+    env(rv), emit: fasta_rv
+    file "${row.coguk_id}.${row.run_name}.fasta.quickcheck", emit: fasta_quickcheck
 
-//     shell:
-//     """
-//     rv=0
-//     elan_fastacheck.py ${fasta} ${params.minlen} || rv=\$?
-//     echo "\$rv fasta ${seqsite} ${coguk_id} ${run_name} ${dir}/${fasta}" > ${coguk_id}.${run_name}.fasta.quickcheck
-//     """
-// }
+    shell:
+    """
+    rv=0
+    elan_fastacheck.py ${fasta} ${params.minlen} || rv=\$?
+    echo "\$rv fasta ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${fasta}" > ${row.coguk_id}.${row.run_name}.fasta.quickcheck
+    """
+}
 
 // // 2022-01-20 Renamed to screen_uploads as we no longer store the publish/uploaded/ dir as it wastes space
 // process screen_uploads {
