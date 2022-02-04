@@ -129,29 +129,25 @@ process screen_uploads {
 
 }
 
-// process rehead_bam {
-//     tag { bam }
-//     label 'bear'
-//     conda "$baseDir/environments/samtools.yaml"
+process rehead_bam {
+    tag { bam }
+    label 'bear'
+    conda "$baseDir/environments/samtools.yaml"
 
-//     input:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir,
-//     run_name
-//     coguk_id
-//     // file(fasta)
-//     file(bam)
+    input:
+    tuple val(row), path(fasta), path(bam)
+    copied_bam
 
-//     output:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id, file(fasta),
-//     file("${coguk_id}.${run_name}.inbound.bam")
+    output:
+    file("${row.coguk_id}.${row.run_name}.inbound.bam"), emit: inbound_bam
 
-//     script:
-//     """
-//     samtools view -H --no-PG ${bam} > ${bam}.head
-//     elan_cleanhead.py ${bam}.head '${coguk_id}.${run_name}' > ${bam}.head.ok
-//     samtools reheader -P ${bam}.head.ok ${bam} > ${coguk_id}.${run_name}.inbound.bam
-//     """
-// }
+    script:
+    """
+    samtools view -H --no-PG ${copied_bam} > ${copied_bam}.head
+    elan_cleanhead.py ${copied_bam}.head '${row.coguk_id}.${row.run_name}' > ${copied_bam}.head.ok
+    samtools reheader -P ${copied_bam}.head.ok ${copied_bam} > ${row.coguk_id}.${row.run_name}.inbound.bam
+    """
+}
 
 // process samtools_filter {
 //     tag { bam }
