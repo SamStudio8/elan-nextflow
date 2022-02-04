@@ -240,30 +240,22 @@ process samtools_depth {
     """
 }
 
-// process rehead_fasta {
-//     label 'bear'
-//     input:
-//     // tuple adm0, 
-//     adm1_mapped
-//     cor_date
-//     seq_date
-//     sample_site
-//     seqsite
-//     // tiles, platform, pipeuuid, username, dir, 
-//     run_name
-//     coguk_id
-//     file(fasta), file(bam), file(depth) from swell_manifest_ch
+process rehead_fasta {
+    label 'bear'
 
-//     output:
-//     publishDir path : "${params.artifacts_root}/fasta/${params.datestamp}", pattern: "${coguk_id}.${run_name}.climb.fasta", mode: "copy", overwrite: true
-//     // tuple sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id,
-//     file("${coguk_id}.${run_name}.climb.fasta")
-//     // , file(bam), file(depth) into swell_ready_manifest_ch
+    input:
+    tuple val(row), path(fasta), path(bam)
+    path copied_fasta
+    
+    output:
+    path "${row.coguk_id}.${row.run_name}.climb.fasta", emit: rehead_fasta
 
-//     """
-//     elan_rehead.py ${fasta} 'COG-UK/${coguk_id}/${seqsite}:${run_name}|${coguk_id}|${adm0}|${adm1_mapped}|${sample_site}|${cor_date}|${seqsite}|${seq_date}' > ${coguk_id}.${run_name}.climb.fasta
-//     """
-// }
+    publishDir path : "${params.artifacts_root}/fasta/${params.datestamp}", pattern: "${row.coguk_id}.${row.run_name}.climb.fasta", mode: "copy", overwrite: true
+
+    """
+    elan_rehead.py ${copied_fasta} 'COG-UK/${row.coguk_id}/${row.sequencing_site}:${row.run_name}|${row.coguk_id}|${row.adm0}|${row.adm1_mapped}|${row.sample_site}|${row.cor_date}|${row.sequencing_site}|${row.seq_date}' > ${row.coguk_id}.${row.run_name}.climb.fasta
+    """
+}
 
 
 // // Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
