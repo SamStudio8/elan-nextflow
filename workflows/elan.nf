@@ -54,7 +54,8 @@ workflow inbound {
             }
             .map { row-> tuple(row, row.fasta, row.bam) }    // create a tuple of metadata_row, fasta and bam
             .set { manifest_ch }
-        
+       
         samtools_quickcheck(manifest_ch)
+        fasta_quickcheck(manifest_ch)
 
 }
