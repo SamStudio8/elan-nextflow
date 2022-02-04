@@ -88,7 +88,7 @@ process fasta_quickcheck {
 
     output:
     env(rv), emit: fasta_rv
-    file "${row.coguk_id}.${row.run_name}.fasta.quickcheck", emit: fasta_quickcheck
+    path "${row.coguk_id}.${row.run_name}.fasta.quickcheck", emit: fasta_quickcheck
 
     shell:
     """
