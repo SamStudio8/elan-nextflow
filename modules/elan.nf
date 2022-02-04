@@ -88,7 +88,7 @@ process fasta_quickcheck {
 
     output:
     env(rv), emit: fasta_rv
-    file "${row.coguk_id}.${row.run_name}.fasta.quickcheck", emit: fasta_quickcheck
+    path "${row.coguk_id}.${row.run_name}.fasta.quickcheck", emit: fasta_quickcheck
 
     shell:
     """
@@ -98,40 +98,34 @@ process fasta_quickcheck {
     """
 }
 
-// // 2022-01-20 Renamed to screen_uploads as we no longer store the publish/uploaded/ dir as it wastes space
-// process screen_uploads {
-//     tag { fasta }
-//     label 'bear'
+// 2022-01-20 Renamed to screen_uploads as we no longer store the publish/uploaded/ dir as it wastes space
+process screen_uploads {
+    tag { fasta }
+    label 'bear'
 
-//     input:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, 
-//     coguk_id
-//     file(fasta)
-//     file(bam)
-//     bstatus
-//     fstatus
+    input:
+    tuple val(row), path(fasta), path(bam)
     
-//     output:
-//     // tuple adm0, adm1_mapped, cor_date, seq_date, sample_site, seqsite, tiles, platform, pipeuuid, username, dir, run_name, coguk_id,
-//     file("${coguk_id}.${run_name}.uploaded.fasta")
-//     file("${coguk_id}.${run_name}.uploaded.bam")
+    output:
+    path "${coguk_id}.${run_name}.uploaded.fasta", emit: copied_fasta
+    path "${coguk_id}.${run_name}.uploaded.bam", emit: copied_bam
 
-//     errorStrategy 'ignore'
+    errorStrategy 'ignore'
 
-//     // bit pointless now but whatever
-//     script:
-//     if (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
-//         """
-//         cp ${bam} ${coguk_id}.${run_name}.uploaded.bam
-//         cp ${fasta} ${coguk_id}.${run_name}.uploaded.fasta
-//         """
-//     else
-//         """
-//         echo "Cowardly refusing to process ${coguk_id} ${run_name} any further as it has a bad-looking FASTA and/or BAM"
-//         exit 1
-//         """
+    // bit pointless now but whatever
+    script:
+    if (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
+        """
+        cp ${bam} ${coguk_id}.${run_name}.uploaded.bam
+        cp ${fasta} ${coguk_id}.${run_name}.uploaded.fasta
+        """
+    else
+        """
+        echo "Cowardly refusing to process ${coguk_id} ${run_name} any further as it has a bad-looking FASTA and/or BAM"
+        exit 1
+        """
 
-// }
+}
 
 // process rehead_bam {
 //     tag { bam }
