@@ -61,10 +61,19 @@ workflow inbound {
 
         swell.out.swell_metrics
             .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true, sort: false)
+        
+        samtools_quickcheck.out.bam_quickcheck
+            .set { samtools_quickcheck_ch }
+        
+        swell.out.swell_quickcheck
+            .set { swell_quickcheck_ch }
+        
+        samtools_index.out.bam_index_quickcheck
+            .set { bam_index_quickcheck_ch }
 
-        Channel
-            .mix( samtools_quickcheck.out.bam_quickcheck )
-            .mix( swell.out.swell_quickcheck )
-            .mix( samtools_index.out.bam_index_quickcheck )
+        quickcheck_report_ch
+            .mix( samtools_quickcheck_ch )
+            .mix( swell_quickcheck_ch )
+            .mix(  bam_index_quickcheck_ch )
             .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)        
 }
