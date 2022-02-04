@@ -57,6 +57,6 @@ workflow inbound {
        
         samtools_quickcheck(manifest_ch)
         fasta_quickcheck(manifest_ch)
-        screen_uploads(manifest_ch)
-
+        screen_uploads(manifest_ch, samtools_quickcheck.out.bam_rv, fasta_quickcheck.out.fasta_rv)
+        
 }

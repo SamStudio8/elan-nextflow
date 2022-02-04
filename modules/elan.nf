@@ -105,6 +105,8 @@ process screen_uploads {
 
     input:
     tuple val(row), path(fasta), path(bam)
+    val(fstatus)
+    val(bstatus)
     
     output:
     path "${row.coguk_id}.${row.run_name}.uploaded.fasta", emit: copied_fasta
