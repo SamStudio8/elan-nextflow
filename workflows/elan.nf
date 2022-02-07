@@ -76,27 +76,21 @@ workflow inbound {
         // has been nailed down in a tuple through swell
         swell.out.screen_swell | post_swell | ocarina_ls
 
+
+        // Prepare the Ocarina manifest for elan-ocarina to blast at Majora
         ocarina_ls.out
             .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
 
+
+        // Collect a QC table that nobody will look at when TQC launches
         swell.out.swell_metrics
             .collectFile(name: "swell.qc.tsv", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", keepHeader: true, sort: false)
         
-        fasta_quickcheck.out.fasta_quickcheck
-            .set { fasta_quickcheck_ch }
-        
-        samtools_quickcheck.out.bam_quickcheck
-            .set { samtools_quickcheck_ch }
-        
-        swell.out.swell_quickcheck
-            .set { swell_quickcheck_ch }
-        
-        samtools_index.out.bam_index_quickcheck
-            .set { bam_index_quickcheck_ch }
 
-        fasta_quickcheck_ch
-            .mix( samtools_quickcheck_ch )
-            .mix( swell_quickcheck_ch )
-            .mix( bam_index_quickcheck_ch )
+        // Bung information on all the quickcheck files into a big dumpster for users who wish to go bin diving
+        fasta_quickcheck.out.fasta_quickcheck
+            .mix( samtools_quickcheck.out.bam_quickcheck )
+            .mix( samtools_index.out.bam_index_quickcheck )
+            .mix( swell.out.swell_quickcheck )
             .collectFile(name: "elan.quickcheck.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)        
 }
