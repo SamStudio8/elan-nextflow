@@ -61,10 +61,10 @@ process samtools_quickcheck {
     label 'bear'
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    tuple val(process_key), val(row), path(fasta), path(bam)
     
     output:
-    env(rv), emit: bam_rv
+    tuple val(process_key), env(rv), emit: bam_rv
     path "${row.coguk_id}.${row.run_name}.bam.quickcheck", emit: bam_quickcheck
 
     shell:
@@ -84,10 +84,10 @@ process fasta_quickcheck {
     label 'bear'
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    tuple val(process_key), val(row), path(fasta), path(bam)
 
     output:
-    env(rv), emit: fasta_rv
+    tuple val(process_key), env(rv), emit: fasta_rv
     path "${row.coguk_id}.${row.run_name}.fasta.quickcheck", emit: fasta_quickcheck
 
     shell:
@@ -104,14 +104,10 @@ process screen_uploads {
     label 'bear'
 
     input:
-    tuple val(row), path(fasta), path(bam)
-    val(fstatus)
-    val(bstatus)
+    tuple val(process_key), val(row), path(fasta), path(bam), val(fstatus), val(bstatus)
     
     output:
-    val(row), emit: metadata
-    path "${row.coguk_id}.${row.run_name}.uploaded.fasta", emit: copied_fasta
-    path "${row.coguk_id}.${row.run_name}.uploaded.bam", emit: copied_bam
+    tuple val(process_key), val(row), path("${row.coguk_id}.${row.run_name}.uploaded.fasta"), path("${row.coguk_id}.${row.run_name}.uploaded.bam"), emit: screened_uploads
 
     errorStrategy 'ignore'
 
@@ -136,12 +132,10 @@ process rehead_bam {
     conda "$baseDir/environments/samtools.yaml"
 
     input:
-    val(row)
-    path copied_bam
+    tuple val(process_key), val(row), path(copied_fasta), path(copied_bam)
 
     output:
-    val(row)
-    path "${row.coguk_id}.${row.run_name}.inbound.bam", emit: inbound_bam
+    tuple val(process_key), val(row), path("${row.coguk_id}.${row.run_name}.inbound.bam"), emit: inbound_bam
 
     script:
     """
@@ -157,12 +151,10 @@ process samtools_filter {
     label 'bear'
 
     input:
-    val(row)
-    path inbound_bam
+    tuple val(process_key), val(row), path(inbound_bam)
 
     output:
-    val(row)
-    path "${row.coguk_id}.${row.run_name}.climb.bam", emit: filtered_bam
+    tuple val(process_key), val(row), path("${row.coguk_id}.${row.run_name}.climb.bam"), emit: filtered_bam
 
     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${row.coguk_id}.${row.run_name}.climb.bam", mode: "copy", overwrite: true
 
@@ -179,12 +171,11 @@ process samtools_index {
     errorStrategy 'ignore'
 
     input:
-    val(row)
-    path filtered_bam
+    tuple val(process_key), val(row), path(filtered_bam)
 
     output:
     val(row), emit: metadata
-    path filtered_bam, emit: indexed_bam
+    tuple val(process_key), path(filtered_bam), emit: indexed_bam
     env(rv), emit: idx_status
     path "${row.coguk_id}.${row.run_name}.index.quickcheck", emit: bam_index_quickcheck
     path "${filtered_bam.baseName}.bam.bai", emit: bam_bai optional true
@@ -205,14 +196,14 @@ process post_index {
 
     input:
     val(row)
-    path(indexed_bam)
+    tuple val(process_key), path(indexed_bam)
     val(idx_status)
     path(quickcheck)
     path(index)
 
     output:
     val(row), emit: metadata
-    path(indexed_bam), emit: indexed_bam
+    tuple val(process_key), path(indexed_bam), emit: indexed_bam
 
     errorStrategy 'ignore'
 
@@ -229,7 +220,7 @@ process post_index {
 }
 
 process samtools_depth {
-    tag { row.coguk_id + ' ' + filtered_bam }
+    tag { row.coguk_id + ' ' + indexed_bam }
     conda "$baseDir/environments/samtools113.yaml"
     label 'bear'
 
@@ -237,10 +228,10 @@ process samtools_depth {
 
     input:
     val(row)
-    path filtered_bam
+    tuple val(process_key), path(indexed_bam)
 
     output:
-    path "${row.coguk_id}.${row.run_name}.climb.bam.depth", emit: bam_depth
+    tuple val(process_key), path("${row.coguk_id}.${row.run_name}.climb.bam.depth"), emit: bam_depth
 
     publishDir path: "${params.publish}/staging/depth", pattern: "${row.coguk_id}.${row.run_name}.climb.bam.depth", mode: "copy", overwrite: true
 
@@ -249,7 +240,7 @@ process samtools_depth {
     // https://github.com/COG-UK/dipi-group/issues/129
     
     """
-    samtools depth -a ${filtered_bam} > ${filtered_bam}.depth
+    samtools depth -a ${indexed_bam} > ${indexed_bam}.depth
     """
 }
 
@@ -257,11 +248,10 @@ process rehead_fasta {
     label 'bear'
 
     input:
-    val(row)
-    path copied_fasta
+    tuple val(process_key), val(row), path(copied_fasta), path(copied_bam)
     
     output:
-    path "${row.coguk_id}.${row.run_name}.climb.fasta", emit: rehead_fasta
+    tuple val(process_key), path("${row.coguk_id}.${row.run_name}.climb.fasta"), emit: rehead_fasta
 
     publishDir path : "${params.artifacts_root}/fasta/${params.datestamp}", pattern: "${row.coguk_id}.${row.run_name}.climb.fasta", mode: "copy", overwrite: true
 
@@ -280,15 +270,12 @@ process swell {
     errorStrategy 'ignore'
 
     input:
-    val(row)
-    path filtered_bam
-    path rehead_fasta
-    path depth
+    tuple val(process_key), val(row), path(rehead_fasta), path(filtered_bam), path(depth)
 
     output:
     path "${row.coguk_id}.${row.run_name}.qc", emit: swell_metrics
     path "${row.coguk_id}.${row.run_name}.swell.quickcheck", emit: swell_quickcheck
-    env(rv), emit: wstatus
+    tuple val(process_key), val(row), path(rehead_fasta), path(filtered_bam), path("${row.coguk_id}.${row.run_name}.qc"), env(rv), emit: swell_status
 
     publishDir path: "${params.publish}/staging/qc", pattern: "${row.coguk_id}.${row.run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
 
@@ -306,19 +293,12 @@ process post_swell {
     tag { row.coguk_id + ' ' + filtered_bam }
 
     input:
-    val(row)
-    path(indexed_bam)
-    path(reheaded_fasta)
-    path(swell_metrics)
-    val(wstatus)
+    tuple val(process_key), val(row), path(reheaded_fasta), path(indexed_bam), path(swell_metrics), val(wstatus)
 
     errorStrategy 'ignore'
 
     output:
-    val(row), emit: metadata
-    path(indexed_bam), emit: swelled_bam
-    path(reheaded_fasta), emit: swelled_fasta
-    path(swell_metrics), emit: swelled_metrics
+    tuple val(process_key), val(row), path(reheaded_fasta), path(indexed_bam), path(swell_metrics)
 
     script:
     if (wstatus.toInteger() == 0)
@@ -336,10 +316,7 @@ process post_swell {
 process ocarina_ls {
     
     input:
-    val(row)
-    path rehead_fasta
-    path filtered_bam
-    path swell_metrics
+    tuple val(process_key), val(row), path(rehead_fasta), path(filtered_bam), path(swell_metrics)
 
     output:
     path "${row.coguk_id}.${row.run_name}.ocarina"

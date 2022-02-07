@@ -40,20 +40,41 @@ workflow inbound {
                 "sample_site": it["sourcesite"],             // map sourcesite and sitecode
                 "sequencing_site": it["sitecode"]]           // to less garbage names
             }
-            .map { row-> tuple(row, row.fasta, row.bam) }    // create a tuple of metadata_row, fasta and bam
+            .map { row-> tuple(
+                row.coguk_id + ' ' + row.run_name,           // join key
+                row,                                         // metadata row
+                row.fasta,                                   // input fasta
+                row.bam                                      // input bam
+	    )}
             .set { manifest_ch }
        
+        // Check if the BAM and FASTA are basically garbage
         samtools_quickcheck(manifest_ch)
         fasta_quickcheck(manifest_ch)
-        screen_uploads(manifest_ch, samtools_quickcheck.out.bam_rv, fasta_quickcheck.out.fasta_rv)
 
-        rehead_bam(screen_uploads.out.metadata, screen_uploads.out.copied_bam) | samtools_filter | samtools_index | post_index | samtools_depth
-        rehead_fasta(screen_uploads.out.metadata, screen_uploads.out.copied_fasta)
+        // Screen the uploads for bad fasta and BAM checks taking care to join
+        // the outputs of the two independent processes back to the manifest
+        // screen_uploads will re-emit the manifest to account for dropped tuples
+	screen_uploads(manifest_ch
+                                  .join(fasta_quickcheck.out.fasta_rv, by: 0)   // fstatus
+                                  .join(samtools_quickcheck.out.bam_rv, by: 0)  // bstatus
+        ) | (rehead_bam & rehead_fasta)  // send screened uploads for reheading
 
-        swell(post_index.out.metadata, post_index.out.indexed_bam, rehead_fasta.out.rehead_fasta, samtools_depth.out.bam_depth)
-        post_swell(post_index.out.metadata, post_index.out.indexed_bam, rehead_fasta.out.rehead_fasta, swell.out.swell_metrics, swell.out.wstatus)
+        // BAM processing
+        rehead_bam.out | samtools_filter | samtools_index | post_index | samtools_depth
 
-        ocarina_ls(post_swell.out.metadata, post_swell.out.swelled_fasta, post_swell.out.swelled_bam, post_swell.out.swelled_metrics)
+        // Join inputs from rehead_fasta, post_index and samtools_depth
+        // post_index will drop tuples where indexing failed
+        swell(screen_uploads.out.map{ row -> tuple(row[0], row[1]) }     // take the process_key and metadata_row from screen_uploads
+                                .join(rehead_fasta.out, by:0)
+                                .join(post_index.out.indexed_bam, by:0)  // tuples without an indexed_bam will not be joined
+                                .join(samtools_depth.out.bam_depth)
+        )
+
+        // Push swell output through post_swell, which will drop tuples that failed swell
+        // output can flow right through to ocarina_ls for listing without a join as everything
+        // has been nailed down in a tuple through swell
+        swell.out.swell_status | post_swell | ocarina_ls
 
         ocarina_ls.out
             .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
