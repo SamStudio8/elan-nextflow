@@ -37,8 +37,8 @@ workflow inbound {
             .map { it << [
                 "fasta": [it["dir"], it["fasta"]].join('/'), // construct the fasta path
                 "bam": [it["dir"], it["bam"]].join('/'),     // construct the bam path
-                "sample_site": it["sourcesite"],             // map sourcesite and sitecode
-                "sequencing_site": it["sitecode"]]           // to less garbage names
+                "sample_site": it["sourcecode"],             // map sourcecode and sitecode
+                "sequencing_site": it["sitecode"]]           //   to less garbage names
             }
             .map { row-> tuple(
                 row.coguk_id + ' ' + row.run_name,           // join key
