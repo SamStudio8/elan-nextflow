@@ -100,7 +100,7 @@ process fasta_quickcheck {
 
 // 2022-01-20 Renamed to screen_uploads as we no longer store the publish/uploaded/ dir as it wastes space
 process screen_uploads {
-    tag { fasta }
+    tag { row.coguk_id + ' ' + bam + ' ' + fasta }
     label 'bear'
 
     input:
@@ -109,6 +109,7 @@ process screen_uploads {
     val(bstatus)
     
     output:
+    val(row), emit: metadata
     path "${row.coguk_id}.${row.run_name}.uploaded.fasta", emit: copied_fasta
     path "${row.coguk_id}.${row.run_name}.uploaded.bam", emit: copied_bam
 
@@ -116,7 +117,7 @@ process screen_uploads {
 
     // bit pointless now but whatever
     script:
-    if (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
+    if (fstatus.toInteger() >= 0 && bstatus.toInteger() >= 0) // pass these for now == 0
         """
         cp ${bam} ${row.coguk_id}.${row.run_name}.uploaded.bam
         cp ${fasta} ${row.coguk_id}.${row.run_name}.uploaded.fasta
@@ -130,12 +131,12 @@ process screen_uploads {
 }
 
 process rehead_bam {
-    tag { copied_bam }
+    tag { row.coguk_id + ' ' + row.bam + ' ' + row.fasta + ' ' + copied_bam}
     label 'bear'
     conda "$baseDir/environments/samtools.yaml"
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
     path copied_bam
 
     output:
@@ -150,12 +151,12 @@ process rehead_bam {
 }
 
 process samtools_filter {
-    tag { inbound_bam }
+    tag { row.bam + ' ' + row.fasta + ' ' + inbound_bam}
     conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
     path inbound_bam
 
     output:
@@ -169,14 +170,14 @@ process samtools_filter {
 }
 
 process samtools_index {
-    tag { filtered_bam }
+    tag { row.bam + ' ' + row.fasta + ' ' + filtered_bam}
     label 'bear'
     conda "$baseDir/environments/samtools.yaml"
 
     errorStrategy 'ignore'
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
     path filtered_bam
 
     output:
@@ -186,6 +187,7 @@ process samtools_index {
 
     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${filtered_bam.baseName}.bam.bai", mode: "copy", overwrite: true
 
+    // todo sw has changed these but the quickcheck paths need to point to user bam
     script: //bam.bai specified so that it is created within working dir rather than another, separate working dir
     """
     rv=0
@@ -195,11 +197,16 @@ process samtools_index {
 }
 
 process post_index {
-    tag { bam }
+    tag { row.coguk_id + ' ' + row.bam }
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
+    path(indexed_bam)
     val(idx_status)
+
+    output:
+    val(row), emit: metadata
+    path(indexed_bam), emit: indexed_bam
 
     errorStrategy 'ignore'
 
@@ -216,14 +223,14 @@ process post_index {
 }
 
 process samtools_depth {
-    tag { filtered_bam }
+    tag { row.coguk_id + ' ' + filtered_bam }
     conda "$baseDir/environments/samtools113.yaml"
     label 'bear'
 
     memory '5 GB'
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
     path filtered_bam
 
     output:
@@ -244,7 +251,7 @@ process rehead_fasta {
     label 'bear'
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
     path copied_fasta
     
     output:
@@ -260,14 +267,14 @@ process rehead_fasta {
 
 // Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
 process swell {
-    tag { filtered_bam }
+    tag { row.coguk_id + ' ' + filtered_bam }
     conda "$baseDir/environments/swell.yaml"
     label 'bear'
 
     errorStrategy 'ignore'
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
     path filtered_bam
     path rehead_fasta
     path depth
@@ -290,13 +297,22 @@ process swell {
 }
 
 process post_swell {
-    tag { filtered_bam }
+    tag { row.coguk_id + ' ' + filtered_bam }
 
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
+    path(indexed_bam)
+    path(reheaded_fasta)
+    path(swell_metrics)
     val(wstatus)
 
     errorStrategy 'ignore'
+
+    output:
+    val(row), emit: metadata
+    path(indexed_bam), emit: swelled_bam
+    path(reheaded_fasta), emit: swelled_fasta
+    path(swell_metrics), emit: swelled_metrics
 
     script:
     if (wstatus.toInteger() == 0)
@@ -314,7 +330,7 @@ process post_swell {
 process ocarina_ls {
     
     input:
-    tuple val(row), path(fasta), path(bam)
+    val(row)
     path rehead_fasta
     path filtered_bam
     path swell_metrics

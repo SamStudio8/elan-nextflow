@@ -120,6 +120,8 @@ else
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 fi
 
+exit 0 # TODO SN remove before flight
+
 # If the OCARINA_FILE has still not been written at this point, it means Elan ran but today's pipeline is empty - abort early but successfully, dont send a tael
 if [ ! -f "$OCARINA_FILE" ]; then
     curl -X POST -H 'Content-type: application/json' --data '{"text":"\n*COG-UK inbound pipeline empty*\nNo new valid files today, try again tomorrow."}' $ELAN_SLACK_INBOUND_HOOK
