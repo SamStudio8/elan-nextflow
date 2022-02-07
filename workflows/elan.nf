@@ -47,18 +47,12 @@ workflow inbound {
         fasta_quickcheck(manifest_ch)
         screen_uploads(manifest_ch, samtools_quickcheck.out.bam_rv, fasta_quickcheck.out.fasta_rv)
 
-        rehead_bam(screen_uploads.out.metadata, screen_uploads.out.copied_bam)
+        rehead_bam(screen_uploads.out.metadata, screen_uploads.out.copied_bam) | samtools_filter | samtools_index | post_index | samtools_depth
         rehead_fasta(screen_uploads.out.metadata, screen_uploads.out.copied_fasta)
 
-        samtools_filter(screen_uploads.out.metadata, rehead_bam.out.inbound_bam)
-        samtools_index(screen_uploads.out.metadata, samtools_filter.out.filtered_bam)
-        post_index(screen_uploads.out.metadata, samtools_filter.out.filtered_bam, samtools_index.out.idx_status)
-
-        samtools_depth(post_index.out.metadata, post_index.out.indexed_bam)
-
         swell(post_index.out.metadata, post_index.out.indexed_bam, rehead_fasta.out.rehead_fasta, samtools_depth.out.bam_depth)
-
         post_swell(post_index.out.metadata, post_index.out.indexed_bam, rehead_fasta.out.rehead_fasta, swell.out.swell_metrics, swell.out.wstatus)
+
         ocarina_ls(post_swell.out.metadata, post_swell.out.swelled_fasta, post_swell.out.swelled_bam, post_swell.out.swelled_metrics)
 
         ocarina_ls.out

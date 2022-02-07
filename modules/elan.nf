@@ -140,6 +140,7 @@ process rehead_bam {
     path copied_bam
 
     output:
+    val(row)
     path "${row.coguk_id}.${row.run_name}.inbound.bam", emit: inbound_bam
 
     script:
@@ -160,6 +161,7 @@ process samtools_filter {
     path inbound_bam
 
     output:
+    val(row)
     path "${row.coguk_id}.${row.run_name}.climb.bam", emit: filtered_bam
 
     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${row.coguk_id}.${row.run_name}.climb.bam", mode: "copy", overwrite: true
@@ -181,9 +183,11 @@ process samtools_index {
     path filtered_bam
 
     output:
+    val(row), emit: metadata
+    path filtered_bam, emit: indexed_bam
+    env(rv), emit: idx_status
     path "${row.coguk_id}.${row.run_name}.index.quickcheck", emit: bam_index_quickcheck
     path "${filtered_bam.baseName}.bam.bai", emit: bam_bai optional true
-    env(rv), emit: idx_status
 
     publishDir path: "${params.artifacts_root}/bam/${params.datestamp}/", pattern: "${filtered_bam.baseName}.bam.bai", mode: "copy", overwrite: true
 
@@ -203,6 +207,8 @@ process post_index {
     val(row)
     path(indexed_bam)
     val(idx_status)
+    path(quickcheck)
+    path(index)
 
     output:
     val(row), emit: metadata
