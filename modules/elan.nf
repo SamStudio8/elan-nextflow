@@ -275,7 +275,7 @@ process swell {
     output:
     path "${row.coguk_id}.${row.run_name}.qc", emit: swell_metrics
     path "${row.coguk_id}.${row.run_name}.swell.quickcheck", emit: swell_quickcheck
-    tuple val(process_key), val(row), path(rehead_fasta), path(filtered_bam), path("${row.coguk_id}.${row.run_name}.qc"), env(rv), emit: swell_status
+    tuple val(process_key), val(row), path(rehead_fasta), path(filtered_bam), path("${row.coguk_id}.${row.run_name}.qc"), env(rv), emit: screen_swell
 
     publishDir path: "${params.publish}/staging/qc", pattern: "${row.coguk_id}.${row.run_name}.qc", mode: "copy", overwrite: true // still required for ocarina.nf for now, ideally use report_ch version
 

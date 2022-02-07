@@ -74,7 +74,7 @@ workflow inbound {
         // Push swell output through post_swell, which will drop tuples that failed swell
         // output can flow right through to ocarina_ls for listing without a join as everything
         // has been nailed down in a tuple through swell
-        swell.out.swell_status | post_swell | ocarina_ls
+        swell.out.screen_swell | post_swell | ocarina_ls
 
         ocarina_ls.out
             .collectFile(name: "ocarina.files.ls", storeDir: "${params.artifacts_root}/elan/${params.datestamp}/", sort: false)
