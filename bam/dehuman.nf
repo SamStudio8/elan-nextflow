@@ -41,7 +41,6 @@ process kraken_bam_reads {
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol from bamfa_manifest_ch
 
     output:
-    publishDir path: "${params.publish}/staging/k2", pattern: "*k2*", mode: "copy", overwrite: true
     tuple ena_sample_name, coguk_id, sample_center, collection_date, received_date, adm0, adm1, run_name, ena_run_name, file(bam), run_center, l_strategy, l_source, l_selection, run_platform, run_instrument, file(bam_fasta), file("${bam_fasta}.k2o.9606.ls"), gisaid_id, min_ct, max_ct, exp_primers, exp_protocol, exp_seq_kit, exp_seq_protocol into k2_manifest_ch
     file "${bam_fasta}.k2o.gz"
     file "${bam_fasta}.k2r"

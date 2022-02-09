@@ -233,8 +233,6 @@ process samtools_depth {
     output:
     tuple val(process_key), path("${row.coguk_id}.${row.run_name}.climb.bam.depth"), emit: bam_depth
 
-    publishDir path: "${params.publish}/staging/depth", pattern: "${row.coguk_id}.${row.run_name}.climb.bam.depth", mode: "copy", overwrite: true
-
     // 2021-08-25 Updated to use samtools 1.13 for significant improvement to depth algorithm
     // -d0 removed as depth limit deprecated in samtools 1.13
     // https://github.com/COG-UK/dipi-group/issues/129
