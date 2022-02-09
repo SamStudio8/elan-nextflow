@@ -8,7 +8,7 @@ source "$EAGLEOWL_CONF/service_elan.env"
 
 # Activate env
 eval "$(conda shell.bash hook)"
-conda activate $CONDA_OCARINA
+conda activate $CONDA_POSTELAN
 
 set -euo pipefail
 
