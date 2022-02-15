@@ -79,6 +79,7 @@ process samtools_quickcheck {
     """
 }
 
+// NOTE must cover any potential exit conditions of rehead_fasta as that process is not allowed to exit non-zero
 process fasta_quickcheck {
     tag { fasta }
     label 'bear'
@@ -111,9 +112,9 @@ process screen_uploads {
 
     errorStrategy 'ignore'
 
-    // bit pointless now but whatever
+    // copy is a bit pointless now we dont store raw backup but whatever
     script:
-    if (fstatus.toInteger() >= 0 && bstatus.toInteger() >= 0) // pass these for now == 0
+    if (fstatus.toInteger() == 0 && bstatus.toInteger() == 0)
         """
         cp ${bam} ${row.coguk_id}.${row.run_name}.uploaded.bam
         cp ${fasta} ${row.coguk_id}.${row.run_name}.uploaded.fasta

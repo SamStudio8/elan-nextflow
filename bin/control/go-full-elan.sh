@@ -78,7 +78,7 @@ MSG='{"text":"*COG-UK inbound pipeline begins...*
 *Log dir* `'$ELAN_LOG_DIR'/'$DATESTAMP'`"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 
-ELAN_STEP1_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.$DATESTAMP.log"
+export ELAN_STEP1_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.elan.$DATESTAMP.log" # export for handle-elan
 ELAN_STEP2_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.$DATESTAMP.log"
 
 # OCARINA_FILE only written if elan processed at least one sample
@@ -88,13 +88,14 @@ OCARINA_OK_FLAG="$ELAN_DAY_LOG_DIR/ocarina.ok.flag"
 
 if [ ! -f "$ELAN_OK_FLAG" ]; then
     # If a log already exists, then the pipeline needs to be resumed
+    # NOTE --uploads MUST be quoted to prevent a premature shell expansion of the uploads glob
     RESUME_FLAG=""
     if [ -f "$ELAN_STEP1_STDOUTERR" ]; then
         RESUME_FLAG="-resume"
 	MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log (`rm '$ELAN_STEP1_STDOUTERR'`) to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
     fi
-    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run $ELAN_SOFTWARE_DIR -c $ELAN_CONFIG --mode inbound --artifacts_root $ARTIFACTS_ROOT --publish $ELAN_DIR --uploads $UPLOADS_DIR_GLOB --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run $ELAN_SOFTWARE_DIR -c $ELAN_CONFIG --mode inbound --artifacts_root $ARTIFACTS_ROOT --publish $ELAN_DIR --uploads \"$UPLOADS_DIR_GLOB\" --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
     ret=$?
 
     if [ $ret -ne 0 ]; then
