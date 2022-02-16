@@ -14,7 +14,13 @@ DATESTAMP
 ARTIFACTS_ROOT
 CONDA_OCARINA
 ELAN_DAY_LOG_DIR
+MAJORA_DOMAIN
 EOF
+
+eval "$(conda shell.bash hook)"
+conda activate $CONDA_OCARINA
+
+set -euo pipefail
 
 # Touch some pointless files
 # NOTE relies on Elan creating these dirs first
@@ -25,8 +31,6 @@ touch $ARTIFACTS_ROOT/bam/$DATESTAMP/.hoot
 # This will ensure a single call is emitted to add $ARTIFACTS_ROOT/{fasta,bam}/$DATESTAMP to Majora
 # and avoid ocarina.nf falling over itself to add as many versions of the MAG as many times as it can
 # in the opening seconds of Saturday
-eval "$(conda shell.bash hook)"
-conda activate $CONDA_OCARINA
 ocarina --oauth --angry --env put file --path "$ARTIFACTS_ROOT/fasta/$DATESTAMP/.hoot" --type file --i-have-bad-files --full-path --node climb --pipeline-hook "cog-publish-$DATESTAMP";
 ocarina --oauth --angry --env put file --path "$ARTIFACTS_ROOT/bam/$DATESTAMP/.hoot" --type file --i-have-bad-files --full-path --node climb --pipeline-hook "cog-publish-$DATESTAMP";
 touch "$ELAN_DAY_LOG_DIR/publish.d183mag.ok"
