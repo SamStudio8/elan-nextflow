@@ -11,7 +11,7 @@ process save_manifest {
     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
 
     """
-    ocarina --oauth --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > majora.metadata.tsv
+    ocarina --oauth --quiet --profile ${params.ocarina_profile} get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > majora.metadata.tsv
     """
 }
 
@@ -49,7 +49,7 @@ process announce_uploads {
     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}", pattern: "announce.ok", mode: "copy", overwrite: true
 
     """
-    ocarina --oauth --env get summary --md > summary.md
+    ocarina --oauth --profile ${params.ocarina_profile} get summary --md > summary.md
     message_uploads.sh ${manifest} ${files_ls} ${files_err} SHORTSTART \$ELAN_SLACK_HOOK summary.md ${params.datestamp}
     touch announce.ok
     """

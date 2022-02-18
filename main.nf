@@ -6,8 +6,11 @@ include {play_ocarina} from "./modules/ocarina.nf"
 include {inbound} from "./workflows/elan.nf"
 
 if (!params.mode) error "A workflow must be chosen: --mode {inbound,ocarina,ena_bam}"
+if (!params.ocarina_profile) error "An Ocarina profile must be chosen: --ocarina_profile profile"
+if( !System.getenv("OCARINA_CONF_FILE") ) error '$OCARINA_CONF_FILE unset'
 
 workflow {
+
     if (params.mode == "inbound"){
         if( !params.datestamp ) error "Missing `datestamp` param: YYYYMMDD datestamp to identify today's run"
         if( !params.uploads ) error "Missing `uploads` param: path to glob CLIMB-COVID uploads"
@@ -17,13 +20,11 @@ workflow {
         if( !params.artifacts_root ) error "Missing `artifacts_root` param: path to new CLIMB-COVID published artifacts root"
 
         if( !System.getenv("ELAN_SLACK_HOOK") ) error '$ELAN_SLACK_HOOK unset'
-        if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
 
 	inbound()
         
     } else if (params.mode == "ocarina"){
         if( !params.manifest ) error "Missing `manifest` param: today's ocarina manifest from elan [path]"
-        if( !System.getenv("MAJORA_DOMAIN") ) error '$MAJORA_DOMAIN unset, Majora credentials likely not loaded into environment' // just check for MAJORA_DOMAIN here
         
         Channel
             .fromPath(params.manifest)
