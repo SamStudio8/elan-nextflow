@@ -25,7 +25,7 @@ process save_manifest {
     file 'majora.metadata.tsv' into resolve_ch
 
     """
-    ocarina --oauth --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > majora.metadata.tsv
+    ocarina --oauth --quiet --env get sequencing --run-name '*' --faster --tsv --task-wait-attempts 90 --task-wait > majora.metadata.tsv
     """
 }
 
