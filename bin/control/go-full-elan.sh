@@ -87,6 +87,7 @@ ELAN_STEP2_STDOUTERR="$ELAN_LOG_DIR/$DATESTAMP/nf.ocarina.$DATESTAMP.log"
 OCARINA_FILE="$ARTIFACTS_ROOT/elan/$DATESTAMP/ocarina.files.ls"
 ELAN_OK_FLAG="$ELAN_DAY_LOG_DIR/elan.ok.flag"
 OCARINA_OK_FLAG="$ELAN_DAY_LOG_DIR/ocarina.ok.flag"
+PUBLISH_OK_FLAG="$ELAN_DAY_LOG_DIR/publish.ok.flag"
 
 if [ ! -f "$ELAN_OK_FLAG" ]; then
     # If a log already exists, then the pipeline needs to be resumed
@@ -165,21 +166,29 @@ else
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 fi
 
-SECONDS=0
-bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_STEP3_LOG
-ret=$?
-TIMER=$(python -c "import datetime; print('(publish)', str(datetime.timedelta(seconds=$SECONDS)))")
-MSG='{"text":"*COG-UK Elan-Publish pipeline finished...*
+
+if [ ! -f "$PUBLISH_OK_FLAG" ]; then
+    SECONDS=0
+    bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_STEP3_LOG
+    ret=$?
+    TIMER=$(python -c "import datetime; print('(publish)', str(datetime.timedelta(seconds=$SECONDS)))")
+    MSG='{"text":"*COG-UK Elan-Publish pipeline finished...*
 ...with exit status '"$ret"' in '"$TIMER"'"}'
-curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
-if [ $ret -ne 0 ]; then
-    MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
     curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
-    exit $ret
+    if [ $ret -ne 0 ]; then
+        MSG='{"text":"<!channel> *COG-UK inbound pipeline failed...*"}'
+        curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
+        exit $ret
+    else
+        touch $PUBLISH_OK_FLAG
+    fi
+else
+    MSG='{"text":"*COG-UK inbound pipeline* Cowardly skipping Publish as the OK flag (`'$PUBLISH_OK_FLAG'`) already exists for today. You cannot safely re-run cog-publish by deleting the OK flag, you must also use cog-publish-link to repoint the artifacts head symlink."}'
+    curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 fi
 
 
 # Scream into the COGUK/ether
 eval "$(conda shell.bash hook)"
 conda activate $CONDA_IPC
-mqtt-message.py -t '$MQTT_ENV/infrastructure/pipelines/elan/status' --host $MQTT_HOST --attr status finished --attr date $DATESTAMP
+mqtt-message.py -t "$MQTT_ENV/infrastructure/pipelines/elan/status" --host $MQTT_HOST --attr status finished --attr date $DATESTAMP
