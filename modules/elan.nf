@@ -244,6 +244,7 @@ process samtools_depth {
 }
 
 process rehead_fasta {
+    conda "python=3.8"
     label 'bear'
 
     input:
