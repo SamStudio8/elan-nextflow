@@ -41,6 +41,7 @@ CONDA_OCARINA
 CONDA_IPC
 NXF_WORK
 NXF_CONDA_CACHEDIR
+MQTT_ENV
 EOF
 
 if ! command -v conda &> /dev/null
@@ -181,4 +182,4 @@ fi
 # Scream into the COGUK/ether
 eval "$(conda shell.bash hook)"
 conda activate $CONDA_IPC
-mqtt-message.py -t 'COGUK/infrastructure/pipelines/elan/status' --host $MQTT_HOST --attr status finished --attr date $DATESTAMP
+mqtt-message.py -t '$MQTT_ENV/infrastructure/pipelines/elan/status' --host $MQTT_HOST --attr status finished --attr date $DATESTAMP
