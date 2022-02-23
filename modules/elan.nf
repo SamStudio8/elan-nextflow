@@ -11,7 +11,7 @@ process save_manifest {
     publishDir path: "${params.artifacts_root}/elan/${params.datestamp}/", pattern: "majora.metadata.tsv", mode: "copy", overwrite: true
 
     """
-    ocarina --oauth --quiet --profile ${params.ocarina_profile} get sequencing --run-name '*' --faster --tsv --task-wait-attempts 75 --task-wait > majora.metadata.tsv
+    ocarina --oauth --quiet --profile ${params.ocarina_profile} get sequencing --run-name '*' --faster --tsv --task-wait-attempts 90 --task-wait > majora.metadata.tsv
     """
 }
 
