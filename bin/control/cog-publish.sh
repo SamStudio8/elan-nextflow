@@ -12,7 +12,7 @@ source "$EAGLEOWL_CONF/elan/dev.env"
 
 # Activate env
 eval "$(conda shell.bash hook)"
-conda activate $CONDA_OCARINA
+conda activate $CONDA_POSTELAN
 
 set -euo pipefail
 
@@ -37,11 +37,11 @@ PAGS_OK_FLAG="$ELAN_DAY_LOG_DIR/publish.pags.ok"
 if [ ! -f "$PAGS_OK_FLAG" ]; then
 
     # Get files that pass QC since last pipe for reconcile
-    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > latest_elan.pass_pag_lookup.tsv
+    ocarina --oauth --quiet --profile $OCARINA_PROFILE get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --published-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > latest_elan.pass_pag_lookup.tsv
     cp latest_elan.pass_pag_lookup.tsv $ARTIFACTS_ROOT/elan/$1/
 
     # Get files that were suppressed and withdrawn since last pipe for reconcile
-    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > latest_elan.kill_pag_lookup.tsv
+    ocarina --oauth --quiet --profile $OCARINA_PROFILE get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --pass --suppressed-after $LAST_DATE --task-wait --task-wait-attempts 15 --task-wait-minutes 1 > latest_elan.kill_pag_lookup.tsv
     cp latest_elan.kill_pag_lookup.tsv $ARTIFACTS_ROOT/elan/$1/
 
     # NOTE 2022-01-25
@@ -50,9 +50,9 @@ if [ ! -f "$PAGS_OK_FLAG" ]; then
     #   place and providing a lookup for users to be able to find them. Long term
     #   I would like to see all these artifacts stored in our S3 gateway instead.
     # Make big super lookup table
-    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --output-header > majora.pag_lookup.tsv
+    ocarina --oauth --quiet --profile $OCARINA_PROFILE get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --output-header > majora.pag_lookup.tsv
     # append all suppressed files to lookup table
-    ocarina --oauth --quiet --env get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --suppressed-after 1970-01-01 >> majora.pag_lookup.tsv
+    ocarina --oauth --quiet --profile $OCARINA_PROFILE get pag --mode pagfiles --test-name 'cog-uk-elan-minimal-qc' --task-wait --task-wait-attempts 15 --suppressed-after 1970-01-01 >> majora.pag_lookup.tsv
     # and unpack the pag for a slightly more end-user friendly lookup table
     python $ELAN_SOFTWARE_DIR/bin/control/cog-publish-unpag.py --tsv majora.pag_lookup.tsv > $ARTIFACTS_ROOT/elan/$1/majora.pag_lookup.tsv
 
@@ -127,7 +127,7 @@ bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish-link.sh $1
 
 # Announce summary table and failures
 DASH_DATE=`date -d $1 +%Y-%m-%d`
-TABLE=`ocarina --oauth -q --env get summary --md --gte-date $DASH_DATE | column -t -s'|'`
+TABLE=`ocarina --oauth -q --profile $OCARINA_PROFILE get summary --md --gte-date $DASH_DATE | column -t -s'|'`
 
 
 POST='{"text":"
@@ -146,7 +146,7 @@ _These errors will appear every day, forever, until the data in question has bee
 curl -X POST -H 'Content-type: application/json' --data "$POST" $SLACK_REAL_HOOK
 
 # Final summary
-COUNT_PASS=`ocarina --oauth --env get summary --md | awk '{sum+=$8} END {print sum}'`
+COUNT_PASS=`ocarina --oauth --profile $OCARINA_PROFILE get summary --md | awk '{sum+=$8} END {print sum}'`
 COUNT_NEW=`wc -l $ARTIFACTS_ROOT/elan/$1/swell.qc.tsv | cut -f1 -d' '`
 POST='{
     "attachments": [
