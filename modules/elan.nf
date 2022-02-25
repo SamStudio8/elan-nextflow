@@ -56,7 +56,7 @@ process announce_uploads {
 }
 
 process samtools_quickcheck {
-    tag { bam }
+    tag { process_key }
     conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
@@ -81,7 +81,7 @@ process samtools_quickcheck {
 
 // NOTE must cover any potential exit conditions of rehead_fasta as that process is not allowed to exit non-zero
 process fasta_quickcheck {
-    tag { fasta }
+    tag { process_key }
     label 'bear'
 
     input:
@@ -101,7 +101,7 @@ process fasta_quickcheck {
 
 // 2022-01-20 Renamed to screen_uploads as we no longer store the publish/uploaded/ dir as it wastes space
 process screen_uploads {
-    tag { row.coguk_id + ' ' + bam + ' ' + fasta }
+    tag { process_key }
     label 'bear'
 
     input:
@@ -128,7 +128,7 @@ process screen_uploads {
 }
 
 process rehead_bam {
-    tag { row.coguk_id + ' ' + row.bam + ' ' + row.fasta + ' ' + copied_bam}
+    tag { process_key }
     label 'bear'
     conda "$baseDir/environments/samtools.yaml"
 
@@ -147,7 +147,7 @@ process rehead_bam {
 }
 
 process samtools_filter {
-    tag { row.bam + ' ' + row.fasta + ' ' + inbound_bam}
+    tag { process_key }
     conda "$baseDir/environments/samtools.yaml"
     label 'bear'
 
@@ -165,7 +165,7 @@ process samtools_filter {
 }
 
 process samtools_index {
-    tag { row.bam + ' ' + row.fasta + ' ' + filtered_bam}
+    tag { process_key }
     label 'bear'
     conda "$baseDir/environments/samtools.yaml"
 
@@ -193,7 +193,7 @@ process samtools_index {
 }
 
 process post_index {
-    tag { row.coguk_id + ' ' + row.bam }
+    tag { process_key }
 
     input:
     val(row)
@@ -221,7 +221,7 @@ process post_index {
 }
 
 process samtools_depth {
-    tag { row.coguk_id + ' ' + indexed_bam }
+    tag { process_key }
     conda "$baseDir/environments/samtools113.yaml"
     label 'bear'
 
@@ -244,6 +244,7 @@ process samtools_depth {
 }
 
 process rehead_fasta {
+    tag { process_key }
     label 'bear'
 
     input:
@@ -262,7 +263,7 @@ process rehead_fasta {
 
 // Note the allow list for swell uses 'in' rather than exact matching, so NC_045512 will permit NC_045512.2 etc.
 process swell {
-    tag { row.coguk_id + ' ' + filtered_bam }
+    tag { process_key }
     conda "$baseDir/environments/swell.yaml"
     label 'bear'
 
@@ -289,7 +290,7 @@ process swell {
 }
 
 process post_swell {
-    tag { row.coguk_id + ' ' + filtered_bam }
+    tag { process_key }
 
     input:
     tuple val(process_key), val(row), path(reheaded_fasta), path(indexed_bam), path(swell_metrics), val(wstatus)
@@ -313,6 +314,7 @@ process post_swell {
 
 // NOTE The entries here need to match the publishDir directives above to make sure Majora knows where the files are
 process ocarina_ls {
+    tag { process_key }
     
     input:
     tuple val(process_key), val(row), path(rehead_fasta), path(filtered_bam), path(swell_metrics)
