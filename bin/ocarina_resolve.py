@@ -102,18 +102,6 @@ for row in manifest:
             else:
                 pass # skip and pass through the submission_org
 
-        lp = row.get("library_primers")
-        if lp and len(lp) > 0 and lp != "None":
-            tile_str = lp
-            tiles_t = re.findall(r'\d+', tile_str)
-        else:
-            tile_str = row.get("meta.artic.primers", "0")
-            tiles_t = re.findall(r'\d+', tile_str)
-
-        tiles = 0
-        if len(tiles_t) > 0:
-            tiles = tiles_t[0]
-
         tot_count += 1
         if is_new:
             new_count += 1 # run must be new
@@ -134,7 +122,6 @@ for row in manifest:
             "pag": has_pag,
             "is_new": is_new,
             "run_name": run_name,
-            "tiles": tiles,
             "adm0": row.get("adm0", "UNKNOWN"),
             "adm1_mapped": countries[row.get("adm1", "")],
             "cor_date": cor_date,
@@ -270,7 +257,6 @@ for sample_name in runs_by_sample:
             runs_by_sample[sample_name][run_name]["source_site"],
             runs_by_sample[sample_name][run_name]["site"],
             runs_by_sample[sample_name][run_name]["pag"],
-            str(runs_by_sample[sample_name][run_name]["tiles"]),
             runs_by_sample[sample_name][run_name]["adm0"],
             runs_by_sample[sample_name][run_name]["adm1_mapped"],
             runs_by_sample[sample_name][run_name]["cor_date"],

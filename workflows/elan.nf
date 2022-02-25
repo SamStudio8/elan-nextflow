@@ -29,7 +29,6 @@ workflow inbound {
                 'sourcecode',
                 'sitecode',
                 'pag',
-                'tiles',
                 'adm0',
                 'adm1_mapped',
                 'cor_date',

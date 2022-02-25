@@ -283,7 +283,7 @@ process swell {
     script:
     """
     rv=0
-    swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${rehead_fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "${row.tiles}" -x "source_site" "${row.sample_site}" -x "seq_site" "${row.sequencing_site}" -x "platform" "${row.platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${row.coguk_id}.${row.run_name}.qc || rv=\$?
+    swell --ref 'NC_045512' 'NC045512' 'MN908947.3' --depth ${depth} --fasta "${rehead_fasta}" -x "tileset_counted" "NA" -x "tileset_reported" "NA" -x "source_site" "${row.sample_site}" -x "seq_site" "${row.sequencing_site}" -x "platform" "${row.platform}" -x "datestamp" "${params.datestamp}" --min-pos 1000 --min-pos-allow-total-zero > ${row.coguk_id}.${row.run_name}.qc || rv=\$?
     echo "\$rv swell ${row.sequencing_site} ${row.coguk_id} ${row.run_name} ${row.dir}/${filtered_bam}" > ${row.coguk_id}.${row.run_name}.swell.quickcheck
     """
 }
