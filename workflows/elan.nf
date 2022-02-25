@@ -4,15 +4,13 @@ include {save_manifest; resolve_uploads; announce_uploads; samtools_quickcheck; 
 
 workflow inbound {
     main:
-        if( params.inbound_manifest){
-            Channel.fromPath(params.inbound_manifest)
-                .set {inbound_manifest_ch}
+        if( !params.inbound_manifest ){
+            saved_manifest = save_manifest().out
         } else {
-            save_manifest().out
-                .set {inbound_manifest_ch}
+            saved_manifest = params.inbound_manifest
         }
-        resolve_uploads(inbound_manifest_ch)
-        announce_uploads(inbound_manifest_ch, resolve_uploads.out)
+        resolve_uploads(saved_manifest)
+        announce_uploads(saved_manifest, resolve_uploads.out)
 
         resolve_uploads.out.elan_files_manifest
             .splitCsv(header:[
