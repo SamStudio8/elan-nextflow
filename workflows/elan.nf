@@ -7,7 +7,7 @@ workflow inbound {
         if( !params.inbound_manifest ){
             saved_manifest = save_manifest().out
         } else {
-            saved_manifest = params.inbound_manifest
+            saved_manifest = Channel.fromPath(params.inbound_manifest)
         }
         resolve_uploads(saved_manifest)
         announce_uploads(saved_manifest, resolve_uploads.out)
