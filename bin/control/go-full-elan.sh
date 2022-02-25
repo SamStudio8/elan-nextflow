@@ -101,6 +101,7 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
     fi
 
+    INBOUND_MANIFEST_FLAG=""
     if  [ -z "$INBOUND_MANIFEST" ]; then
         INBOUND_MANIFEST_FLAG="--inbound_manifest $INBOUND_MANIFEST"
     fi
