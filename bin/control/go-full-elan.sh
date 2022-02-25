@@ -44,6 +44,8 @@ NXF_CONDA_CACHEDIR
 MQTT_ENV
 EOF
 
+INBOUND_MANIFEST=${INBOUND_MANIFEST:-}
+
 if ! command -v conda &> /dev/null
 then
     echo "conda not in PATH"
@@ -98,7 +100,11 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
 	MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log (`rm '$ELAN_STEP1_STDOUTERR'`) to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
     fi
-    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run $ELAN_SOFTWARE_DIR -c $ELAN_CONFIG --mode inbound --ocarina_profile $OCARINA_PROFILE --artifacts_root $ARTIFACTS_ROOT --publish $ELAN_DIR --uploads \"$UPLOADS_DIR_GLOB\" --datestamp $DATESTAMP $RESUME_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
+
+    if  [ -z "$INBOUND_MANIFEST" ]; then
+        INBOUND_MANIFEST_FLAG="--inbound_manifest $INBOUND_MANIFEST"
+    fi
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run $ELAN_SOFTWARE_DIR -c $ELAN_CONFIG --mode inbound --ocarina_profile $OCARINA_PROFILE --artifacts_root $ARTIFACTS_ROOT --publish $ELAN_DIR --uploads \"$UPLOADS_DIR_GLOB\" --datestamp $DATESTAMP $RESUME_FLAG $INBOUND_MANIFEST_FLAG > $ELAN_STEP1_STDOUTERR 2>&1;"
     ret=$?
 
     if [ $ret -ne 0 ]; then
