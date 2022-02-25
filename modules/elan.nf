@@ -1,4 +1,5 @@
 process save_manifest {
+    tag { params.datestamp }
     label 'ocarina'
     conda "$baseDir/environments/ocarina.yaml"
 
@@ -16,6 +17,7 @@ process save_manifest {
 }
 
 process resolve_uploads {
+    tag { manifest }
 
     input:
     file manifest
