@@ -76,6 +76,7 @@ ELAN_STEP2_NFLOG="$ELAN_DAY_LOG_DIR/nf.ocarina.log"
 ELAN_STEP3_LOG="$ELAN_DAY_LOG_DIR/publish.log"
 
 MSG='{"text":"*COG-UK inbound pipeline begins...*
+*Majora user* `'$OCARINA_PROFILE'`
 *Uploads dir* `'$UPLOADS_DIR_GLOB'`
 *Artifacts dir* `'$ARTIFACTS_ROOT'`
 *Publish dir* `'$ELAN_DIR'`
