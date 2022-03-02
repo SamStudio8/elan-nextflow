@@ -56,7 +56,7 @@ if [ ! -f "$ELAN_OK_FLAG" ]; then
         MSG='{"text":"*COG-UK inbound pipeline* Using -resume to re-raise Elan without trashing everything. Delete today'\''s log to force a full restart."}'
         curl -X POST -H 'Content-type: application/json' --data "$MSG" $SLACK_MGMT_HOOK
     fi
-    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run elan.nf -c $ELAN_CONFIG --artifacts_root $ARTIFACTS_ROOT --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --schemegit /cephfs/covid/software/sam/artic-ncov2019 --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;"
+    /usr/bin/flock -w 1 /dev/shm/.sam_elan -c "$NEXTFLOW_BIN -log $ELAN_STEP1_NFLOG run elan.nf -c $ELAN_CONFIG --artifacts_root $ARTIFACTS_ROOT --publish $ELAN_DIR --cog_publish $COG_PUBLISHED_DIR --datestamp $DATESTAMP $RESUME_FLAG > nf.elan.$DATESTAMP.log 2>&1;"
     ret=$?
 
     if [ $ret -ne 0 ]; then
@@ -123,7 +123,7 @@ else
 fi
 
 SECONDS=0
-bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_STEP3_LOG
+bash $ELAN_SOFTWARE_DIR/bin/control/cog-publish.sh $DATESTAMP > $ELAN_STEP3_LOG 2>&1
 ret=$?
 TIMER=$(python -c "import datetime; print('(publish)', str(datetime.timedelta(seconds=$SECONDS)))")
 MSG='{"text":"*COG-UK publishing pipeline finished...*
