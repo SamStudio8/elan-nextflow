@@ -14,8 +14,8 @@ EAGLEOWL_CONF
 EOF
 
 # Init the Elan environment from the Eagle Owl config dir
-source "$EAGLEOWL_CONF/elan/dev.env"
-#source "$EAGLEOWL_CONF/elan/prod.env"
+#source "$EAGLEOWL_CONF/elan/dev.env"
+source "$EAGLEOWL_CONF/elan/prod.env"
 
 DATESTAMP=$1
 while read var; do
@@ -79,7 +79,7 @@ MSG='{"text":"*COG-UK inbound pipeline begins...*
 *Majora user* `'$OCARINA_PROFILE'`
 *Uploads dir* `'$UPLOADS_DIR_GLOB'`
 *Artifacts dir* `'$ARTIFACTS_ROOT'`
-*Publish dir* `'$ELAN_DIR'`
+*Staging dir* `'$ELAN_DIR'`
 *Log dir* `'$ELAN_LOG_DIR'/'$DATESTAMP'`"}'
 curl -X POST -H 'Content-type: application/json' --data "$MSG" $ELAN_SLACK_MGMT_HOOK
 
