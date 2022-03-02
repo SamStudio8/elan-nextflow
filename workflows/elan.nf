@@ -5,7 +5,8 @@ include {save_manifest; resolve_uploads; announce_uploads; samtools_quickcheck; 
 workflow inbound {
     main:
         if( !params.inbound_manifest ){
-            saved_manifest = save_manifest().out
+            save_manifest()
+            saved_manifest = save_manifest.out
         } else {
             saved_manifest = Channel.fromPath(params.inbound_manifest)
         }
