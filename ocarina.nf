@@ -14,15 +14,15 @@ process play_ocarina {
     conda "environments/ocarina.yaml"
 
     maxRetries 2
-    errorStrategy { sleep(Math.pow(2, task.attempt) * 500 as long); task.attempt <= maxRetries ? 'retry' : 'terminate' }
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 500 as long); task.attempt <= maxRetries ? 'retry' : 'ignore' }
 
     input:
     tuple coguk_id, run_name, username, pipeuuid, fasta, bam, qc, sourcesite, seqsite, platform from manifest_ch
 
     script:
     """
-    ocarina --oauth --angry --env put file --path "${fasta}" --type consensus --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline-hook "bioinfo-${run_name}" --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --meta sequencing platform "${platform}";
     ocarina --oauth --angry --env put file --path "${bam}" --type alignment --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline-hook "bioinfo-${run_name}" --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}";
+    ocarina --oauth --angry --env put file --path "${fasta}" --type consensus --i-have-bad-files --source-artifact "sequencing-dummy-reads-${run_name}" --bridge-artifact "${coguk_id}" --pipeline-hook "bioinfo-${run_name}" --sudo-as "${username}" --full-path --node climb --publish-group "COG-UK/${coguk_id}/${seqsite}:${run_name}" --meta sequencing platform "${platform}";
 
 	tail -n1 ${qc} | while read fp num_seqs num_bases pc_acgt pc_masked pc_invalid longest_gap longest_ungap bp num_pos mean_cov pc_pos_cov_gte1 pc_pos_cov_gte5 pc_pos_cov_gte10 pc_pos_cov_gte20 pc_pos_cov_gte50 pc_pos_cov_gte100 pc_pos_cov_gte200 pc_tiles_gte1 pc_tiles_gte5 pc_tiles_gte10 pc_tiles_gte20 pc_tiles_gte50 pc_tiles_gte100 pc_tiles_gte200 n_tiles tile_vector tileset_counted tileset_reported; \n
 	do
