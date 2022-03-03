@@ -7,8 +7,8 @@ ELAN_DAY_LOG_DIR
 EOF
 
 # Init the Elan environment from the Eagle Owl config dir
-source "$EAGLEOWL_CONF/elan/dev.env"
-#source "$EAGLEOWL_CONF/elan/prod.env"
+#source "$EAGLEOWL_CONF/elan/dev.env"
+source "$EAGLEOWL_CONF/elan/prod.env"
 
 # Activate env
 eval "$(conda shell.bash hook)"

@@ -1,5 +1,5 @@
 process play_ocarina {
-    tag { bam }
+    tag { row.bam }
     label 'ocarina'
     conda "$baseDir/environments/ocarina.yaml"
 
