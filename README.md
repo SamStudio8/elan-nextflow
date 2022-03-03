@@ -6,7 +6,10 @@
 </div>
 
 Elan is the inbound distribution pipeline for CLIMB-COVID.
-Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publishing them to a common location.
+Elan is a Nextflow DSL2 pipeline for quality checking dispersed files and publishing them to a common location.
+
+Elan was authored by [@samstudio8](https://github.com/samstudio8) as part of CLIMB-COVID's work with the COVID-19 Genomics UK Consortium.
+Elan is now maintained by [@BioWilko](https://github.com/BioWilko).
 
 ## Parameters and environment variables
 
@@ -17,6 +20,7 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | Name | Description |
 | ---- | ----------- |
 | `DATESTAMP` | YYYYMMDD datestamp to identify today's run |
+| `UPLOADS_DIR_GLOB` | Uploads glob to expand as part of `resolve_uploads` |
 | `ELAN_CONFIG` | Path to current Nextflow configuration |
 | `ELAN_SOFTWARE_DIR` | Path to local clone of elan-nextflow |
 | `ELAN_RUN_DIR` | Path to dir to run Elan from (scratch) |
@@ -26,6 +30,9 @@ Elan is a Nextflow DSL1 pipeline for quality checking dispersed files and publis
 | `SLACK_MGMT_HOOK` | Slack HTTPS webhook for posting debug messages |
 | `SLACK_REAL_HOOK` | Slack HTTPS webhook for posting inbound-dist messages |
 | `MQTT_HOST` | IP for MQTT broker |
+| `MQTT_ENV` | Root MQTT topic (`CLIMBDEV` or `COGUK`) |
+| `CONDA_OCARINA` | conda prefix to `conda activate` when performing ocarina calls outside of Elan |
+| `CONDA_IPC` | conda prefix to `conda activate` when sending MQTT messages with Tael |
 
 `go-full-elan.sh` will immediately terminate with exit 64 (`EX_USAGE`) if any of the listed parameters are missing from the environment.
 
@@ -37,6 +44,7 @@ Additionally, variables defined above may be used in cog-publish.sh without list
 | Name | Description |
 | ---- | ----------- |
 | `COG_PUBLISH_MODE` | Set to `local` or `slurm` to control how the daily consensus is generated |
+| `CONDA_POSTELAN` | conda prefix to `conda activate` for publish related activities |
 
 
 ### Running Elan
@@ -45,23 +53,23 @@ Additionally, variables defined above may be used in cog-publish.sh without list
 
 | Name | Description |
 | ---- | ----------- |
-| `--datestamp` | YYYYMMDD datestamp to identify today's run |
-| `--uploads` | Glob path for CLIMB-COVID user uploads |
-| `--publish` | Path to CLIMB-COVID staged artifacts root (nicholsz/) |
-| `--artifacts_root` | Path to new CLIMB-COVID published artifact root (/artifacts/) |
-| `--minlen` | Minimum genome size required to pass the save_uploads step [int] |
-
+| `--mode` | `inbound` or `ocarina` |
+| `--ocarina_profile` | Ocarina profile to use for `save_manifest` (inbound) or `play_ocarina` (ocarina) |
+| `--datestamp` (elan) | YYYYMMDD datestamp to identify today's run |
+| `--uploads` (elan) | Glob path for CLIMB-COVID user uploads (ensure to quote appropriately to prevent premature glob expansion) |
+| `--publish` (elan) | Path to CLIMB-COVID staged artifacts root (nicholsz/) |
+| `--artifacts_root` (elan) | Path to new CLIMB-COVID published artifact root (/artifacts/) |
+| `--minlen` (elan) | Minimum genome size required to pass the `screen_uploads` step [int] |
+| `--manifest` (ocarina) | Path to Ocarina manifest created by Elan pipeline |
 
 #### elan-nextflow environment variables
 
 | Name | Description |
 | ---- | ----------- |
-| `ELAN_SLACK_HOOK` | HTTPS hook for posting post-resolve messages to Slack |
-| `MAJORA_DOMAIN` | `MAJORA_*` variables control authentication with Majora for Ocarina steps. See https://github.com/SamStudio8/ocarina#readme |
-| `MAJORA_USER` | " |
-| `MAJORA_TOKEN` | " |
-| `MAJORA_CLIENT_ID` | " |
-| `MAJORA_CLIENT_SECRET` | " |
+| `ELAN_SLACK_MGMT_HOOK` | HTTPS hook for posting management and control messages to Slack |
+| `ELAN_SLACK_INBOUND_HOOK` | HTTPS hook for posting counts and QC messages to Slack |
+| `OCARINA_CONF_FILE` | Path to Ocarina JSON configuration |
+| `OCARINA_PROFILE` | Profile to load from Ocarina JSON configuration |
 
 Note that Elan will only error if `MAJORA_DOMAIN` is unset, all other `MAJORA_*` variables are not checked.
 
@@ -79,7 +87,7 @@ Note that Elan will only error if `MAJORA_DOMAIN` is unset, all other `MAJORA_*`
 Add the following line to the execution node's `crontab`:
 
 ```
-31 5 * * * DATE=`date +\%Y\%m\%d`; /path/to/elan-nextflow/bin/control/go-full-elan.sh $DATE
+1 4 * * * export EAGLEOWL_CONF=/path/to/eagle-owl/config; export DATESTAMP=`date +\%Y\%m\%d`; /path/to/elan/repo/bin/control/go-full-elan.sh $DATESTAMP
 ```
 
 ## Etymology
